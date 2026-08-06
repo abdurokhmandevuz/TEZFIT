@@ -4,9 +4,11 @@ from config import settings
 from database.base import Base
 
 db_url = settings.DATABASE_URL
-# Fallback formatting if someone provided standard sqlite:/// or postgresql://
+# Fallback formatting for SQLite & Railway Postgres (postgres:// or postgresql://)
 if db_url.startswith("sqlite://") and not db_url.startswith("sqlite+aiosqlite://"):
     db_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
+elif db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+asyncpg://")
 elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+asyncpg://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
