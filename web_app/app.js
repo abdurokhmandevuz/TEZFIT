@@ -10,6 +10,7 @@ let currentSlide = 0;
 let currentSelectedFile = null;
 let currentParsedItems = [];
 let currentTotalMealData = null;
+let mediaStream = null;
 
 let calorieChart = null;
 let weeklyChart = null;
@@ -207,56 +208,95 @@ function initWeeklyChart(weeklyStats) {
   });
 }
 
-// ================= AI CAMERA & SCANNER FUNCTIONS =================
+// ================= REAL LIVE HTML5 CAMERA STREAM & GALLERY =================
 function openCameraModal() {
   document.getElementById('camera-modal').style.display = 'flex';
-  document.getElementById('camera-live-preview').style.display = 'none';
+  switchToCameraMode();
 }
 
 function closeCameraModal() {
+  stopLiveCameraStream();
   document.getElementById('camera-modal').style.display = 'none';
-  document.getElementById('camera-live-preview').style.display = 'none';
 }
 
-function triggerCameraCapture() {
+async function switchToCameraMode() {
   document.getElementById('pill-camera').classList.add('active');
   document.getElementById('pill-gallery').classList.remove('active');
-  const camInput = document.getElementById('input-camera');
-  if (camInput) camInput.click();
+  await startLiveCameraStream();
+}
+
+async function startLiveCameraStream() {
+  stopLiveCameraStream();
+  const videoEl = document.getElementById('camera-video-stream');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    return;
+  }
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    videoEl.srcObject = mediaStream;
+  } catch (err) {
+    console.warn('Live camera stream not supported or denied:', err);
+  }
+}
+
+function stopLiveCameraStream() {
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+}
+
+function captureSnapshotFromStream() {
+  const videoEl = document.getElementById('camera-video-stream');
+  
+  if (mediaStream && videoEl && videoEl.videoWidth > 0) {
+    const canvas = document.getElementById('camera-snapshot-canvas');
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const imageSrc = canvas.toDataURL('image/jpeg');
+      stopLiveCameraStream();
+      submitImageScanToAI(blob, imageSrc);
+    }, 'image/jpeg', 0.85);
+  } else {
+    // Fallback if live video stream permissions unavailable
+    document.getElementById('input-camera').click();
+  }
 }
 
 function triggerGalleryPick() {
   document.getElementById('pill-gallery').classList.add('active');
   document.getElementById('pill-camera').classList.remove('active');
-  const galInput = document.getElementById('input-gallery');
-  if (galInput) galInput.click();
+  stopLiveCameraStream();
+  document.getElementById('input-gallery').click();
 }
 
-async function handleImageSelected(event) {
+function handleFileSelected(event) {
   const file = event.target.files[0];
   if (!file) return;
 
   currentSelectedFile = file;
 
-  // Show preview inside viewfinder
   const reader = new FileReader();
   reader.onload = function(e) {
-    const previewImg = document.getElementById('camera-live-preview');
-    previewImg.src = e.target.result;
-    previewImg.style.display = 'block';
-    
-    // Submit scan to AI backend
+    stopLiveCameraStream();
     submitImageScanToAI(file, e.target.result);
   };
   reader.readAsDataURL(file);
 }
 
-async function submitImageScanToAI(file, imageSrc) {
+async function submitImageScanToAI(fileOrBlob, imageSrc) {
   document.getElementById('cam-loading').style.display = 'flex';
 
   const formData = new FormData();
   formData.append('initData', initData);
-  formData.append('file', file);
+  formData.append('file', fileOrBlob, 'scan.jpg');
 
   try {
     const res = await fetch('/api/scan-photo', { method: 'POST', body: formData });
@@ -267,7 +307,6 @@ async function submitImageScanToAI(file, imageSrc) {
       closeCameraModal();
       renderResultSheet(data.data, imageSrc);
     } else {
-      // Fallback result sheet so user is never blocked
       closeCameraModal();
       renderResultSheet({
         items: [
@@ -293,12 +332,10 @@ function renderResultSheet(aiData, imageSrc) {
   currentTotalMealData = aiData;
   currentParsedItems = aiData.items || [];
 
-  // Hero Image
   if (imageSrc) {
     document.getElementById('sheet-food-img').src = imageSrc;
   }
 
-  // Calculate totals
   const totalCal = Math.round(aiData.total_calories || aiData.calories || 650);
   const totalProtein = Math.round(aiData.total_protein || (currentParsedItems[0] ? currentParsedItems[0].protein_g : 30));
   const totalCarbs = Math.round(aiData.total_carbs || (currentParsedItems[0] ? currentParsedItems[0].carbs_g : 75));
@@ -306,7 +343,6 @@ function renderResultSheet(aiData, imageSrc) {
 
   document.getElementById('res-cal-val').innerText = `${totalCal.toLocaleString()} kcal`;
 
-  // Macro percentages against daily goals
   const proteinPct = Math.min(100, Math.round((totalProtein / 120) * 100));
   const carbsPct = Math.min(100, Math.round((totalCarbs / 200) * 100));
   const fatPct = Math.min(100, Math.round((totalFat / 65) * 100));
@@ -320,7 +356,6 @@ function renderResultSheet(aiData, imageSrc) {
   document.getElementById('res-fat-fill').style.width = `${fatPct}%`;
   document.getElementById('res-fat-pct').innerText = `${fatPct}%`;
 
-  // Detailed items list breakdown
   const itemsContainer = document.getElementById('res-items-container');
   if (currentParsedItems && currentParsedItems.length > 0) {
     itemsContainer.innerHTML = currentParsedItems.map(item => `
