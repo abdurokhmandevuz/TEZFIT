@@ -7,6 +7,9 @@ def ensure_superuser():
         print("[Django Admin] Running database migrations...")
         call_command('migrate', interactive=False, verbosity=0)
 
+        print("[Django Admin] Collecting static files for Jazzmin...")
+        call_command('collectstatic', interactive=False, verbosity=0)
+
         User = get_user_model()
         username = "admin"
         email = "admin@gmail.com"
@@ -33,4 +36,4 @@ def ensure_superuser():
             user.save()
             print(f"[Django Admin] Superuser '{username}' updated with credentials admin / admin!")
     except Exception as e:
-        print(f"[Django Admin] Migration / Superuser Error: {e}", file=sys.stderr)
+        print(f"[Django Admin] Setup Warning: {e}", file=sys.stderr)

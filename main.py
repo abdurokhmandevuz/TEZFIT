@@ -91,6 +91,10 @@ app.include_router(api_router)
 if os.path.exists("web_app"):
     app.mount("/web_app", StaticFiles(directory="web_app", html=True), name="web_app")
 
+# Mount Static Files for Django Jazzmin Admin Panel
+if os.path.exists("static_collected"):
+    app.mount("/admin_static", StaticFiles(directory="static_collected"), name="admin_static")
+
 # Mount Django Jazzmin Admin Panel at /admin
 app.mount("/admin", WSGIMiddleware(django_wsgi_app))
 
