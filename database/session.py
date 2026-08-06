@@ -26,20 +26,21 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-        columns_to_add = [
-            ("first_name", "VARCHAR(255)"),
-            ("last_name", "VARCHAR(255)"),
-            ("phone_number", "VARCHAR(100)"),
-            ("photo_url", "VARCHAR(512)"),
-            ("dob", "VARCHAR(100) DEFAULT '2003-05-21'"),
-            ("points", "INTEGER DEFAULT 100"),
-            ("level", "INTEGER DEFAULT 1"),
-        ]
-        for col_name, col_type in columns_to_add:
-            try:
+    columns_to_add = [
+        ("first_name", "VARCHAR(255)"),
+        ("last_name", "VARCHAR(255)"),
+        ("phone_number", "VARCHAR(100)"),
+        ("photo_url", "VARCHAR(512)"),
+        ("dob", "VARCHAR(100) DEFAULT '2003-05-21'"),
+        ("points", "INTEGER DEFAULT 100"),
+        ("level", "INTEGER DEFAULT 1"),
+    ]
+    for col_name, col_type in columns_to_add:
+        try:
+            async with engine.begin() as conn:
                 await conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
-            except Exception:
-                pass
+        except Exception:
+            pass
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
