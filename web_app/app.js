@@ -11,6 +11,9 @@ let currentSelectedFile = null;
 let currentParsedItems = [];
 let currentTotalMealData = null;
 
+let activeMediaStream = null;
+let currentFacingMode = 'environment'; // 'environment' (back) or 'user' (front)
+
 let calorieChart = null;
 let weeklyChart = null;
 
@@ -216,8 +219,80 @@ function closeCameraChoiceModal() {
   document.getElementById('camera-choice-modal').style.display = 'none';
 }
 
-function triggerNativeCamera() {
+// ================= REAL LIVE HTML5 VIDEO CAMERA STREAM =================
+async function openRealLiveCamera() {
   closeCameraChoiceModal();
+  document.getElementById('real-camera-modal').style.display = 'flex';
+  await startLiveCameraFeed();
+}
+
+function closeRealLiveCamera() {
+  stopLiveCameraFeed();
+  document.getElementById('real-camera-modal').style.display = 'none';
+}
+
+async function startLiveCameraFeed() {
+  stopLiveCameraFeed();
+  const videoEl = document.getElementById('camera-live-feed');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert("Kamerani yoqish qo'llab-quvvatlanmadi");
+    triggerNativeCameraFallback();
+    return;
+  }
+
+  try {
+    activeMediaStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: currentFacingMode },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+    videoEl.srcObject = activeMediaStream;
+  } catch (err) {
+    console.warn('Live Camera Error:', err);
+    // If permission or device stream fails, fallback to native camera file input
+    closeRealLiveCamera();
+    triggerNativeCameraFallback();
+  }
+}
+
+function stopLiveCameraFeed() {
+  if (activeMediaStream) {
+    activeMediaStream.getTracks().forEach(track => track.stop());
+    activeMediaStream = null;
+  }
+}
+
+async function flipCameraStream() {
+  currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+  await startLiveCameraFeed();
+}
+
+function takeLiveCameraSnapshot() {
+  const videoEl = document.getElementById('camera-live-feed');
+  if (!videoEl || videoEl.videoWidth === 0) {
+    triggerNativeCameraFallback();
+    return;
+  }
+
+  const canvas = document.getElementById('camera-snapshot-canvas');
+  canvas.width = videoEl.videoWidth;
+  canvas.height = videoEl.videoHeight;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    const imageSrc = canvas.toDataURL('image/jpeg');
+    closeRealLiveCamera();
+    submitImageScanToAI(blob, imageSrc);
+  }, 'image/jpeg', 0.85);
+}
+
+function triggerNativeCameraFallback() {
   const camInput = document.getElementById('input-camera');
   if (camInput) {
     camInput.value = '';
@@ -227,6 +302,8 @@ function triggerNativeCamera() {
 
 function triggerNativeGallery() {
   closeCameraChoiceModal();
+  stopLiveCameraFeed();
+  closeRealLiveCamera();
   const galInput = document.getElementById('input-gallery');
   if (galInput) {
     galInput.value = '';
@@ -247,7 +324,7 @@ function handleFileSelected(event) {
   reader.readAsDataURL(file);
 }
 
-async function submitImageScanToAI(file, imageSrc) {
+async function submitImageScanToAI(fileOrBlob, imageSrc) {
   let loadingEl = document.getElementById('cam-loading');
   if (!loadingEl) {
     loadingEl = document.createElement('div');
@@ -260,7 +337,7 @@ async function submitImageScanToAI(file, imageSrc) {
 
   const formData = new FormData();
   formData.append('initData', initData);
-  formData.append('file', file, 'food_scan.jpg');
+  formData.append('file', fileOrBlob, 'food_scan.jpg');
 
   try {
     const res = await fetch('/api/scan-photo', { method: 'POST', body: formData });
