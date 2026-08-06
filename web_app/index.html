@@ -175,10 +175,10 @@
         </div>
 
         <!-- Quick Scan Trigger Banner -->
-        <div class="banner-card" onclick="openCameraModal()">
+        <div class="banner-card" onclick="openCameraChoiceModal()">
           <div class="banner-text">
             <h3>📸 Ovqatni AI bilan skan qiling</h3>
-            <p>Rasmga oling yoki galereyadan tanlang</p>
+            <p>Kameradan rasmga oling yoki galereyadan tanlang</p>
           </div>
           <div class="banner-btn">AI Camera</div>
         </div>
@@ -272,7 +272,7 @@
           </div>
         </button>
         <!-- 3. AI Camera / Scan -->
-        <button class="dock-item" id="nav-scan" onclick="openCameraModal()">
+        <button class="dock-item" id="nav-scan" onclick="openCameraChoiceModal()">
           <div class="dock-icon-circle">
             <img src="assets/dock_scan.png" alt="AI Camera" class="dock-icon-img">
           </div>
@@ -293,50 +293,36 @@
     </nav>
   </div>
 
-  <!-- ==================== AI CAMERA VIEWFINDER MODAL ==================== -->
-  <div class="camera-modal-overlay" id="camera-modal" style="display:none;">
-    <div class="camera-header">
-      <span class="camera-title">AI Camera</span>
-      <button class="btn-camera-close" onclick="closeCameraModal()">✕</button>
-    </div>
+  <!-- Hidden Native File Inputs -->
+  <input type="file" id="input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelected(event)">
+  <input type="file" id="input-gallery" accept="image/*" style="display:none;" onchange="handleFileSelected(event)">
 
-    <!-- Viewfinder Box Area -->
-    <div class="viewfinder-container">
-      <div class="viewfinder-box" onclick="triggerRealCameraCapture()">
-        <img id="camera-live-preview" src="" style="display:none;" class="preview-img-fill">
-        <div class="scan-laser-line"></div>
-        <div class="vf-corner top-left"></div>
-        <div class="vf-corner top-right"></div>
-        <div class="vf-corner bottom-left"></div>
-        <div class="vf-corner bottom-right"></div>
-        <div class="tap-hint-text">📸 Rasmga olish uchun bosing</div>
+  <!-- ==================== CAMERA CHOICE SELECTION MODAL ==================== -->
+  <div class="modal-overlay" id="camera-choice-modal" style="display:none;">
+    <div class="modal-content glass-card choice-modal-card">
+      <div class="choice-modal-header">
+        <h3>📸 Taom Rasmini Kiriting</h3>
+        <button class="btn-camera-close" onclick="closeCameraChoiceModal()">✕</button>
       </div>
-    </div>
-
-    <!-- Native Mobile Camera & Gallery File Inputs -->
-    <input type="file" id="input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelected(event)">
-    <input type="file" id="input-gallery" accept="image/*" style="display:none;" onchange="handleFileSelected(event)">
-
-    <!-- Bottom Controls Bar -->
-    <div class="camera-bottom-panel">
-      <div class="camera-mode-pills">
-        <button class="cam-pill active" id="pill-camera" onclick="triggerRealCameraCapture()">
-          <span class="p-icon">📷</span> AI Camera
+      <p class="choice-subtitle">Kamerada rasmga oling yoki galereyadan tanlang</p>
+      
+      <div class="choice-buttons-grid">
+        <button class="btn-choice-option camera-opt" onclick="triggerNativeCamera()">
+          <span class="choice-icon">📷</span>
+          <div class="choice-text">
+            <strong>Kamerada Rasmga Olish</strong>
+            <small>Real telefon kamerasini ochish</small>
+          </div>
         </button>
-        <button class="cam-pill" id="pill-gallery" onclick="triggerGalleryPick()">
-          <span class="p-icon">🖼</span> Gallery
+
+        <button class="btn-choice-option gallery-opt" onclick="triggerNativeGallery()">
+          <span class="choice-icon">🖼</span>
+          <div class="choice-text">
+            <strong>Galereyadan Tanlash</strong>
+            <small>Telefon xotirasidagi rasmlar</small>
+          </div>
         </button>
       </div>
-
-      <div class="shutter-wrapper">
-        <button class="shutter-btn" onclick="triggerRealCameraCapture()"></button>
-      </div>
-    </div>
-
-    <!-- Loading Indicator -->
-    <div class="camera-loading-overlay" id="cam-loading" style="display:none;">
-      <div class="spinner"></div>
-      <p>🔍 AI Taomni tahlil qilmoqda...</p>
     </div>
   </div>
 

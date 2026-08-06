@@ -207,19 +207,17 @@ function initWeeklyChart(weeklyStats) {
   });
 }
 
-// ================= TELEGRAM NATIVE CAMERA & DIRECT FILE PICKER =================
-function openCameraModal() {
-  // If native Telegram WebApp camera is available, use it directly
-  if (tg && tg.showScanQrPopup) {
-    // Or trigger native camera picker
-    triggerRealCameraCapture();
-  } else {
-    triggerRealCameraCapture();
-  }
+// ================= CAMERA & GALLERY CHOICE MODAL =================
+function openCameraChoiceModal() {
+  document.getElementById('camera-choice-modal').style.display = 'flex';
 }
 
-function triggerRealCameraCapture() {
-  // Direct trigger of camera input
+function closeCameraChoiceModal() {
+  document.getElementById('camera-choice-modal').style.display = 'none';
+}
+
+function triggerNativeCamera() {
+  closeCameraChoiceModal();
   const camInput = document.getElementById('input-camera');
   if (camInput) {
     camInput.value = '';
@@ -227,7 +225,8 @@ function triggerRealCameraCapture() {
   }
 }
 
-function triggerGalleryPick() {
+function triggerNativeGallery() {
+  closeCameraChoiceModal();
   const galInput = document.getElementById('input-gallery');
   if (galInput) {
     galInput.value = '';
@@ -249,7 +248,6 @@ function handleFileSelected(event) {
 }
 
 async function submitImageScanToAI(file, imageSrc) {
-  // Show full screen loading spinner
   let loadingEl = document.getElementById('cam-loading');
   if (!loadingEl) {
     loadingEl = document.createElement('div');
