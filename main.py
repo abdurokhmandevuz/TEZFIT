@@ -13,8 +13,9 @@ import django
 django.setup()
 
 from admin_panel.setup import ensure_superuser
-from django.core.wsgi import get_wsgi_application
+ensure_superuser()
 
+from django.core.wsgi import get_wsgi_application
 django_wsgi_app = get_wsgi_application()
 
 from config import settings
@@ -51,7 +52,6 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("Initializing database tables...")
         await init_db()
-        ensure_superuser()
     except Exception as e:
         logger.error(f"DB Init Error: {e}", exc_info=True)
         startup_error = str(e)
@@ -91,7 +91,7 @@ app.include_router(api_router)
 if os.path.exists("web_app"):
     app.mount("/web_app", StaticFiles(directory="web_app", html=True), name="web_app")
 
-# Ensure static_collected directory exists and mount for Jazzmin CSS/JS
+# Mount Static Files for Django Jazzmin Admin Panel
 os.makedirs("static_collected", exist_ok=True)
 app.mount("/admin_static", StaticFiles(directory="static_collected"), name="admin_static")
 

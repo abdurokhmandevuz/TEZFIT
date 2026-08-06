@@ -15,9 +15,18 @@ def ensure_superuser():
         email = "admin@gmail.com"
         password = "admin"
 
+        # Re-create admin user to ensure clean password hashing
         user = User.objects.filter(username=username).first()
-        if not user:
-            print(f"[Django Admin] Creating superuser '{username}' with email '{email}'...")
+        if user:
+            user.set_password(password)
+            user.email = email
+            user.is_superuser = True
+            user.is_staff = True
+            user.is_active = True
+            user.save()
+            print(f"[Django Admin] Superuser '{username}' password successfully updated to 'admin'!")
+        else:
+            print(f"[Django Admin] Creating superuser '{username}'...")
             User.objects.create_superuser(
                 username=username,
                 email=email,
@@ -26,14 +35,6 @@ def ensure_superuser():
                 is_superuser=True,
                 is_active=True
             )
-            print("[Django Admin] Superuser created successfully! Login with admin / admin")
-        else:
-            user.set_password(password)
-            user.email = email
-            user.is_superuser = True
-            user.is_staff = True
-            user.is_active = True
-            user.save()
-            print(f"[Django Admin] Superuser '{username}' updated with credentials admin / admin!")
+            print("[Django Admin] Superuser 'admin' created successfully with password 'admin'!")
     except Exception as e:
-        print(f"[Django Admin] Setup Warning: {e}", file=sys.stderr)
+        print(f"[Django Admin] Setup Error: {e}", file=sys.stderr)
