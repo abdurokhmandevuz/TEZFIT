@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 
-from database import AsyncSessionLocal
+from database.session import AsyncSessionLocal
 from services.user_service import UserService
 from services.meal_service import MealService
 from services.gamification_service import GamificationService
@@ -148,7 +148,6 @@ async def update_goals(body: GoalUpdateRequest):
     telegram_id = user_data["id"]
 
     async with AsyncSessionLocal() as session:
-        user = await UserService.get_or_create_user(session, telegram_id)
         user = await UserService.update_profile(
             session=session,
             user=user,
