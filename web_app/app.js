@@ -211,6 +211,8 @@ function initWeeklyChart(weeklyStats) {
 // ================= AI CAMERA & SCANNER FUNCTIONS =================
 function openCameraModal() {
   document.getElementById('camera-modal').style.display = 'flex';
+  // Direct trigger camera capture on launch
+  triggerCameraCapture();
 }
 
 function closeCameraModal() {
@@ -221,13 +223,15 @@ function closeCameraModal() {
 function triggerCameraCapture() {
   document.getElementById('pill-camera').classList.add('active');
   document.getElementById('pill-gallery').classList.remove('active');
-  document.getElementById('input-camera').click();
+  const camInput = document.getElementById('input-camera');
+  if (camInput) camInput.click();
 }
 
 function triggerGalleryPick() {
   document.getElementById('pill-gallery').classList.add('active');
   document.getElementById('pill-camera').classList.remove('active');
-  document.getElementById('input-gallery').click();
+  const galInput = document.getElementById('input-gallery');
+  if (galInput) galInput.click();
 }
 
 async function handleImageSelected(event) {
