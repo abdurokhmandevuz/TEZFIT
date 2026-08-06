@@ -4,6 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from a2wsgi import WSGIMiddleware
 
 # Initialize Django Settings for Jazzmin Admin Panel
@@ -93,13 +94,17 @@ if os.path.exists("web_app"):
 # Mount Django Jazzmin Admin Panel at /admin
 app.mount("/admin", WSGIMiddleware(django_wsgi_app))
 
+@app.get("/admin")
+async def redirect_admin_root():
+    return RedirectResponse(url="/admin/")
+
 @app.get("/")
 async def root():
     status = "OK" if not startup_error else f"Warning: {startup_error}"
     return {
         "status": status,
         "message": "TezFIT Bot, Web App & Django Jazzmin Admin Service Running!",
-        "admin_url": "/admin",
+        "admin_url": "/admin/",
         "web_app_url": "/web_app"
     }
 
