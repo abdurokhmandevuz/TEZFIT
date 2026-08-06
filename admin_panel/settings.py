@@ -19,9 +19,6 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Ensure Django Admin URLs build with /admin prefix when mounted in FastAPI
-FORCE_SCRIPT_NAME = '/admin'
-
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -90,7 +87,7 @@ TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/admin/static/'
+STATIC_URL = '/admin_static/'
 STATIC_ROOT = BASE_DIR / 'static_collected'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
