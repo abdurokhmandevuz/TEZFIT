@@ -20,6 +20,18 @@ let currentDietTab = 'all';
 let selectedDietId = null;
 let currentUserData = null;
 
+// Wizard State Variables
+let selectedGender = 'Male';
+let selectedHeight = 170;
+let selectedHeightUnit = 'cm';
+let selectedWeight = 70;
+let selectedWeightUnit = 'kg';
+let selectedTargetWeight = 65;
+let selectedTargetWeightUnit = 'kg';
+let selectedActivity = 'Lightly active';
+let selectedDietPref = 'No preference';
+let calculatedDailyKcal = 2000;
+
 function getTimeGreeting() {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) return 'Xayrli tong ☀️';
@@ -93,8 +105,108 @@ function nextSlide(slideNum) {
   }
 }
 
-function finishOnboarding() {
+// Onboarding Wizard Selection Handlers
+function selectGender(genderVal) {
+  selectedGender = genderVal;
+  document.getElementById('gender-male').classList.remove('active');
+  document.getElementById('gender-female').classList.remove('active');
+  if (genderVal === 'Male') {
+    document.getElementById('gender-male').classList.add('active');
+  } else {
+    document.getElementById('gender-female').classList.add('active');
+  }
+}
+
+function toggleHeightUnit(unit) {
+  selectedHeightUnit = unit;
+  document.querySelectorAll('#slide-3 .unit-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function toggleWeightUnit(unit) {
+  selectedWeightUnit = unit;
+  document.querySelectorAll('#slide-4 .unit-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function toggleTargetWeightUnit(unit) {
+  selectedTargetWeightUnit = unit;
+  document.querySelectorAll('#slide-5 .unit-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function selectActivity(actMode) {
+  selectedActivity = actMode;
+  document.querySelectorAll('.activity-card-item').forEach(c => c.classList.remove('active'));
+  const target = document.getElementById(`act-${actMode.toLowerCase().split(' ')[0]}`);
+  if (target) target.classList.add('active');
+}
+
+function selectDietPref(prefVal) {
+  selectedDietPref = prefVal;
+  document.querySelectorAll('.diet-circle-item').forEach(c => c.classList.remove('active'));
+  const target = document.getElementById(`pref-${prefVal.toLowerCase().split(' ')[0]}`);
+  if (target) target.classList.add('active');
+}
+
+// Calculate Plan Summary via Mifflin-St Jeor Formula
+function calculatePlanSummary() {
+  const heightInput = parseFloat(document.getElementById('input-height-val').value) || 170;
+  const weightInput = parseFloat(document.getElementById('input-weight-val').value) || 70;
+  const targetWeightInput = parseFloat(document.getElementById('input-target-weight-val').value) || 65;
+
+  selectedHeight = (selectedHeightUnit === 'ft') ? heightInput * 30.48 : heightInput;
+  selectedWeight = (selectedWeightUnit === 'lbs') ? weightInput * 0.453592 : weightInput;
+  selectedTargetWeight = (selectedTargetWeightUnit === 'lbs') ? targetWeightInput * 0.453592 : targetWeightInput;
+
+  let bmr = (10 * selectedWeight) + (6.25 * selectedHeight) - (5 * 25);
+  bmr += (selectedGender === 'Female') ? -161 : 5;
+
+  let mult = 1.375;
+  if (selectedActivity.includes('Sedentary')) mult = 1.2;
+  else if (selectedActivity.includes('Lightly')) mult = 1.375;
+  else if (selectedActivity.includes('Moderately')) mult = 1.55;
+  else if (selectedActivity.includes('Very')) mult = 1.725;
+  else if (selectedActivity.includes('Athlete')) mult = 1.9;
+
+  let tdee = bmr * mult;
+  if (selectedTargetWeight < selectedWeight) {
+    tdee -= 350; // Weight loss deficit
+  } else if (selectedTargetWeight > selectedWeight) {
+    tdee += 300; // Muscle gain surplus
+  }
+
+  calculatedDailyKcal = Math.max(1200, Math.round(tdee));
+
+  const carbsKcal = Math.round(calculatedDailyKcal * 0.45);
+  const proteinKcal = Math.round(calculatedDailyKcal * 0.30);
+  const fatKcal = Math.round(calculatedDailyKcal * 0.25);
+
+  document.getElementById('plan-kcal-val').innerHTML = `${calculatedDailyKcal.toLocaleString()} <small>kcal</small>`;
+  document.getElementById('plan-carbs-kcal').innerText = `${carbsKcal} kcal`;
+  document.getElementById('plan-protein-kcal').innerText = `${proteinKcal} kcal`;
+  document.getElementById('plan-fat-kcal').innerText = `${fatKcal} kcal`;
+}
+
+async function finishOnboardingWithPlan() {
   localStorage.setItem('tezfit_onboarded_v2', 'true');
+  
+  try {
+    await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        initData: initData,
+        gender: selectedGender,
+        height_cm: selectedHeight,
+        weight_kg: selectedWeight,
+        daily_goal_kcal: calculatedDailyKcal
+      })
+    });
+  } catch (err) {
+    console.warn('Profile save warning:', err);
+  }
+
   hideOnboarding();
   loadDashboard();
 }
@@ -175,23 +287,34 @@ function renderDashboard(data) {
   const { user, today_stats, weekly_stats, today_meals } = data;
   currentUserData = user;
 
-  if (user) {
-    let name = user.name || 'Foydalanuvchi';
-    if (tgUser && (!user.name || user.name === 'Foydalanuvchi')) {
-      name = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username || 'Foydalanuvchi';
+  let displayName = user ? (user.name || 'Foydalanuvchi') : 'Foydalanuvchi';
+  let photoUrl = user ? (user.photo_url || '') : '';
+  let contactInfo = user ? (user.contact_info || user.phone_number) : 'ID: 8817446491';
+
+  // Override with Telegram WebApp SDK data if available
+  if (tgUser) {
+    const realTgName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username;
+    if (realTgName) {
+      displayName = realTgName;
     }
-
-    document.getElementById('user-name').innerText = name;
-    document.getElementById('greeting-title').innerText = getTimeGreeting();
-
-    const avatarTxt = document.getElementById('user-avatar');
-    if (user.photo_url) {
-      avatarTxt.innerHTML = `<img src="${user.photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    } else {
-      avatarTxt.innerText = name[0].toUpperCase();
+    if (tgUser.photo_url) {
+      photoUrl = tgUser.photo_url;
     }
+    if (tgUser.phone_number) {
+      contactInfo = tgUser.phone_number;
+    } else if (tgUser.id) {
+      contactInfo = `ID: ${tgUser.id}`;
+    }
+  }
 
-    renderSettingsPage();
+  document.getElementById('user-name').innerText = displayName;
+  document.getElementById('greeting-title').innerText = getTimeGreeting();
+
+  const avatarTxt = document.getElementById('user-avatar');
+  if (photoUrl) {
+    avatarTxt.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else {
+    avatarTxt.innerText = displayName[0].toUpperCase();
   }
 
   if (today_stats) {
@@ -224,6 +347,7 @@ function renderDashboard(data) {
 
   renderAnalysisPage();
   renderDietsPage();
+  renderSettingsPage();
 }
 
 function renderMealsList(elementId, meals) {
@@ -275,23 +399,31 @@ function renderSettingsPage() {
   const user = currentUserData || {};
 
   let displayName = user.name || 'Foydalanuvchi';
-  if (tgUser && (!user.name || user.name === 'Foydalanuvchi')) {
-    displayName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username || 'Foydalanuvchi';
+  let contactInfo = user.contact_info || user.phone_number;
+  let photoUrl = user.photo_url || '';
+
+  if (tgUser) {
+    const realTgName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username;
+    if (realTgName) {
+      displayName = realTgName;
+    }
+    if (tgUser.photo_url) {
+      photoUrl = tgUser.photo_url;
+    }
+    if (tgUser.phone_number) {
+      contactInfo = tgUser.phone_number;
+    } else if (tgUser.id) {
+      contactInfo = `ID: ${tgUser.id}`;
+    }
   }
 
-  let contactInfo = user.contact_info || user.phone_number;
-  if (!contactInfo || contactInfo.includes('123456789')) {
-    if (tgUser) {
-      contactInfo = tgUser.phone_number ? tgUser.phone_number : `ID: ${tgUser.id}`;
-    } else {
-      contactInfo = 'ID: 8817446491';
-    }
+  if (!contactInfo || contactInfo.includes('8817446491')) {
+    contactInfo = tgUser ? `ID: ${tgUser.id}` : 'ID: 8817446491';
   }
 
   document.getElementById('settings-user-name').innerText = displayName;
   document.getElementById('settings-user-contact').innerText = contactInfo;
 
-  const photoUrl = user.photo_url || (tgUser ? tgUser.photo_url : '');
   const avatarTxt = document.getElementById('settings-avatar-text');
   const avatarImg = document.getElementById('settings-avatar-img');
 
@@ -310,19 +442,24 @@ function renderSettingsPage() {
 function openProfileEditSheet() {
   const user = currentUserData || {};
   let displayName = user.name || 'Foydalanuvchi';
-  if (tgUser && (!user.name || user.name === 'Foydalanuvchi')) {
-    displayName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username || 'Foydalanuvchi';
+  let contactInfo = user.contact_info || user.phone_number;
+  let photoUrl = user.photo_url || '';
+
+  if (tgUser) {
+    const realTgName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username;
+    if (realTgName) displayName = realTgName;
+    if (tgUser.photo_url) photoUrl = tgUser.photo_url;
+    if (tgUser.phone_number) contactInfo = tgUser.phone_number;
+    else if (tgUser.id) contactInfo = `ID: ${tgUser.id}`;
   }
-  let contactInfo = user.contact_info || user.phone_number || (tgUser ? (tgUser.phone_number || `ID: ${tgUser.id}`) : 'ID: 8817446491');
 
   document.getElementById('prof-input-name').value = displayName;
-  document.getElementById('prof-input-contact').value = contactInfo;
+  document.getElementById('prof-input-contact').value = contactInfo || 'ID: 8817446491';
   document.getElementById('prof-input-dob').value = user.dob || '2003-05-21';
   document.getElementById('prof-input-gender').value = user.gender || 'Male';
   document.getElementById('prof-input-height').value = `${user.height_cm || 170} cm`;
   document.getElementById('prof-input-weight').value = `${user.weight_kg || 70} kg`;
 
-  const photoUrl = user.photo_url || (tgUser ? tgUser.photo_url : '');
   const editTxt = document.getElementById('edit-avatar-text');
   const editImg = document.getElementById('edit-avatar-img');
 

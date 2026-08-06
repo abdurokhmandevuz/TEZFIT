@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <!-- Onboard Slide 1 (Purple - Watermelon GOOD) -->
+    <!-- Onboard Slide 1: Intro (Watermelon GOOD) -->
     <div class="onboard-slide slide-purple" id="slide-1">
       <div class="illustration-container" id="illustr-box-1">
         <img src="assets/watermelon_good.png" alt="GOOD Watermelon" class="retro-hero-img">
@@ -42,44 +42,308 @@
       </div>
       <div class="slide-action-box">
         <button class="btn-next-pill" onclick="nextSlide(2)">
-          <span>Keyingisi</span>
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Onboard Slide 2 (Green - Strawberry GROOVY) -->
-    <div class="onboard-slide slide-green" id="slide-2">
-      <div class="illustration-container" id="illustr-box-2">
-        <img src="assets/strawberry_groovy.png" alt="GROOVY Strawberry" class="retro-hero-img">
-      </div>
-      <div class="slide-content">
-        <h2>Barcha Muhim Ko'rsatkichlarni Kuzating</h2>
-        <p>Kaloriyalar, BJU, suv va faollik — hammasi bitta joyda.</p>
-      </div>
-      <div class="slide-action-box">
-        <button class="btn-next-pill" onclick="nextSlide(3)">
-          <span>Keyingisi</span>
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Onboard Slide 3 (Coral Orange - Lemon) -->
-    <div class="onboard-slide slide-orange" id="slide-3">
-      <div class="illustration-container" id="illustr-box-3">
-        <img src="assets/lemon_retro.png" alt="LEMON Retro" class="retro-hero-img">
-      </div>
-      <div class="slide-content">
-        <h2>Salomatlik Yo'lingiz Shu Yerdan Boshlanadi</h2>
-        <p>Sizga sog'lom ovqatlar tanlashda va mazali, to'yimli taomlardan bahramand bo'lishda yordam beramiz.</p>
-      </div>
-      <div class="slide-action-box">
-        <button class="btn-next-pill btn-finish" onclick="finishOnboarding()">
           <span>Boshlash</span>
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
         </button>
       </div>
     </div>
+
+    <!-- Wizard Step 2/8: Gender -->
+    <div class="onboard-slide slide-wizard" id="slide-2">
+      <div class="wizard-header-nav">
+        <button class="btn-wizard-back" onclick="nextSlide(1)">←</button>
+        <div class="wizard-progress-bar">
+          <div class="progress-fill-orange" style="width: 25%;"></div>
+        </div>
+        <span class="wizard-step-num">2/8</span>
+      </div>
+
+      <div class="wizard-body">
+        <h2 class="wizard-title">Jinsingizni tanlang</h2>
+        <div class="gender-cards-grid">
+          <button class="gender-btn-figma" id="gender-male" onclick="selectGender('Male')">Male (Erkak)</button>
+          <button class="gender-btn-figma" id="gender-female" onclick="selectGender('Female')">Female (Ayol)</button>
+        </div>
+      </div>
+
+      <div class="wizard-bottom-actions">
+        <button class="btn-orange-full" id="btn-next-gender" onclick="nextSlide(3)">Next</button>
+        <button class="btn-ghost-full" onclick="selectGender('Male'); nextSlide(3);">Prefer not to say</button>
+      </div>
+    </div>
+
+    <!-- Wizard Step 4/8: Height -->
+    <div class="onboard-slide slide-wizard" id="slide-3">
+      <div class="wizard-header-nav">
+        <button class="btn-wizard-back" onclick="nextSlide(2)">←</button>
+        <div class="wizard-progress-bar">
+          <div class="progress-fill-orange" style="width: 50%;"></div>
+        </div>
+        <span class="wizard-step-num">4/8</span>
+      </div>
+
+      <div class="wizard-body">
+        <h2 class="wizard-title">Bo'yingiz qancha?</h2>
+        
+        <div class="wheel-picker-container">
+          <span class="wheel-sub-val">158</span>
+          <div class="wheel-main-box">
+            <input type="number" id="input-height-val" value="170" class="wheel-large-input" onchange="calculatePlanSummary()">
+          </div>
+          <span class="wheel-sub-val">172</span>
+        </div>
+
+        <div class="unit-capsule-toggle">
+          <button class="unit-btn" onclick="toggleHeightUnit('ft')">ft</button>
+          <button class="unit-btn active" id="unit-height-cm" onclick="toggleHeightUnit('cm')">cm</button>
+        </div>
+      </div>
+
+      <div class="wizard-bottom-actions">
+        <button class="btn-orange-full" onclick="nextSlide(4)">Next</button>
+      </div>
+    </div>
+
+    <!-- Wizard Step 5/8: Current Weight -->
+    <div class="onboard-slide slide-wizard" id="slide-4">
+      <div class="wizard-header-nav">
+        <button class="btn-wizard-back" onclick="nextSlide(3)">←</button>
+        <div class="wizard-progress-bar">
+          <div class="progress-fill-orange" style="width: 62.5%;"></div>
+        </div>
+        <span class="wizard-step-num">5/8</span>
+      </div>
+
+      <div class="wizard-body">
+        <h2 class="wizard-title">Hozirgi vazningiz qancha?</h2>
+        
+        <div class="weight-horiz-picker">
+          <span class="w-sub">68</span>
+          <div class="w-main-box">
+            <input type="number" id="input-weight-val" value="70" class="w-large-input" onchange="calculatePlanSummary()">
+          </div>
+          <span class="w-sub">72</span>
+        </div>
+
+        <div class="unit-capsule-toggle">
+          <button class="unit-btn" onclick="toggleWeightUnit('lbs')">lbs</button>
+          <button class="unit-btn active" onclick="toggleWeightUnit('kg')">kg</button>
+        </div>
+      </div>
+
+      <div class="wizard-bottom-actions">
+        <button class="btn-orange-full" onclick="nextSlide(5)">Next</button>
+      </div>
+    </div>
+
+    <!-- Wizard Step 6/8: Target Weight -->
+    <div class="onboard-slide slide-wizard" id="slide-5">
+      <div class="wizard-header-nav">
+        <button class="btn-wizard-back" onclick="nextSlide(4)">←</button>
+        <div class="wizard-progress-bar">
+          <div class="progress-fill-orange" style="width: 75%;"></div>
+        </div>
+        <span class="wizard-step-num">6/8</span>
+      </div>
+
+      <div class="wizard-body">
+        <h2 class="wizard-title">Maqsadli vazningiz qancha?</h2>
+        
+        <div class="weight-horiz-picker">
+          <span class="w-sub">62</span>
+          <div class="w-main-box">
+            <input type="number" id="input-target-weight-val" value="65" class="w-large-input" onchange="calculatePlanSummary()">
+          </div>
+          <span class="w-sub">68</span>
+        </div>
+
+        <div class="unit-capsule-toggle">
+          <button class="unit-btn" onclick="toggleTargetWeightUnit('lbs')">lbs</button>
+          <button class="unit-btn active" onclick="toggleTargetWeightUnit('kg')">kg</button>
+        </div>
+      </div>
+
+      <div class="wizard-bottom-actions">
+        <button class="btn-orange-full" onclick="nextSlide(6)">Next</button>
+        <button class="btn-ghost-full" onclick="nextSlide(6)">I don't have a target weight</button>
+      </div>
+    </div>
+
+    <!-- Wizard Step 7/8: Activity Level -->
+    <div class="onboard-slide slide-wizard" id="slide-6">
+      <div class="wizard-header-nav">
+        <button class="btn-wizard-back" onclick="nextSlide(5)">←</button>
+        <div class="wizard-progress-bar">
+          <div class="progress-fill-orange" style="width: 87.5%;"></div>
+        </div>
+        <span class="wizard-step-num">7/8</span>
+      </div>
+
+      <div class="wizard-body">
+        <h2 class="wizard-title">Jismoniy faollik darajangiz qanday?</h2>
+        
+        <div class="activity-options-list">
+          <div class="activity-card-item active" id="act-sedentary" onclick="selectActivity('Sedentary')">
+            <span class="act-emoji">🧘</span>
+            <div class="act-info">
+              <strong>Sedentary</strong>
+              <small>Little or no exercise</small>
+            </div>
+            <div class="radio-circle"></div>
+          </div>
+
+          <div class="activity-card-item" id="act-lightly" onclick="selectActivity('Lightly active')">
+            <span class="act-emoji">🏃</span>
+            <div class="act-info">
+              <strong>Lightly active</strong>
+              <small>1-3 days/week exercise</small>
+            </div>
+            <div class="radio-circle"></div>
+          </div>
+
+          <div class="activity-card-item" id="act-moderately" onclick="selectActivity('Moderately active')">
+            <span class="act-emoji">🏃‍♂️</span>
+            <div class="act-info">
+              <strong>Moderately active</strong>
+              <small>3-5 days/week exercise</small>
+            </div>
+            <div class="radio-circle"></div>
+          </div>
+
+          <div class="activity-card-item" id="act-very" onclick="selectActivity('Very active')">
+            <span class="act-emoji">🚴</span>
+            <div class="act-info">
+              <strong>Very active</strong>
+              <small>6-7 days/week exercise</small>
+            </div>
+            <div class="radio-circle"></div>
+          </div>
+
+          <div class="activity-card-item" id="act-athlete" onclick="selectActivity('Athlete mode')">
+            <span class="act-emoji">🏋️‍♂️</span>
+            <div class="act-info">
+              <strong>Athlete mode</strong>
+              <small>Intense daily training</small>
+            </div>
+            <div class="radio-circle"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-bottom-actions">
+        <button class="btn-orange-full" onclick="nextSlide(7)">Next</button>
+      </div>
+    </div>
+
+    <!-- Wizard Step 8/8: Diet Preferences -->
+    <div class="onboard-slide slide-wizard" id="slide-7">
+      <div class="wizard-header-nav">
+        <button class="btn-wizard-back" onclick="nextSlide(6)">←</button>
+        <div class="wizard-progress-bar">
+          <div class="progress-fill-orange" style="width: 100%;"></div>
+        </div>
+        <span class="wizard-step-num">8/8</span>
+      </div>
+
+      <div class="wizard-body">
+        <h2 class="wizard-title">Do you have any diet preferences?</h2>
+        
+        <div class="diet-pref-circle-grid">
+          <div class="diet-circle-item active" id="pref-none" onclick="selectDietPref('No preference')">
+            <div class="circle-icon-wrapper">🍽️</div>
+            <strong>No preference</strong>
+            <small>Eat anything</small>
+          </div>
+
+          <div class="diet-circle-item" id="pref-keto" onclick="selectDietPref('Keto')">
+            <div class="circle-icon-wrapper">🥩</div>
+            <strong>Keto</strong>
+            <small>Low-carb, high-fat diet</small>
+          </div>
+
+          <div class="diet-circle-item" id="pref-vegetarian" onclick="selectDietPref('Vegetarian')">
+            <div class="circle-icon-wrapper">🥗</div>
+            <strong>Vegetarian</strong>
+            <small>No meat, only plants & dairy</small>
+          </div>
+
+          <div class="diet-circle-item" id="pref-vegan" onclick="selectDietPref('Vegan')">
+            <div class="circle-icon-wrapper">🥦</div>
+            <strong>Vegan</strong>
+            <small>100% plant-based diet</small>
+          </div>
+
+          <div class="diet-circle-item" id="pref-paleo" onclick="selectDietPref('Paleo')">
+            <div class="circle-icon-wrapper">🍖</div>
+            <strong>Paleo</strong>
+            <small>Whole foods, no processed food</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-bottom-actions">
+        <button class="btn-orange-full" onclick="calculatePlanSummary(); nextSlide(8);">Next</button>
+      </div>
+    </div>
+
+    <!-- Wizard Step 8: Personal Plan Summary -->
+    <div class="onboard-slide slide-wizard" id="slide-8">
+      <div class="wizard-body" style="padding-top: 10px;">
+        <h2 class="wizard-title" style="font-size:26px; text-align:center; margin-bottom:20px;">Sizning Shaxsiy Rejangiz</h2>
+        
+        <!-- Summary Plan White Card -->
+        <div class="plan-summary-white-card">
+          <span class="plan-lbl">Kunlik kaloriyalar</span>
+          <h1 class="plan-kcal-val" id="plan-kcal-val">1,850 <small>kcal</small></h1>
+
+          <!-- Tri-color Macro Progress Bar -->
+          <div class="tri-macro-bar">
+            <div class="tri-fill tri-carbs" style="width: 45%;">45%</div>
+            <div class="tri-fill tri-protein" style="width: 30%;">30%</div>
+            <div class="tri-fill tri-fat" style="width: 25%;">25%</div>
+          </div>
+
+          <div class="macro-breakdown-list">
+            <div class="m-row">
+              <span><span class="dot-color dot-carbs"></span> Uglevodlar</span>
+              <strong id="plan-carbs-kcal">560 kcal</strong>
+            </div>
+            <div class="m-row">
+              <span><span class="dot-color dot-protein"></span> Oqsillar</span>
+              <strong id="plan-protein-kcal">375 kcal</strong>
+            </div>
+            <div class="m-row">
+              <span><span class="dot-color dot-fat"></span> Yog'lar</span>
+              <strong id="plan-fat-kcal">315 kcal</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Water Intake Card -->
+        <div class="water-intake-blue-card">
+          <strong>Suv balansi</strong>
+          <div class="water-pill-bar">
+            <span>2,000 ml / kun</span>
+          </div>
+          <small>💧 Doimiy suv ichib turing!</small>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="tips-white-card">
+          <strong>Siz uchun tavsiyalar:</strong>
+          <ul>
+            <li>💧 Kuniga kamida 2 litr toza suv iching.</li>
+            <li>😴 Har kuni 7-8 soat sifatli uyquga ega bo'ling.</li>
+            <li>🥦 Ko'proq yangi sabzavot va mevalar iste'mol qiling.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="wizard-bottom-actions" style="margin-top:16px;">
+        <button class="btn-orange-full" onclick="finishOnboardingWithPlan()">Start your journey!</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- ==================== MAIN SINGLE PAGE APPLICATION ==================== -->
@@ -362,10 +626,10 @@
             <img src="assets/dock_stats.png" alt="Statistika" class="dock-icon-img">
           </div>
         </button>
-        <!-- 3. AI Camera / Scan -->
-        <button class="dock-item" id="nav-scan" onclick="openCameraChoiceModal()">
-          <div class="dock-icon-circle">
-            <img src="assets/dock_scan.png" alt="AI Kamera" class="dock-icon-img">
+        <!-- 3. AI Camera / Scan (ELEVATED FLOATING CENTER BUTTON) -->
+        <button class="dock-item dock-item-center" id="nav-scan" onclick="openCameraChoiceModal()">
+          <div class="dock-icon-circle center-raised-circle">
+            <img src="assets/dock_scan.png" alt="AI Kamera" class="dock-icon-img center-icon-img">
           </div>
         </button>
         <!-- 4. Diet Plan -->

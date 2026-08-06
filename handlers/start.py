@@ -18,7 +18,9 @@ async def cmd_start(message: Message, state: FSMContext):
             session=session,
             telegram_id=message.from_user.id,
             username=message.from_user.username,
-            name=message.from_user.full_name
+            name=message.from_user.full_name,
+            first_name=message.from_user.first_name,
+            last_name=message.from_user.last_name
         )
 
     web_app_url = os.environ.get("WEB_APP_URL", settings.WEB_APP_URL)
@@ -42,6 +44,5 @@ async def cmd_start(message: Message, state: FSMContext):
         f"📱 Pastdagi **TezFIT Web App** tugmasi orqali kirib, kameradan rasmga oling hamda kaloriya va BJU ko'rsatkichlaringizni kuzating! 🚀"
     )
 
-    # First remove any persistent reply keyboard, then answer with inline keyboard
     await message.answer("Boshlanmoqda...", reply_markup=ReplyKeyboardRemove())
     await message.answer(welcome_text, reply_markup=inline_kb, parse_mode="Markdown")

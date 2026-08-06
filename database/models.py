@@ -18,9 +18,12 @@ class User(Base):
     dob: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, default="2000-01-01")
     
     weight_kg: Mapped[Optional[float]] = mapped_column(Float, nullable=True, default=70.0)
+    target_weight_kg: Mapped[Optional[float]] = mapped_column(Float, nullable=True, default=65.0)
     height_cm: Mapped[Optional[float]] = mapped_column(Float, nullable=True, default=170.0)
     age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, default=25)
     gender: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, default="Male")  # Male / Female
+    activity_level: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, default="Lightly active")
+    diet_preference: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, default="No preference")
     
     daily_goal_kcal: Mapped[float] = mapped_column(Float, default=2000.0)
     is_vip: Mapped[bool] = mapped_column(Boolean, default=False)

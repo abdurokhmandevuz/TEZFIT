@@ -46,6 +46,9 @@ async def init_db():
         ("dob", "VARCHAR(100) DEFAULT '2003-05-21'"),
         ("points", "INTEGER DEFAULT 100"),
         ("level", "INTEGER DEFAULT 1"),
+        ("target_weight_kg", "FLOAT DEFAULT 65.0"),
+        ("activity_level", "VARCHAR(100) DEFAULT 'Lightly active'"),
+        ("diet_preference", "VARCHAR(100) DEFAULT 'No preference'"),
     ]
     for col_name, col_type in columns_to_add:
         try:

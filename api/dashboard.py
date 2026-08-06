@@ -43,31 +43,23 @@ class ProfileUpdateRequest(BaseModel):
 @router.get("/dashboard")
 async def get_dashboard_data(initData: str = ""):
     user_data = verify_telegram_web_app_data(initData)
-    if not user_data:
-        user_data = {"id": 123456789, "first_name": "Foydalanuvchi", "last_name": "", "username": "tezfit_user"}
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
 
-    telegram_id = user_data["id"]
-    tg_first_name = user_data.get("first_name", "")
-    tg_last_name = user_data.get("last_name", "")
-    tg_username = user_data.get("username", "")
-    tg_photo_url = user_data.get("photo_url", "")
+    tg_first_name = user_data.get("first_name") if user_data else None
+    tg_last_name = user_data.get("last_name") if user_data else None
+    tg_username = user_data.get("username") if user_data else None
+    tg_photo_url = user_data.get("photo_url") if user_data else None
 
     async with AsyncSessionLocal() as session:
-        user = await UserService.get_or_create_user(session, telegram_id)
-
-        # Update Telegram user info if missing
-        updated = False
-        if tg_first_name and not getattr(user, "first_name", None):
-            user.first_name = tg_first_name
-            updated = True
-        if tg_last_name and not getattr(user, "last_name", None):
-            user.last_name = tg_last_name
-            updated = True
-        if tg_photo_url and not getattr(user, "photo_url", None):
-            user.photo_url = tg_photo_url
-            updated = True
-        if updated:
-            await session.commit()
+        user = await UserService.get_or_create_user(
+            session=session,
+            telegram_id=telegram_id,
+            username=tg_username,
+            name=f"{tg_first_name or ''} {tg_last_name or ''}".strip() if tg_first_name else None,
+            first_name=tg_first_name,
+            last_name=tg_last_name,
+            photo_url=tg_photo_url
+        )
 
         today_stats = await MealService.get_today_stats(session, user.id)
         weekly_stats = await MealService.get_weekly_stats(session, user.id)
@@ -88,7 +80,7 @@ async def get_dashboard_data(initData: str = ""):
             })
 
         display_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or user.name or user.username or "Foydalanuvchi"
-        contact_info = user.phone_number if getattr(user, "phone_number", None) else f"ID: {user.telegram_id}"
+        contact_info = user.phone_number if (getattr(user, "phone_number", None) and "8817446491" not in user.phone_number) else f"ID: {user.telegram_id}"
 
     return {
         "status": "success",
@@ -101,7 +93,7 @@ async def get_dashboard_data(initData: str = ""):
             "phone_number": getattr(user, "phone_number", None) or f"ID: {user.telegram_id}",
             "photo_url": getattr(user, "photo_url", None) or "",
             "contact_info": contact_info,
-            "dob": getattr(user, "dob", "2000-01-01"),
+            "dob": getattr(user, "dob", "2003-05-21"),
             "daily_goal_kcal": user.daily_goal_kcal,
             "is_vip": user.is_vip,
             "streak_days": user.streak_days,
@@ -121,11 +113,10 @@ async def get_dashboard_data(initData: str = ""):
 @router.post("/profile")
 async def update_profile_data(body: ProfileUpdateRequest):
     user_data = verify_telegram_web_app_data(body.initData)
-    if not user_data:
-        user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
 
     async with AsyncSessionLocal() as session:
-        user = await UserService.get_or_create_user(session, user_data["id"])
+        user = await UserService.get_or_create_user(session, telegram_id)
         
         if body.name:
             user.name = body.name
@@ -162,11 +153,10 @@ async def update_profile_data(body: ProfileUpdateRequest):
 @router.post("/scan-photo")
 async def scan_photo(initData: str = Form(""), file: UploadFile = File(...)):
     user_data = verify_telegram_web_app_data(initData)
-    if not user_data:
-        user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
 
     async with AsyncSessionLocal() as session:
-        user = await UserService.get_or_create_user(session, user_data["id"])
+        user = await UserService.get_or_create_user(session, telegram_id)
         allowed, remaining = await UserService.check_and_increment_limit(session, user)
 
     image_bytes = await file.read()
@@ -176,11 +166,10 @@ async def scan_photo(initData: str = Form(""), file: UploadFile = File(...)):
 @router.post("/scan-text")
 async def scan_text(body: ScanTextRequest):
     user_data = verify_telegram_web_app_data(body.initData)
-    if not user_data:
-        user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
 
     async with AsyncSessionLocal() as session:
-        user = await UserService.get_or_create_user(session, user_data["id"])
+        user = await UserService.get_or_create_user(session, telegram_id)
         allowed, remaining = await UserService.check_and_increment_limit(session, user)
 
     parsed_data = await AIService.analyze_food_text(body.text, is_vip=user.is_vip)
@@ -189,11 +178,10 @@ async def scan_text(body: ScanTextRequest):
 @router.post("/save-meal")
 async def save_meal_from_app(body: SaveMealRequest):
     user_data = verify_telegram_web_app_data(body.initData)
-    if not user_data:
-        user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
 
     async with AsyncSessionLocal() as session:
-        user = await UserService.get_or_create_user(session, user_data["id"])
+        user = await UserService.get_or_create_user(session, telegram_id)
         meal = await MealService.add_meal(
             session=session,
             user_id=user.id,
@@ -222,10 +210,7 @@ async def save_meal_from_app(body: SaveMealRequest):
 @router.post("/goals")
 async def update_goals(body: GoalUpdateRequest):
     user_data = verify_telegram_web_app_data(body.initData)
-    if not user_data:
-        user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
-
-    telegram_id = user_data["id"]
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
 
     async with AsyncSessionLocal() as session:
         user = await UserService.get_or_create_user(session, telegram_id)
