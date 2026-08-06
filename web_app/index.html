@@ -175,12 +175,12 @@
         </div>
 
         <!-- Quick Scan Trigger Banner -->
-        <div class="banner-card" onclick="switchTab('scan')">
+        <div class="banner-card" onclick="openCameraModal()">
           <div class="banner-text">
             <h3>📸 Ovqatni AI bilan skan qiling</h3>
-            <p>Rasmga oling yoki matn kiriting</p>
+            <p>Rasmga oling yoki galereyadan tanlang</p>
           </div>
-          <div class="banner-btn">Skaner</div>
+          <div class="banner-btn">AI Camera</div>
         </div>
 
         <!-- Today Meals (Diet Plan) -->
@@ -194,49 +194,7 @@
         </div>
       </section>
 
-      <!-- TAB 2: SCANNER (AI Camera & Text) -->
-      <section class="tab-page" id="page-scan">
-        <div class="glass-card scan-card">
-          <h2>📸 TezFIT AI Skaner</h2>
-          <p class="scan-subtitle">Ovqat rasmini yuklang yoki nomini yozing</p>
-
-          <!-- Action mode selector -->
-          <div class="scan-mode-tabs">
-            <button class="mode-btn active" id="btn-mode-photo" onclick="toggleScanMode('photo')">📸 Rasm Yuklash</button>
-            <button class="mode-btn" id="btn-mode-text" onclick="toggleScanMode('text')">📝 Matn Kiriting</button>
-          </div>
-
-          <!-- Photo Mode Box -->
-          <div class="scan-box" id="box-photo">
-            <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="onFileSelected(event)">
-            <div class="upload-dropzone" onclick="document.getElementById('file-input').click()">
-              <div class="drop-icon">📷</div>
-              <span>Rasm tanlash uchun bosing</span>
-              <small>yoki kameradan oling</small>
-            </div>
-            <div id="image-preview-container" style="display:none;" class="image-preview">
-              <img id="image-preview" src="" alt="Ovqat rasmi">
-            </div>
-            <button class="btn-scan-action" id="btn-submit-photo" style="display:none;" onclick="submitPhotoScan()">🔍 AI Tahlil Qilish</button>
-          </div>
-
-          <!-- Text Mode Box -->
-          <div class="scan-box" id="box-text" style="display:none;">
-            <div class="form-group">
-              <input type="text" id="text-food-input" placeholder="Masalan: 200g osh, 2 ta tuxum..." class="input-styled">
-            </div>
-            <button class="btn-scan-action" onclick="submitTextScan()">🔍 Matnni Tahlil Qilish</button>
-          </div>
-
-          <!-- Scan Loading Indicator -->
-          <div class="scan-loading" id="scan-loading" style="display:none;">
-            <div class="spinner"></div>
-            <p>🔍 TezFIT AI tahlil qilmoqda...</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 3: STATS (Weekly & Badges) -->
+      <!-- TAB 2: STATS -->
       <section class="tab-page" id="page-stats">
         <div class="glass-card section-card">
           <h3>📊 Haftalik Kaloriya Dinamikasi</h3>
@@ -253,7 +211,17 @@
         </div>
       </section>
 
-      <!-- TAB 4: PROFILE & GOALS -->
+      <!-- TAB 3: DIET PLAN / MEALS -->
+      <section class="tab-page" id="page-meals">
+        <div class="glass-card section-card">
+          <h2>🍽 Diet Plan & Ovqatlar Tarixi</h2>
+          <div class="meals-list" id="diet-page-meals-list">
+            <p class="empty-text">Kunlik ovqatlaringiz ro'yxati shu yerda ko'rinadi</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: PROFILE & SETTINGS -->
       <section class="tab-page" id="page-profile">
         <div class="glass-card section-card profile-card">
           <div class="profile-header">
@@ -288,42 +256,162 @@
       </section>
     </main>
 
-    <!-- Floating Bottom Navigation Capsule Dock (Figma Style) -->
+    <!-- Floating Bottom Navigation Capsule Dock (Exact Figma Order) -->
     <nav class="bottom-floating-dock">
       <div class="dock-container">
+        <!-- 1. Home -->
         <button class="dock-item active" id="nav-home" onclick="switchTab('home')">
-          <div class="dock-icon-circle">🏠</div>
+          <div class="dock-icon-circle">
+            <img src="assets/dock_home.png" alt="Home" class="dock-icon-img">
+          </div>
         </button>
-        <button class="dock-item" id="nav-scan" onclick="switchTab('scan')">
-          <div class="dock-icon-circle">📸</div>
-        </button>
+        <!-- 2. Statistics -->
         <button class="dock-item" id="nav-stats" onclick="switchTab('stats')">
-          <div class="dock-icon-circle">📊</div>
+          <div class="dock-icon-circle">
+            <img src="assets/dock_stats.png" alt="Stats" class="dock-icon-img">
+          </div>
         </button>
-        <button class="dock-item" id="nav-meals" onclick="switchTab('home')">
-          <div class="dock-icon-circle">🍽</div>
+        <!-- 3. AI Camera / Scan -->
+        <button class="dock-item" id="nav-scan" onclick="openCameraModal()">
+          <div class="dock-icon-circle">
+            <img src="assets/dock_scan.png" alt="AI Camera" class="dock-icon-img">
+          </div>
         </button>
+        <!-- 4. Diet Plan -->
+        <button class="dock-item" id="nav-meals" onclick="switchTab('meals')">
+          <div class="dock-icon-circle">
+            <img src="assets/dock_meals.png" alt="Diet Plan" class="dock-icon-img">
+          </div>
+        </button>
+        <!-- 5. Settings / Profile -->
         <button class="dock-item" id="nav-profile" onclick="switchTab('profile')">
-          <div class="dock-icon-circle">👤</div>
+          <div class="dock-icon-circle">
+            <img src="assets/dock_profile.png" alt="Settings" class="dock-icon-img">
+          </div>
         </button>
       </div>
     </nav>
   </div>
 
-  <!-- Scan Result Confirmation Modal -->
-  <div class="modal-overlay" id="result-modal" style="display:none;">
-    <div class="modal-content glass-card">
-      <h3 id="result-food-name">🍽 Ovqat nomi</h3>
-      <div class="result-breakdown">
-        <div class="res-cal" id="result-calories">🔥 0 kcal</div>
-        <div class="res-weight" id="result-weight">⚖️ 100g</div>
-        <div class="res-macros" id="result-macros">
-          🥩 Oqsil: 0g | 🧈 Yog': 0g | 🍚 Uglevod: 0g
+  <!-- ==================== AI CAMERA VIEWFINDER MODAL (Figma Screen 1) ==================== -->
+  <div class="camera-modal-overlay" id="camera-modal" style="display:none;">
+    <div class="camera-header">
+      <span class="camera-title">AI Camera</span>
+      <button class="btn-camera-close" onclick="closeCameraModal()">✕</button>
+    </div>
+
+    <!-- Viewfinder Area -->
+    <div class="viewfinder-container">
+      <div class="viewfinder-box">
+        <div class="scan-laser-line"></div>
+        <div class="vf-corner top-left"></div>
+        <div class="vf-corner top-right"></div>
+        <div class="vf-corner bottom-left"></div>
+        <div class="vf-corner bottom-right"></div>
+        <img id="camera-live-preview" src="" style="display:none;" class="preview-img-fill">
+      </div>
+    </div>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleImageSelected(event)">
+    <input type="file" id="input-gallery" accept="image/*" style="display:none;" onchange="handleImageSelected(event)">
+
+    <!-- Bottom Controls Bar -->
+    <div class="camera-bottom-panel">
+      <div class="camera-mode-pills">
+        <button class="cam-pill active" id="pill-camera" onclick="triggerCameraCapture()">
+          <span class="p-icon">📷</span> AI Camera
+        </button>
+        <button class="cam-pill" id="pill-gallery" onclick="triggerGalleryPick()">
+          <span class="p-icon">🖼</span> Gallery
+        </button>
+      </div>
+
+      <div class="shutter-wrapper">
+        <button class="shutter-btn" onclick="triggerCameraCapture()"></button>
+      </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="camera-loading-overlay" id="cam-loading" style="display:none;">
+      <div class="spinner"></div>
+      <p>🔍 AI Taomni tahlil qilmoqda...</p>
+    </div>
+  </div>
+
+  <!-- ==================== AI SCAN RESULT SHEET MODAL (Figma Screen 2) ==================== -->
+  <div class="result-sheet-overlay" id="result-sheet" style="display:none;">
+    <div class="result-sheet-content">
+      
+      <!-- Top Image Hero Header -->
+      <div class="sheet-hero-header">
+        <img id="sheet-food-img" src="assets/watermelon_good.png" alt="Food Image" class="hero-bg-img">
+        <div class="hero-nav-bar">
+          <button class="btn-round-nav" onclick="closeResultSheet()">‹</button>
+          <button class="btn-round-nav" onclick="toggleFavorite()">♥</button>
         </div>
       </div>
-      <div class="modal-buttons">
-        <button class="btn-secondary" onclick="closeResultModal()">❌ Bekor qilish</button>
-        <button class="btn-primary" onclick="confirmSaveMeal()">✅ Saqlash</button>
+
+      <!-- Result Card Body -->
+      <div class="sheet-body">
+        
+        <!-- 4 Macro Cards Grid (Figma Palette) -->
+        <div class="result-macros-grid">
+          <!-- Calories (Purple) -->
+          <div class="res-card res-purple">
+            <span class="res-lbl">Calories</span>
+            <h3 class="res-val" id="res-cal-val">2,230 kcal</h3>
+          </div>
+
+          <!-- Protein (Green) -->
+          <div class="res-card res-green">
+            <span class="res-lbl">Protein</span>
+            <div class="res-bar-container">
+              <div class="res-bar-fill black-fill" id="res-protein-fill" style="width: 83%;"></div>
+            </div>
+            <div class="res-pct-row">
+              <span id="res-protein-pct">83%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
+          <!-- Carbs (Yellow) -->
+          <div class="res-card res-yellow">
+            <span class="res-lbl">Carbs</span>
+            <div class="res-bar-container">
+              <div class="res-bar-fill black-fill" id="res-carbs-fill" style="width: 50%;"></div>
+            </div>
+            <div class="res-pct-row">
+              <span id="res-carbs-pct">50%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
+          <!-- Fat (Coral Orange) -->
+          <div class="res-card res-orange">
+            <span class="res-lbl">Fat</span>
+            <div class="res-bar-container">
+              <div class="res-bar-fill black-fill" id="res-fat-fill" style="width: 63%;"></div>
+            </div>
+            <div class="res-pct-row">
+              <span id="res-fat-pct">63%</span>
+              <span>100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Breakdown Items -->
+        <div class="result-items-list" id="res-items-container">
+          <div class="item-breakdown-card">
+            <h4>Grilled Chicken Strips</h4>
+            <p>220 kcal &nbsp;|&nbsp; Protein: 30g &nbsp;|&nbsp; Carbs: 0g &nbsp;|&nbsp; Fat: 5g</p>
+          </div>
+        </div>
+
+        <!-- Bottom Action Button -->
+        <div class="sheet-action-wrapper">
+          <button class="btn-add-diet" onclick="saveResultMealToDiet()">Add to My Diet</button>
+        </div>
       </div>
     </div>
   </div>

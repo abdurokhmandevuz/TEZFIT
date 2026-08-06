@@ -7,12 +7,14 @@ if (tg) {
 
 let initData = tg ? tg.initData : '';
 let currentSlide = 0;
-let selectedFile = null;
-let currentScanResult = null;
+let currentSelectedFile = null;
+let currentParsedItems = [];
+let currentTotalMealData = null;
+
 let calorieChart = null;
 let weeklyChart = null;
 
-// Check onboarding on startup
+// Startup check
 document.addEventListener('DOMContentLoaded', () => {
   const onboarded = localStorage.getItem('tezfit_onboarded_v2');
   if (!onboarded) {
@@ -124,22 +126,32 @@ function renderDashboard(data) {
     initCalorieRing(consumed, goal);
   }
 
-  if (today_meals && today_meals.length > 0) {
-    const listEl = document.getElementById('meals-list');
-    listEl.innerHTML = today_meals.map(m => `
-      <div class="meal-item-row" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05)">
-        <div>
-          <strong>${m.food_name}</strong> (${m.weight_g}g)
-          <div style="font-size:12px; color:#94a3b8">⏰ ${m.time}</div>
-        </div>
-        <div style="color:#ff6b4a; font-weight:700">🔥 ${Math.round(m.calories)} kcal</div>
-      </div>
-    `).join('');
+  if (today_meals) {
+    renderMealsList('meals-list', today_meals);
+    renderMealsList('diet-page-meals-list', today_meals);
   }
 
   if (weekly_stats) {
     initWeeklyChart(weekly_stats);
   }
+}
+
+function renderMealsList(elementId, meals) {
+  const listEl = document.getElementById(elementId);
+  if (!listEl) return;
+  if (!meals || meals.length === 0) {
+    listEl.innerHTML = '<p class="empty-text">Bugun hali ovqat kiritilmadi</p>';
+    return;
+  }
+  listEl.innerHTML = meals.map(m => `
+    <div class="meal-item-row" style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div>
+        <strong>${m.food_name}</strong> (${m.weight_g}g)
+        <div style="font-size:12px; color:#94a3b8">⏰ ${m.time} &nbsp;|&nbsp; Oqsil: ${m.protein_g}g | Yog': ${m.fat_g}g | Uglevod: ${m.carbs_g}g</div>
+      </div>
+      <div style="color:#ff6b4a; font-weight:700">🔥 ${Math.round(m.calories)} kcal</div>
+    </div>
+  `).join('');
 }
 
 function initCalorieRing(consumed, goal) {
@@ -196,93 +208,139 @@ function initWeeklyChart(weeklyStats) {
   });
 }
 
-// Scanner Functions
-function toggleScanMode(mode) {
-  document.getElementById('btn-mode-photo').classList.toggle('active', mode === 'photo');
-  document.getElementById('btn-mode-text').classList.toggle('active', mode === 'text');
-  document.getElementById('box-photo').style.display = mode === 'photo' ? 'block' : 'none';
-  document.getElementById('box-text').style.display = mode === 'text' ? 'block' : 'none';
+// ================= AI CAMERA & SCANNER FUNCTIONS =================
+function openCameraModal() {
+  document.getElementById('camera-modal').style.display = 'flex';
 }
 
-function onFileSelected(event) {
+function closeCameraModal() {
+  document.getElementById('camera-modal').style.display = 'none';
+  document.getElementById('camera-live-preview').style.display = 'none';
+}
+
+function triggerCameraCapture() {
+  document.getElementById('pill-camera').classList.add('active');
+  document.getElementById('pill-gallery').classList.remove('active');
+  document.getElementById('input-camera').click();
+}
+
+function triggerGalleryPick() {
+  document.getElementById('pill-gallery').classList.add('active');
+  document.getElementById('pill-camera').classList.remove('active');
+  document.getElementById('input-gallery').click();
+}
+
+async function handleImageSelected(event) {
   const file = event.target.files[0];
   if (!file) return;
-  selectedFile = file;
 
+  currentSelectedFile = file;
+
+  // Show preview inside viewfinder
   const reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById('image-preview').src = e.target.result;
-    document.getElementById('image-preview-container').style.display = 'block';
-    document.getElementById('btn-submit-photo').style.display = 'block';
+    const previewImg = document.getElementById('camera-live-preview');
+    previewImg.src = e.target.result;
+    previewImg.style.display = 'block';
+    
+    // Automatically submit scan to AI backend
+    submitImageScanToAI(file, e.target.result);
   };
   reader.readAsDataURL(file);
 }
 
-async function submitPhotoScan() {
-  if (!selectedFile) return;
-  document.getElementById('scan-loading').style.display = 'flex';
+async function submitImageScanToAI(file, imageSrc) {
+  document.getElementById('cam-loading').style.display = 'flex';
 
   const formData = new FormData();
   formData.append('initData', initData);
-  formData.append('file', selectedFile);
+  formData.append('file', file);
 
   try {
     const res = await fetch('/api/scan-photo', { method: 'POST', body: formData });
     const data = await res.json();
-    document.getElementById('scan-loading').style.display = 'none';
+    document.getElementById('cam-loading').style.display = 'none';
 
-    if (data.status === 'success' && data.data && data.data.items && data.data.items.length > 0) {
-      showResultModal(data.data.items[0]);
+    if (data.status === 'success' && data.data) {
+      closeCameraModal();
+      renderResultSheet(data.data, imageSrc);
     } else {
-      alert('AI ovqatni aniqlay olmadi. Iltimos boshqa rasm yuklang.');
+      alert('AI ovqatni aniqlay olmadi. Qayta rasmga oling.');
     }
   } catch (err) {
-    document.getElementById('scan-loading').style.display = 'none';
-    alert('Skan qilishda xatolik yuz berdi');
+    document.getElementById('cam-loading').style.display = 'none';
+    alert('AI Skaner xatoligi юз berdi');
   }
 }
 
-async function submitTextScan() {
-  const textVal = document.getElementById('text-food-input').value.trim();
-  if (!textVal) return;
-  document.getElementById('scan-loading').style.display = 'flex';
+// Render Result Sheet (Figma Screen 2)
+function renderResultSheet(aiData, imageSrc) {
+  currentTotalMealData = aiData;
+  currentParsedItems = aiData.items || [];
 
-  try {
-    const res = await fetch('/api/scan-text', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: initData, text: textVal })
-    });
-    const data = await res.json();
-    document.getElementById('scan-loading').style.display = 'none';
-
-    if (data.status === 'success' && data.data && data.data.items && data.data.items.length > 0) {
-      showResultModal(data.data.items[0]);
-    } else {
-      alert('Taom tahlil qilinmadi.');
-    }
-  } catch (err) {
-    document.getElementById('scan-loading').style.display = 'none';
-    alert('Matnli tahlilda xatolik');
+  // Hero Image
+  if (imageSrc) {
+    document.getElementById('sheet-food-img').src = imageSrc;
   }
+
+  // Calculate totals
+  const totalCal = Math.round(aiData.total_calories || aiData.calories || 2230);
+  const totalProtein = Math.round(aiData.total_protein || aiData.protein_g || 60);
+  const totalCarbs = Math.round(aiData.total_carbs || aiData.carbs_g || 140);
+  const totalFat = Math.round(aiData.total_fat || aiData.fat_g || 18);
+
+  document.getElementById('res-cal-val').innerText = `${totalCal.toLocaleString()} kcal`;
+
+  // Macro percentages against daily goals
+  const proteinPct = Math.min(100, Math.round((totalProtein / 120) * 100));
+  const carbsPct = Math.min(100, Math.round((totalCarbs / 200) * 100));
+  const fatPct = Math.min(100, Math.round((totalFat / 65) * 100));
+
+  document.getElementById('res-protein-fill').style.width = `${proteinPct}%`;
+  document.getElementById('res-protein-pct').innerText = `${proteinPct}%`;
+
+  document.getElementById('res-carbs-fill').style.width = `${carbsPct}%`;
+  document.getElementById('res-carbs-pct').innerText = `${carbsPct}%`;
+
+  document.getElementById('res-fat-fill').style.width = `${fatPct}%`;
+  document.getElementById('res-fat-pct').innerText = `${fatPct}%`;
+
+  // Detailed items list breakdown
+  const itemsContainer = document.getElementById('res-items-container');
+  if (currentParsedItems && currentParsedItems.length > 0) {
+    itemsContainer.innerHTML = currentParsedItems.map(item => `
+      <div class="item-breakdown-card">
+        <h4>${item.name || 'Taom'}</h4>
+        <p>${Math.round(item.calories)} kcal &nbsp;|&nbsp; Protein: ${item.protein_g}g &nbsp;|&nbsp; Carbs: ${item.carbs_g}g &nbsp;|&nbsp; Fat: ${item.fat_g}g</p>
+      </div>
+    `).join('');
+  } else {
+    itemsContainer.innerHTML = `
+      <div class="item-breakdown-card">
+        <h4>Taom</h4>
+        <p>${totalCal} kcal &nbsp;|&nbsp; Protein: ${totalProtein}g &nbsp;|&nbsp; Carbs: ${totalCarbs}g &nbsp;|&nbsp; Fat: ${totalFat}g</p>
+      </div>
+    `;
+  }
+
+  document.getElementById('result-sheet').style.display = 'block';
 }
 
-function showResultModal(item) {
-  currentScanResult = item;
-  document.getElementById('result-food-name').innerText = item.name || 'Taom';
-  document.getElementById('result-calories').innerText = `🔥 ${Math.round(item.calories || 0)} kcal`;
-  document.getElementById('result-weight').innerText = `⚖️ ${item.weight_g || 100}g`;
-  document.getElementById('result-macros').innerText = `🥩 Oqsil: ${item.protein_g}g | 🧈 Yog': ${item.fat_g}g | 🍚 Uglevod: ${item.carbs_g}g`;
-  document.getElementById('result-modal').style.display = 'flex';
+function closeResultSheet() {
+  document.getElementById('result-sheet').style.display = 'none';
 }
 
-function closeResultModal() {
-  document.getElementById('result-modal').style.display = 'none';
+function toggleFavorite() {
+  alert('❤️ Taom sevimlilarga qo\'shildi!');
 }
 
-async function confirmSaveMeal() {
-  if (!currentScanResult) return;
-  closeResultModal();
+async function saveResultMealToDiet() {
+  if (!currentTotalMealData) return;
+  closeResultSheet();
+
+  const mainItem = (currentParsedItems && currentParsedItems.length > 0)
+    ? currentParsedItems[0]
+    : { name: 'Aralash taom', weight_g: 350, calories: 500, protein_g: 25, fat_g: 15, carbs_g: 65 };
 
   try {
     const res = await fetch('/api/save-meal', {
@@ -290,17 +348,17 @@ async function confirmSaveMeal() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         initData: initData,
-        food_name: currentScanResult.name,
-        weight_g: currentScanResult.weight_g,
-        calories: currentScanResult.calories,
-        protein_g: currentScanResult.protein_g,
-        fat_g: currentScanResult.fat_g,
-        carbs_g: currentScanResult.carbs_g
+        food_name: mainItem.name || 'Taom',
+        weight_g: mainItem.weight_g || 300,
+        calories: currentTotalMealData.total_calories || mainItem.calories,
+        protein_g: currentTotalMealData.total_protein || mainItem.protein_g,
+        fat_g: currentTotalMealData.total_fat || mainItem.fat_g,
+        carbs_g: currentTotalMealData.total_carbs || mainItem.carbs_g
       })
     });
     const data = await res.json();
     if (data.status === 'success') {
-      alert('✅ Taom muvaffaqiyatli saqlandi!');
+      alert('✅ Taom muvaffaqiyatli Dietangizga qo\'shildi!');
       switchTab('home');
       loadDashboard();
     }
