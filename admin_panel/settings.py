@@ -1,4 +1,6 @@
 import os
+import sys
+import logging
 from pathlib import Path
 from config import settings as app_settings
 
@@ -34,7 +36,22 @@ INSTALLED_APPS = [
     'admin_panel',
 ]
 
+class ExceptionLoggingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        import traceback
+        print("========== DJANGO EXCEPTION TRACEBACK ==========", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        print("================================================", file=sys.stderr)
+        return None
+
 MIDDLEWARE = [
+    'admin_panel.settings.ExceptionLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -74,6 +91,9 @@ if "sqlite" in db_url:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': db_path,
+            'OPTIONS': {
+                'timeout': 20,
+            }
         }
     }
 else:
@@ -81,6 +101,9 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'kalorix.db',
+            'OPTIONS': {
+                'timeout': 20,
+            }
         }
     }
 
