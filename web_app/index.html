@@ -294,7 +294,7 @@
   </div>
 
   <!-- Hidden Native File Inputs -->
-  <input type="file" id="input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelected(event)">
+  <input type="file" id="input-camera" accept="image/*;capture=camera" capture="environment" style="display:none;" onchange="handleFileSelected(event)">
   <input type="file" id="input-gallery" accept="image/*" style="display:none;" onchange="handleFileSelected(event)">
 
   <!-- ==================== CAMERA CHOICE SELECTION MODAL ==================== -->
@@ -307,11 +307,11 @@
       <p class="choice-subtitle">Kamerada rasmga oling yoki galereyadan tanlang</p>
       
       <div class="choice-buttons-grid">
-        <button class="btn-choice-option camera-opt" onclick="triggerNativeCamera()">
+        <button class="btn-choice-option camera-opt" onclick="openRealLiveCamera()">
           <span class="choice-icon">📷</span>
           <div class="choice-text">
             <strong>Kamerada Rasmga Olish</strong>
-            <small>Telefon kamerasini ochish</small>
+            <small>Real telefon kamerasini yoqish</small>
           </div>
         </button>
 
@@ -323,6 +323,34 @@
           </div>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ==================== REAL LIVE CAMERA STREAM MODAL ==================== -->
+  <div class="real-camera-overlay" id="real-camera-modal" style="display:none;">
+    <div class="real-camera-header">
+      <span class="camera-title font-heading">📸 AI Live Camera</span>
+      <button class="btn-camera-close" onclick="closeRealLiveCamera()">✕</button>
+    </div>
+
+    <!-- Live Video Stream Box -->
+    <div class="real-viewfinder-container">
+      <div class="real-viewfinder-box">
+        <video id="camera-live-feed" autoplay playsinline muted webkit-playsinline></video>
+        <canvas id="camera-snapshot-canvas" style="display:none;"></canvas>
+        <div class="scan-laser-line"></div>
+        <div class="vf-corner top-left"></div>
+        <div class="vf-corner top-right"></div>
+        <div class="vf-corner bottom-left"></div>
+        <div class="vf-corner bottom-right"></div>
+      </div>
+    </div>
+
+    <!-- Bottom Shutter & Controls -->
+    <div class="real-camera-controls">
+      <button class="btn-flip-cam" onclick="flipCameraStream()" title="Kamerani almashtirish">🔄</button>
+      <button class="btn-shutter-live" onclick="takeLiveCameraSnapshot()" title="Rasmga olish"></button>
+      <button class="btn-open-gallery-direct" onclick="triggerNativeGallery()" title="Galereya">🖼</button>
     </div>
   </div>
 
