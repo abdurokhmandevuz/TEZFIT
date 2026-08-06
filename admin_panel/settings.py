@@ -8,6 +8,17 @@ SECRET_KEY = 'django-insecure-tezfit-admin-key-secret-super-safe'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+# CSRF & Proxy Configuration for Railway HTTPS
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.railway.app',
+    'https://*.up.railway.app',
+    'https://tezfit-production.up.railway.app',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://0.0.0.0:8000',
+]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Ensure Django Admin URLs build with /admin prefix when mounted in FastAPI
 FORCE_SCRIPT_NAME = '/admin'
 
