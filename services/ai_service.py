@@ -12,38 +12,38 @@ from config import settings
 logger = logging.getLogger(__name__)
 
 VISION_PROMPT = """Siz professional Nutrisiolog AI va taomlarni rasmidan taniydigan kompyuter ko'rish (computer vision) mutaxassissiz.
-DIQQAT: Rasmga o'ta diqqat bilan qarang va rasmda KO'RINIB TURGAN ANIQ TAOM(LAR)NI va ularning masalliqlarini aniqlang.
+DIQQAT: Rasmga o'ta diqqat bilan qarang va rasmda KO'RINIB TURGAN ANIQ TAOM(LAR)NI, ularning masalliqlarini hamda porsiya hajmini tahlil qiling.
 
-Sizga berilgan rasmda haqiqatda NIMA ko'rinayotgan bo'lsa, FAQAT o'sha taom nomini o'zbek tilida yozing (masalan: Pitsa, Tuxum, Olma, Tovuq go'shti, Burger, Osh, Lag'mon, Somsa, Salat, Sushilar va h.k.). Har bir ko'ringan taom uchun taxminiy og'irligi (grammda), kaloriyasi (kcal), oqsil (protein_g), yog' (fat_g) va uglevod (carbs_g) ko'rsatkichlarini hisoblang.
+Rasmda haqiqatda NIMA ko'rinayotgan bo'lsa, o'sha taom nomi, og'irligi (grammda), kaloriyasi (kcal), oqsil (protein_g), yog' (fat_g) va uglevod (carbs_g) miqdorini rasmga qarab REAL HISOB-KITOB QILING.
 
-FAQAT quyidagi JSON formatida javob bering, boshqa hech qanday izoh va qo'shimcha matn yozmang:
+FAQAT quyidagi JSON strukturasida javob bering (nol qiymatlar o'rniga rasm bo'yicha REAL o'lchovlarni yozing):
 {
   "items": [
     {
-      "name": "<rasmda ko'ringan taom nomi>",
-      "weight_g": 200,
-      "calories": 350,
-      "protein_g": 20,
-      "fat_g": 12,
-      "carbs_g": 40
+      "name": "Rasmda ko'ringan aniq taom nomi",
+      "weight_g": 0,
+      "calories": 0,
+      "protein_g": 0,
+      "fat_g": 0,
+      "carbs_g": 0
     }
   ],
-  "total_calories": 350
+  "total_calories": 0
 }"""
 
 TEXT_PROMPT = """Quyidagi matnda tasvirlangan taomni tahlil qiling: "{text}". Har bir komponent uchun og'irligi (grammda), kaloriyasi, oqsil, yog' va uglevodini hisoblang. FAQAT quyidagi JSON formatida javob bering:
 {
   "items": [
     {
-      "name": "<taom nomi>",
-      "weight_g": 200,
-      "calories": 350,
-      "protein_g": 20,
-      "fat_g": 12,
-      "carbs_g": 40
+      "name": "Taom nomi",
+      "weight_g": 0,
+      "calories": 0,
+      "protein_g": 0,
+      "fat_g": 0,
+      "carbs_g": 0
     }
   ],
-  "total_calories": 350
+  "total_calories": 0
 }"""
 
 # Active Vision Models Chain
@@ -214,7 +214,7 @@ class AIService:
         return {
             "items": [
                 {
-                    "name": "Araleash Taom (Rasm bo'yicha)",
+                    "name": "Aralash Taom (Rasm bo'yicha)",
                     "weight_g": 300,
                     "calories": 520,
                     "protein_g": 24,
@@ -232,7 +232,7 @@ class AIService:
 
         headers = {
             "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-            "HTTP-Referer": "https://t.me/Tezfitbot",
+            "HTTP-Referer": "https://t.me/KalorixBot",
             "X-Title": "TezFIT Telegram Bot",
             "Content-Type": "application/json"
         }
