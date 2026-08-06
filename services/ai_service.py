@@ -166,7 +166,7 @@ class AIService:
 
     @classmethod
     async def analyze_food_image(cls, image_bytes: bytes, is_vip: bool = False) -> Dict[str, Any]:
-        """Send image to OpenRouter Vision API in English prompt format for 99% accuracy."""
+        """Send image to OpenRouter Vision API with max_tokens=500 for exact, fast AI analysis."""
         base64_img = cls.compress_image(image_bytes)
         image_url = f"data:image/jpeg;base64,{base64_img}"
 
@@ -186,6 +186,7 @@ class AIService:
                     continue
                 payload = {
                     "model": model,
+                    "max_tokens": 500,
                     "messages": [
                         {
                             "role": "user",
@@ -217,22 +218,14 @@ class AIService:
 
         logger.warning(f"Vision API fallback. Error: {last_error}")
         return {
-            "items": [
-                {
-                    "name": "Aralash Taom (Rasm bo'yicha)",
-                    "weight_g": 300,
-                    "calories": 520,
-                    "protein_g": 24,
-                    "fat_g": 18,
-                    "carbs_g": 60
-                }
-            ],
-            "total_calories": 520
+            "error": last_error or "AI analysis failed",
+            "items": [],
+            "total_calories": 0
         }
 
     @classmethod
     async def analyze_food_text(cls, food_text: str, is_vip: bool = False) -> Dict[str, Any]:
-        """Send food text description to OpenRouter Text API."""
+        """Send food text description to OpenRouter Text API with max_tokens=500."""
         prompt = TEXT_PROMPT.format(text=food_text)
 
         headers = {
@@ -251,6 +244,7 @@ class AIService:
                     continue
                 payload = {
                     "model": model,
+                    "max_tokens": 500,
                     "messages": [
                         {
                             "role": "user",
@@ -278,15 +272,7 @@ class AIService:
                     last_error = f"{model} ({str(e)})"
 
         return {
-            "items": [
-                {
-                    "name": food_text or "Taom",
-                    "weight_g": 250,
-                    "calories": 450,
-                    "protein_g": 20,
-                    "fat_g": 18,
-                    "carbs_g": 52
-                }
-            ],
-            "total_calories": 450
+            "error": last_error or "AI text analysis failed",
+            "items": [],
+            "total_calories": 0
         }
