@@ -11,9 +11,6 @@ let currentSelectedFile = null;
 let currentParsedItems = [];
 let currentTotalMealData = null;
 
-let activeMediaStream = null;
-let currentFacingMode = 'environment'; // 'environment' (back) or 'user' (front)
-
 let calorieChart = null;
 let weeklyChart = null;
 
@@ -219,84 +216,8 @@ function closeCameraChoiceModal() {
   document.getElementById('camera-choice-modal').style.display = 'none';
 }
 
-// ================= REAL LIVE HTML5 VIDEO CAMERA STREAM =================
-async function openRealLiveCamera() {
+function triggerNativeCamera() {
   closeCameraChoiceModal();
-  document.getElementById('real-camera-modal').style.display = 'flex';
-  await startLiveCameraFeed();
-}
-
-function closeRealLiveCamera() {
-  stopLiveCameraFeed();
-  document.getElementById('real-camera-modal').style.display = 'none';
-}
-
-async function startLiveCameraFeed() {
-  stopLiveCameraFeed();
-  const videoEl = document.getElementById('camera-live-feed');
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    triggerNativeCameraFallback();
-    return;
-  }
-
-  try {
-    activeMediaStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: currentFacingMode },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      },
-      audio: false
-    });
-
-    videoEl.srcObject = activeMediaStream;
-    videoEl.muted = true;
-    videoEl.playsInline = true;
-    
-    // Explicit play call fixes Android WebView black screen!
-    await videoEl.play();
-  } catch (err) {
-    console.warn('Live Camera Error:', err);
-    closeRealLiveCamera();
-    triggerNativeCameraFallback();
-  }
-}
-
-function stopLiveCameraFeed() {
-  if (activeMediaStream) {
-    activeMediaStream.getTracks().forEach(track => track.stop());
-    activeMediaStream = null;
-  }
-}
-
-async function flipCameraStream() {
-  currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-  await startLiveCameraFeed();
-}
-
-function takeLiveCameraSnapshot() {
-  const videoEl = document.getElementById('camera-live-feed');
-  if (!videoEl || videoEl.videoWidth === 0) {
-    triggerNativeCameraFallback();
-    return;
-  }
-
-  const canvas = document.getElementById('camera-snapshot-canvas');
-  canvas.width = videoEl.videoWidth;
-  canvas.height = videoEl.videoHeight;
-
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-
-  canvas.toBlob(blob => {
-    if (!blob) return;
-    const imageSrc = canvas.toDataURL('image/jpeg');
-    closeRealLiveCamera();
-    submitImageScanToAI(blob, imageSrc);
-  }, 'image/jpeg', 0.85);
-}
-
-function triggerNativeCameraFallback() {
   const camInput = document.getElementById('input-camera');
   if (camInput) {
     camInput.value = '';
@@ -306,8 +227,6 @@ function triggerNativeCameraFallback() {
 
 function triggerNativeGallery() {
   closeCameraChoiceModal();
-  stopLiveCameraFeed();
-  closeRealLiveCamera();
   const galInput = document.getElementById('input-gallery');
   if (galInput) {
     galInput.value = '';
@@ -340,7 +259,7 @@ async function submitImageScanToAI(fileOrBlob, imageSrc) {
   loadingEl.style.display = 'flex';
 
   const formData = new FormData();
-  formData.append('initData', initData);
+  formData.append('initData', initData || '');
   formData.append('file', fileOrBlob, 'food_scan.jpg');
 
   try {
@@ -348,24 +267,15 @@ async function submitImageScanToAI(fileOrBlob, imageSrc) {
     const data = await res.json();
     loadingEl.style.display = 'none';
 
-    if (data && data.data) {
+    if (data && data.status === 'success' && data.data && data.data.items && data.data.items.length > 0) {
       renderResultSheet(data.data, imageSrc);
     } else {
-      renderResultSheet({
-        items: [
-          { name: "Milliy Taom (Rasm bo'yicha)", weight_g: 350, calories: 620, protein_g: 28, fat_g: 22, carbs_g: 70 }
-        ],
-        total_calories: 620
-      }, imageSrc);
+      const errMsg = (data && (data.error || data.detail || data.message)) || "AI javob bermadi yoki kalit topilmadi.";
+      alert("⚠️ AI Xatoligi: " + errMsg);
     }
   } catch (err) {
     loadingEl.style.display = 'none';
-    renderResultSheet({
-      items: [
-        { name: "Milliy Taom (Rasm bo'yicha)", weight_g: 350, calories: 620, protein_g: 28, fat_g: 22, carbs_g: 70 }
-      ],
-      total_calories: 620
-    }, imageSrc);
+    alert("⚠️ Internet yoki server bilan ulanishda xatolik yuz berdi.");
   }
 }
 
@@ -378,10 +288,11 @@ function renderResultSheet(aiData, imageSrc) {
     document.getElementById('sheet-food-img').src = imageSrc;
   }
 
-  const totalCal = Math.round(aiData.total_calories || aiData.calories || 620);
-  const totalProtein = Math.round(aiData.total_protein || (currentParsedItems[0] ? currentParsedItems[0].protein_g : 28));
-  const totalCarbs = Math.round(aiData.total_carbs || (currentParsedItems[0] ? currentParsedItems[0].carbs_g : 70));
-  const totalFat = Math.round(aiData.total_fat || (currentParsedItems[0] ? currentParsedItems[0].fat_g : 22));
+  const totalCal = Math.round(aiData.total_calories || aiData.calories || 0);
+  const firstItem = currentParsedItems[0] || {};
+  const totalProtein = Math.round(aiData.total_protein || firstItem.protein_g || 0);
+  const totalCarbs = Math.round(aiData.total_carbs || firstItem.carbs_g || 0);
+  const totalFat = Math.round(aiData.total_fat || firstItem.fat_g || 0);
 
   document.getElementById('res-cal-val').innerText = `${totalCal.toLocaleString()} kcal`;
 

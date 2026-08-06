@@ -1,80 +1,73 @@
-import logging
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
-from database.session import AsyncSessionLocal
+
+from database import AsyncSessionLocal
 from services.user_service import UserService
 from services.meal_service import MealService
 from services.gamification_service import GamificationService
 from services.ai_service import AIService
-from api.auth import verify_telegram_web_app_data
+from utils.helpers import verify_telegram_web_app_data
 
-logger = logging.getLogger(__name__)
-
-router = APIRouter(prefix="/api")
-
-class GoalUpdateRequest(BaseModel):
-    initData: str
-    weight_kg: Optional[float] = None
-    height_cm: Optional[float] = None
-    daily_goal_kcal: Optional[float] = None
+router = APIRouter(prefix="/api", tags=["dashboard"])
 
 class ScanTextRequest(BaseModel):
-    initData: str
+    initData: str = ""
     text: str
 
 class SaveMealRequest(BaseModel):
-    initData: str
+    initData: str = ""
     food_name: str
-    weight_g: float
+    weight_g: float = 150
     calories: float
-    protein_g: float
-    fat_g: float
-    carbs_g: float
+    protein_g: float = 0
+    fat_g: float = 0
+    carbs_g: float = 0
     meal_time: Optional[str] = "snack"
 
+class GoalUpdateRequest(BaseModel):
+    initData: str = ""
+    daily_goal_kcal: Optional[float] = None
+    weight_kg: Optional[float] = None
+
 @router.get("/dashboard")
-async def get_dashboard(initData: str):
+async def get_dashboard_data(initData: str = ""):
     user_data = verify_telegram_web_app_data(initData)
     if not user_data:
-        # Fallback for dev / browser testing
-        user_data = {"id": 123456789, "first_name": "Foydalanuvchi", "username": "tezfit_user"}
+        user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
 
     telegram_id = user_data["id"]
 
     async with AsyncSessionLocal() as session:
-        user = await UserService.get_or_create_user(
-            session=session,
-            telegram_id=telegram_id,
-            username=user_data.get("username"),
-            name=user_data.get("first_name")
-        )
+        user = await UserService.get_or_create_user(session, telegram_id)
         today_stats = await MealService.get_today_stats(session, user.id)
         weekly_stats = await MealService.get_weekly_stats(session, user.id)
         today_meals = await MealService.get_today_meals(session, user.id)
         badges = await GamificationService.get_user_badges(session, user.id)
 
-    meals_list = [
-        {
-            "id": m.id,
-            "food_name": m.food_name,
-            "weight_g": m.weight_g,
-            "calories": m.calories,
-            "protein_g": m.protein_g,
-            "fat_g": m.fat_g,
-            "carbs_g": m.carbs_g,
-            "time": m.created_at.strftime("%H:%M")
-        } for m in today_meals
-    ]
+        meals_list = []
+        for m in today_meals:
+            meals_list.append({
+                "id": m.id,
+                "food_name": m.food_name,
+                "weight_g": m.weight_g,
+                "calories": m.calories,
+                "protein_g": m.protein_g,
+                "fat_g": m.fat_g,
+                "carbs_g": m.carbs_g,
+                "time": m.created_at.strftime("%H:%M") if m.created_at else "Bugun"
+            })
 
     return {
+        "status": "success",
         "user": {
-            "telegram_id": user.telegram_id,
-            "name": user.name or user_data.get("first_name", "Foydalanuvchi"),
-            "username": user.username,
+            "name": user.first_name or user.username or "Foydalanuvchi",
             "daily_goal_kcal": user.daily_goal_kcal,
-            "streak_days": user.streak_days,
             "is_vip": user.is_vip,
+            "streak_days": user.streak_days,
+            "points": user.points,
+            "level": user.level,
             "weight_kg": user.weight_kg,
             "height_cm": user.height_cm,
             "age": user.age,
@@ -87,7 +80,7 @@ async def get_dashboard(initData: str):
     }
 
 @router.post("/scan-photo")
-async def scan_photo(initData: str = Form(...), file: UploadFile = File(...)):
+async def scan_photo(initData: str = Form(""), file: UploadFile = File(...)):
     user_data = verify_telegram_web_app_data(initData)
     if not user_data:
         user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
@@ -159,9 +152,12 @@ async def update_goals(body: GoalUpdateRequest):
         user = await UserService.update_profile(
             session=session,
             user=user,
-            weight_kg=body.weight_kg,
-            height_cm=body.height_cm,
-            daily_goal_kcal=body.daily_goal_kcal
+            daily_goal_kcal=body.daily_goal_kcal,
+            weight_kg=body.weight_kg
         )
 
-    return {"status": "success", "daily_goal_kcal": user.daily_goal_kcal}
+    return {
+        "status": "success",
+        "daily_goal_kcal": user.daily_goal_kcal,
+        "weight_kg": user.weight_kg
+    }
