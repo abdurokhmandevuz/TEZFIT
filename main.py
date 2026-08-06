@@ -20,6 +20,19 @@ logger = logging.getLogger(__name__)
 polling_task = None
 startup_error = None
 
+async def run_bot_polling_with_retry():
+    """Keep polling resilient against temporary Telegram network drops or container restarts."""
+    while True:
+        try:
+            logger.info("Starting Aiogram bot polling in background...")
+            await dp.start_polling(bot)
+        except asyncio.CancelledError:
+            logger.info("Bot polling loop cancelled.")
+            break
+        except Exception as e:
+            logger.error(f"Polling disconnected: {e}. Retrying in 3 seconds...")
+            await asyncio.sleep(3)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global polling_task, startup_error
@@ -37,10 +50,9 @@ async def lifespan(app: FastAPI):
         logger.error(f"Reminder Setup Error: {e}", exc_info=True)
 
     try:
-        logger.info("Starting Aiogram bot polling in background...")
-        polling_task = asyncio.create_task(dp.start_polling(bot))
+        polling_task = asyncio.create_task(run_bot_polling_with_retry())
     except Exception as e:
-        logger.error(f"Bot Polling Error: {e}", exc_info=True)
+        logger.error(f"Bot Polling Task Error: {e}", exc_info=True)
 
     yield
 
