@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TezFIT — Smart Nutrition Companion</title>
+  <title>TezFIT — Aqlli Kaloriya va Oziqlanish Hamrohi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
           Tez<span class="highlight">FIT</span>
         </div>
         <div class="tag-pill">
-          Eating <span class="pill-accent">healthy</span> made easy!
+          Sog'lom <span class="pill-accent">ovqatlanish</span> judayam oson!
         </div>
       </div>
       <div class="splash-shapes-wrapper">
@@ -85,14 +85,14 @@
   <!-- ==================== MAIN SINGLE PAGE APPLICATION ==================== -->
   <div id="app-main" class="app-main-wrapper" style="display:none;">
     
-    <!-- Top Header matching Figma -->
+    <!-- Top Header -->
     <header class="app-header">
       <div class="header-user-badge">
         <div class="avatar-wrapper">
           <span class="avatar-circle" id="user-avatar">T</span>
         </div>
         <div class="greeting-box">
-          <span class="greeting-text" id="greeting-title">Good Morning</span>
+          <span class="greeting-text" id="greeting-title">Xayrli tong ☀️</span>
           <span class="user-display-name" id="user-name">Foydalanuvchi</span>
         </div>
       </div>
@@ -112,27 +112,27 @@
       <!-- TAB 1: HOME (Dashboard) -->
       <section class="tab-page active" id="page-home">
         
-        <!-- Calendar Date Strip (Figma Style) -->
+        <!-- Calendar Date Strip -->
         <div class="calendar-strip">
-          <div class="day-col"><span class="d-name">Mon</span><span class="d-num">08</span></div>
-          <div class="day-col"><span class="d-name">Tue</span><span class="d-num">09</span></div>
-          <div class="day-col"><span class="d-name">Wed</span><span class="d-num">10</span></div>
-          <div class="day-col active-day"><span class="d-name">Thu</span><span class="d-num active-pill">11</span></div>
-          <div class="day-col"><span class="d-name">Fri</span><span class="d-num">12</span></div>
-          <div class="day-col"><span class="d-name">Sat</span><span class="d-num">13</span></div>
-          <div class="day-col"><span class="d-name">Sun</span><span class="d-num">14</span></div>
+          <div class="day-col"><span class="d-name">Dush</span><span class="d-num">08</span></div>
+          <div class="day-col"><span class="d-name">Sesh</span><span class="d-num">09</span></div>
+          <div class="day-col"><span class="d-name">Chor</span><span class="d-num">10</span></div>
+          <div class="day-col active-day"><span class="d-name">Pay</span><span class="d-num active-pill">11</span></div>
+          <div class="day-col"><span class="d-name">Jum</span><span class="d-num">12</span></div>
+          <div class="day-col"><span class="d-name">Shan</span><span class="d-num">13</span></div>
+          <div class="day-col"><span class="d-name">Yak</span><span class="d-num">14</span></div>
         </div>
 
-        <h2 class="section-heading">Count Your Daily Calories</h2>
+        <h2 class="section-heading">Kunlik Kaloriyangizni Hisoblang</h2>
 
-        <!-- Purple Main Calorie Card (Figma Style) -->
+        <!-- Purple Main Calorie Card -->
         <div class="purple-calorie-card">
-          <span class="card-tag">Calories</span>
+          <span class="card-tag">Kaloriyalar</span>
           <div class="semi-ring-wrapper">
             <canvas id="calorieRingCanvas"></canvas>
             <div class="ring-center-content">
               <span class="left-val" id="remaining-cal">1672</span>
-              <span class="left-label">Left</span>
+              <span class="left-label">Qoldi</span>
             </div>
           </div>
           <div class="ring-bounds">
@@ -141,13 +141,13 @@
           </div>
         </div>
 
-        <!-- Macros Grid (Figma Carbs & Protein Cards) -->
+        <!-- Macros Grid (Carbs & Protein Cards) -->
         <div class="macros-grid-figma">
           <!-- Carbs Card -->
           <div class="macro-card-figma carbs-card">
             <div class="macro-header-row">
-              <span class="macro-title">Carbs</span>
-              <img src="assets/carbs_icon.png" alt="Carbs Icon" class="macro-icon-img">
+              <span class="macro-title">Uglevodlar</span>
+              <img src="assets/carbs_icon.png" alt="Uglevodlar" class="macro-icon-img">
             </div>
             <div class="macro-progress-bar">
               <div class="progress-fill carbs-fill" id="carbs-bar-fill" style="width: 70%;"></div>
@@ -161,8 +161,8 @@
           <!-- Protein Card -->
           <div class="macro-card-figma protein-card">
             <div class="macro-header-row">
-              <span class="macro-title">Protein</span>
-              <img src="assets/protein_icon.png" alt="Protein Icon" class="macro-icon-img">
+              <span class="macro-title">Oqsillar</span>
+              <img src="assets/protein_icon.png" alt="Oqsillar" class="macro-icon-img">
             </div>
             <div class="macro-progress-bar">
               <div class="progress-fill protein-fill" id="protein-bar-fill" style="width: 50%;"></div>
@@ -180,13 +180,13 @@
             <h3>📸 Ovqatni AI bilan skan qiling</h3>
             <p>Kameradan rasmga oling yoki galereyadan tanlang</p>
           </div>
-          <div class="banner-btn">AI Camera</div>
+          <div class="banner-btn">AI Kamera</div>
         </div>
 
-        <!-- Today Meals (Diet Plan) -->
+        <!-- Today Meals -->
         <div class="glass-card section-card">
           <div class="section-title">
-            <h3>🍽 Diet Plan (Bugungi taomlar)</h3>
+            <h3>🍽 Bugungi Taomlar Rejasi</h3>
           </div>
           <div class="meals-list" id="meals-list">
             <p class="empty-text">Bugun hali ovqat kiritilmadi</p>
@@ -194,99 +194,190 @@
         </div>
       </section>
 
-      <!-- TAB 2: STATS -->
+      <!-- TAB 2: STATS / ANALYSIS -->
       <section class="tab-page" id="page-stats">
-        <div class="glass-card section-card">
-          <h3>📊 Haftalik Kaloriya Dinamikasi</h3>
-          <div class="chart-wrapper">
-            <canvas id="weeklyChart"></canvas>
+        <h2 class="section-heading font-heading" style="font-size:26px; margin-bottom:16px;">Tahlil va Statistika</h2>
+
+        <!-- Green Hero Banner Card -->
+        <div class="analysis-hero-card">
+          <h3>Sizning Oziqlanish Tahlilingiz</h3>
+          <p>Kuzating, odatlarni aniqlang va maqsadlaringizga erishing.</p>
+        </div>
+
+        <!-- Timeframe Switcher Capsule (Daily, Weekly, Monthly) -->
+        <div class="timeframe-capsule-switcher">
+          <button class="tf-btn active" id="tf-daily" onclick="setTimeframe('daily')">Kunlik</button>
+          <button class="tf-btn" id="tf-weekly" onclick="setTimeframe('weekly')">Haftalik</button>
+          <button class="tf-btn" id="tf-monthly" onclick="setTimeframe('monthly')">Oylik</button>
+        </div>
+
+        <!-- Purple Calorie Trends Card -->
+        <div class="analysis-trends-card purple-trends-bg">
+          <div class="trends-header">
+            <h3>Kaloriya Dinamikasi</h3>
+          </div>
+          <div class="chart-container-trends">
+            <canvas id="calorieTrendsCanvas"></canvas>
+          </div>
+          <div class="trends-legend-row">
+            <div class="legend-item"><span class="legend-dot orange-dot"></span><span id="legend-text-1">5 kun norma doirasida</span></div>
+            <div class="legend-item"><span class="legend-dot black-dot"></span><span id="legend-text-2">2 kun normadan >200 kcal oshdi</span></div>
           </div>
         </div>
 
-        <div class="glass-card section-card">
-          <h3>🎖 Yutuqlar va Nishonlar</h3>
-          <div class="badges-grid" id="badges-grid">
-            <p class="empty-text">Nishonlar yuklanmoqda...</p>
+        <!-- Yellow Macro Distribution Card -->
+        <div class="analysis-macro-card yellow-macro-bg">
+          <h3>BJU Taqsimoti</h3>
+          <p class="macro-insight-text" id="macro-insight">Sizda oqsil miqdori kamlik qilmoqda.</p>
+          
+          <div class="macro-distrib-grid">
+            <!-- Fats -->
+            <div class="distrib-pill distrib-purple">
+              <span class="d-lbl">Yog'lar</span>
+              <h4 class="d-pct" id="fat-pct-val">53%</h4>
+            </div>
+            <!-- Carbs -->
+            <div class="distrib-pill distrib-green">
+              <span class="d-lbl">Uglevodlar</span>
+              <h4 class="d-pct" id="carbs-pct-val">28%</h4>
+            </div>
+            <!-- Protein -->
+            <div class="distrib-pill distrib-orange">
+              <span class="d-lbl">Oqsillar</span>
+              <h4 class="d-pct" id="protein-pct-val">19%</h4>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 3: DIET PLAN / MEALS -->
+      <!-- TAB 3: DIETS / MEALS -->
       <section class="tab-page" id="page-meals">
-        <div class="glass-card section-card">
-          <h2>🍽 Diet Plan & Ovqatlar Tarixi</h2>
-          <div class="meals-list" id="diet-page-meals-list">
-            <p class="empty-text">Kunlik ovqatlaringiz ro'yxati shu yerda ko'rinadi</p>
-          </div>
+        <h2 class="section-heading font-heading" style="font-size:26px; margin-bottom:16px;">Parhez Rejimlar</h2>
+
+        <!-- All Diets vs My Diets Capsule Switcher -->
+        <div class="diet-tab-capsule">
+          <button class="diet-tab-btn active" id="tab-all-diets" onclick="switchDietTab('all')">Barcha Rejimlar</button>
+          <button class="diet-tab-btn" id="tab-my-diets" onclick="switchDietTab('my')">Mening Rejimlarim</button>
+        </div>
+
+        <!-- Explore Diet Plans Purple Banner Card -->
+        <div class="explore-diets-banner" id="diets-purple-banner">
+          <h3>Parhez Rejimlarini Kashf Eting</h3>
+          <p>Maqsad va turmush tarzingizga moslashtirilgan rejimlar.</p>
+        </div>
+
+        <h3 class="section-heading" id="diets-section-heading" style="font-size:22px; margin: 20px 0 14px 0;">Rejimlar</h3>
+
+        <!-- Diet Cards List Container -->
+        <div class="diet-cards-container" id="diet-cards-list">
+          <!-- Cards rendered via app.js -->
         </div>
       </section>
 
-      <!-- TAB 4: PROFILE & SETTINGS -->
+      <!-- TAB 4: SETTINGS / PROFILE -->
       <section class="tab-page" id="page-profile">
-        <div class="glass-card section-card profile-card">
-          <div class="profile-header">
-            <div class="profile-avatar" id="prof-avatar">T</div>
-            <h2 id="prof-name">Foydalanuvchi</h2>
-            <span class="vip-tag" id="prof-vip" style="display:none;">💎 VIP Status</span>
+        <h2 class="section-heading font-heading" style="font-size:26px; margin-bottom:16px;">Sozlamalar</h2>
+
+        <!-- User Profile Header Card -->
+        <div class="settings-user-card">
+          <div class="settings-avatar-box">
+            <span class="settings-avatar-text" id="settings-avatar-text">F</span>
+            <img id="settings-avatar-img" src="" alt="Avatar" class="settings-avatar-img" style="display:none;">
+          </div>
+          <div class="settings-user-info">
+            <h3 id="settings-user-name">Foydalanuvchi</h3>
+            <span id="settings-user-contact">ID: 8817446491</span>
+          </div>
+        </div>
+
+        <!-- Menu Group 1: Profile, Notification, Payment Method, Favorite -->
+        <div class="settings-menu-card">
+          <!-- Profile -->
+          <div class="settings-menu-item" onclick="openProfileEditSheet()">
+            <div class="item-left">
+              <span class="menu-item-text">Mening Profilim</span>
+            </div>
+            <span class="chevron-icon">›</span>
           </div>
 
-          <div class="profile-details-grid">
-            <div class="detail-item">
-              <span class="lbl">Kunlik Norma</span>
-              <h3 id="prof-goal">2000 kcal</h3>
+          <!-- Notification -->
+          <div class="settings-menu-item" onclick="openNotificationSheet()">
+            <div class="item-left">
+              <span class="menu-item-text">Bildirishnomalar</span>
             </div>
-            <div class="detail-item">
-              <span class="lbl">Vazn</span>
-              <h3 id="prof-weight">70 kg</h3>
-            </div>
-            <div class="detail-item">
-              <span class="lbl">Bo'y</span>
-              <h3 id="prof-height">170 sm</h3>
-            </div>
-            <div class="detail-item">
-              <span class="lbl">Streak</span>
-              <h3 id="prof-streak">🔥 0 kun</h3>
-            </div>
+            <span class="chevron-icon">›</span>
           </div>
 
-          <div class="profile-actions">
-            <button class="btn-edit-goal" onclick="openGoalModal()">🎯 Maqsadni Yangilash</button>
+          <!-- Payment Method -->
+          <div class="settings-menu-item" onclick="openGoalModal()">
+            <div class="item-left">
+              <span class="menu-item-text">To'lov Usuli / VIP Status</span>
+            </div>
+            <span class="chevron-icon">›</span>
+          </div>
+
+          <!-- Favorite -->
+          <div class="settings-menu-item" onclick="openFavoriteSheet()">
+            <div class="item-left">
+              <span class="menu-item-text">Sevimlilar</span>
+            </div>
+            <span class="chevron-icon">›</span>
+          </div>
+        </div>
+
+        <!-- Menu Group 2: More -->
+        <div class="settings-menu-card">
+          <div class="settings-menu-item" onclick="showMoreInfo()">
+            <div class="item-left">
+              <span class="menu-item-text">Batafsil Ma'lumot</span>
+            </div>
+            <span class="chevron-icon">›</span>
+          </div>
+        </div>
+
+        <!-- Menu Group 3: Log Out -->
+        <div class="settings-menu-card">
+          <div class="settings-menu-item" onclick="closeWebApp()">
+            <div class="item-left">
+              <span class="menu-item-text">Chiqish</span>
+            </div>
+            <span class="chevron-icon">›</span>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- Floating Bottom Navigation Capsule Dock (Exact Figma Order) -->
+    <!-- Floating Bottom Navigation Capsule Dock -->
     <nav class="bottom-floating-dock">
       <div class="dock-container">
         <!-- 1. Home -->
         <button class="dock-item active" id="nav-home" onclick="switchTab('home')">
           <div class="dock-icon-circle">
-            <img src="assets/dock_home.png" alt="Home" class="dock-icon-img">
+            <img src="assets/dock_home.png" alt="Bosh Sahifa" class="dock-icon-img">
           </div>
         </button>
         <!-- 2. Statistics -->
         <button class="dock-item" id="nav-stats" onclick="switchTab('stats')">
           <div class="dock-icon-circle">
-            <img src="assets/dock_stats.png" alt="Stats" class="dock-icon-img">
+            <img src="assets/dock_stats.png" alt="Statistika" class="dock-icon-img">
           </div>
         </button>
         <!-- 3. AI Camera / Scan -->
         <button class="dock-item" id="nav-scan" onclick="openCameraChoiceModal()">
           <div class="dock-icon-circle">
-            <img src="assets/dock_scan.png" alt="AI Camera" class="dock-icon-img">
+            <img src="assets/dock_scan.png" alt="AI Kamera" class="dock-icon-img">
           </div>
         </button>
         <!-- 4. Diet Plan -->
         <button class="dock-item" id="nav-meals" onclick="switchTab('meals')">
           <div class="dock-icon-circle">
-            <img src="assets/dock_meals.png" alt="Diet Plan" class="dock-icon-img">
+            <img src="assets/dock_meals.png" alt="Rejimlar" class="dock-icon-img">
           </div>
         </button>
         <!-- 5. Settings / Profile -->
         <button class="dock-item" id="nav-profile" onclick="switchTab('profile')">
           <div class="dock-icon-circle">
-            <img src="assets/dock_profile.png" alt="Settings" class="dock-icon-img">
+            <img src="assets/dock_profile.png" alt="Sozlamalar" class="dock-icon-img">
           </div>
         </button>
       </div>
@@ -296,6 +387,147 @@
   <!-- Hidden Native File Inputs -->
   <input type="file" id="input-camera" accept="image/*;capture=camera" capture="environment" style="display:none;" onchange="handleFileSelected(event)">
   <input type="file" id="input-gallery" accept="image/*" style="display:none;" onchange="handleFileSelected(event)">
+
+  <!-- ==================== MY PROFILE EDIT SHEET ==================== -->
+  <div class="result-sheet-overlay" id="profile-edit-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding: 20px;">
+      
+      <!-- Top Header -->
+      <div class="sheet-top-bar" style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <button class="btn-round-nav" onclick="closeProfileEditSheet()">‹</button>
+        <h2 class="font-heading" style="font-size:22px; font-weight:800;">Mening Profilim</h2>
+      </div>
+
+      <!-- Avatar Center with Camera Icon -->
+      <div class="edit-avatar-container">
+        <div class="edit-avatar-circle">
+          <span id="edit-avatar-text">F</span>
+          <img id="edit-avatar-img" src="" alt="Avatar" style="display:none;">
+          <div class="cam-badge" onclick="triggerNativeGallery()">📷</div>
+        </div>
+      </div>
+
+      <!-- Profile Edit Form -->
+      <div class="profile-form-grid">
+        <div class="form-group-figma">
+          <label>Ism va Familiya</label>
+          <input type="text" id="prof-input-name" class="input-figma" placeholder="Foydalanuvchi Ismi">
+        </div>
+
+        <div class="form-group-figma">
+          <label>Telefon Raqam / User ID</label>
+          <input type="text" id="prof-input-contact" class="input-figma" placeholder="+998 90 123 45 67">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group-figma">
+            <label>Tug'ilgan Sana</label>
+            <input type="date" id="prof-input-dob" class="input-figma" value="2003-05-21">
+          </div>
+          <div class="form-group-figma">
+            <label>Jinsi</label>
+            <select id="prof-input-gender" class="input-figma">
+              <option value="Male">Erkak</option>
+              <option value="Female">Ayol</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group-figma">
+            <label>Bo'y (cm)</label>
+            <input type="text" id="prof-input-height" class="input-figma" placeholder="170 cm">
+          </div>
+          <div class="form-group-figma">
+            <label>Vazn (kg)</label>
+            <input type="text" id="prof-input-weight" class="input-figma" placeholder="70 kg">
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Action Button -->
+      <div style="margin-top: auto; padding-top: 30px;">
+        <button class="btn-add-diet" onclick="saveProfileChanges()">Saqlash</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== FAVORITE MEALS & DIETS SHEET ==================== -->
+  <div class="result-sheet-overlay" id="favorite-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding: 20px;">
+      
+      <div class="sheet-top-bar" style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+        <button class="btn-round-nav" onclick="closeFavoriteSheet()">‹</button>
+        <h2 class="font-heading" style="font-size:22px; font-weight:800;">Sevimlilar</h2>
+      </div>
+
+      <div class="diet-cards-container" id="favorite-cards-list">
+        <div class="diet-card">
+          <img src="assets/diet_mediterranean.jpg" alt="O'rta Yer Dengizi Parhezi" class="diet-card-img">
+          <div class="diet-card-body">
+            <h3 class="diet-card-title">O'rta Yer Dengizi Parhezi</h3>
+            <p class="diet-card-subtext">2,000 kcal &nbsp;|&nbsp; Oqsil: 120g &nbsp;|&nbsp; Uglevod: 200g &nbsp;|&nbsp; Yog': 70g</p>
+          </div>
+        </div>
+
+        <div class="diet-card">
+          <img src="assets/diet_vegan.jpg" alt="Vegalarning Quvvat Rejasi" class="diet-card-img">
+          <div class="diet-card-body">
+            <h3 class="diet-card-title">Vegalarning Quvvat Rejasi</h3>
+            <p class="diet-card-subtext">2,000 kcal &nbsp;|&nbsp; Oqsil: 125g &nbsp;|&nbsp; Uglevod: 300g &nbsp;|&nbsp; Yog': 55g</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== NOTIFICATION SETTINGS SHEET ==================== -->
+  <div class="result-sheet-overlay" id="notification-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding: 20px;">
+      
+      <div class="sheet-top-bar" style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <button class="btn-round-nav" onclick="closeNotificationSheet()">‹</button>
+        <h2 class="font-heading" style="font-size:22px; font-weight:800;">Bildirishnomalar</h2>
+      </div>
+
+      <div class="settings-menu-card" style="padding: 10px 16px;">
+        <div class="notif-toggle-row">
+          <span>Ovqatlanish Eslatmalari</span>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="notif-toggle-row">
+          <span>Haftalik Natijalar Xulosasi</span>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="notif-toggle-row">
+          <span>Maqsadga Erishish Bildirishnomalari</span>
+          <label class="toggle-switch">
+            <input type="checkbox">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="notif-toggle-row">
+          <span>Yangi Rejim Tavsiyalari</span>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- ==================== CAMERA CHOICE SELECTION MODAL ==================== -->
   <div class="modal-overlay" id="camera-choice-modal" style="display:none;">
@@ -307,11 +539,11 @@
       <p class="choice-subtitle">Kamerada rasmga oling yoki galereyadan tanlang</p>
       
       <div class="choice-buttons-grid">
-        <button class="btn-choice-option camera-opt" onclick="openRealLiveCamera()">
+        <button class="btn-choice-option camera-opt" onclick="triggerNativeCamera()">
           <span class="choice-icon">📷</span>
           <div class="choice-text">
             <strong>Kamerada Rasmga Olish</strong>
-            <small>Real telefon kamerasini yoqish</small>
+            <small>Telefon kamerasini ochish</small>
           </div>
         </button>
 
@@ -326,35 +558,89 @@
     </div>
   </div>
 
-  <!-- ==================== REAL LIVE CAMERA STREAM MODAL ==================== -->
-  <div class="real-camera-overlay" id="real-camera-modal" style="display:none;">
-    <div class="real-camera-header">
-      <span class="camera-title font-heading">📸 AI Live Camera</span>
-      <button class="btn-camera-close" onclick="closeRealLiveCamera()">✕</button>
-    </div>
-
-    <!-- Live Video Stream Box -->
-    <div class="real-viewfinder-container">
-      <div class="real-viewfinder-box">
-        <video id="camera-live-feed" autoplay playsinline muted webkit-playsinline></video>
-        <canvas id="camera-snapshot-canvas" style="display:none;"></canvas>
-        <div class="scan-laser-line"></div>
-        <div class="vf-corner top-left"></div>
-        <div class="vf-corner top-right"></div>
-        <div class="vf-corner bottom-left"></div>
-        <div class="vf-corner bottom-right"></div>
+  <!-- ==================== DIET PLAN DETAIL SHEET ==================== -->
+  <div class="result-sheet-overlay" id="diet-detail-sheet" style="display:none;">
+    <div class="result-sheet-content">
+      
+      <!-- Top Hero Image Header -->
+      <div class="sheet-hero-header">
+        <img id="diet-detail-img" src="assets/diet_mediterranean.jpg" alt="Diet Detail Image" class="hero-bg-img">
+        <div class="hero-nav-bar">
+          <button class="btn-round-nav" onclick="closeDietDetailSheet()">‹</button>
+          <button class="btn-round-nav" onclick="toggleDietMenuOptions()">⋮</button>
+        </div>
       </div>
-    </div>
 
-    <!-- Bottom Shutter & Controls -->
-    <div class="real-camera-controls">
-      <button class="btn-flip-cam" onclick="flipCameraStream()" title="Kamerani almashtirish">🔄</button>
-      <button class="btn-shutter-live" onclick="takeLiveCameraSnapshot()" title="Rasmga olish"></button>
-      <button class="btn-open-gallery-direct" onclick="triggerNativeGallery()" title="Galereya">🖼</button>
+      <!-- Detail Body Sheet -->
+      <div class="sheet-body">
+        <h2 id="diet-detail-title" class="font-heading" style="font-size:24px; font-weight:800; margin-bottom:10px;">O'rta Yer Dengizi Parhezi</h2>
+        <p id="diet-detail-desc" style="font-size:14px; line-height:1.5; color:#94a3b8; margin-bottom:20px;">
+          Ushbu rejim tabiiy va to'liq mahsulotlarga yo'naltirilgan bo'lib, yangi sabzavotlar, sifatli zaytun yog'i, yog'siz baliq, yong'oqlar va foydali don mahsulotlarini o'z ichiga oladi.
+        </p>
+
+        <!-- 4 Macro Cards Grid -->
+        <div class="result-macros-grid">
+          <!-- Calories -->
+          <div class="res-card res-purple">
+            <span class="res-lbl">Kaloriyalar</span>
+            <h3 class="res-val" id="diet-detail-cal">2,000 kcal</h3>
+          </div>
+
+          <!-- Protein -->
+          <div class="res-card res-green">
+            <span class="res-lbl">Oqsillar</span>
+            <div class="res-bar-container">
+              <div class="res-bar-fill black-fill" id="diet-protein-bar" style="width: 25%;"></div>
+            </div>
+            <div class="res-pct-row">
+              <span id="diet-protein-pct">25%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
+          <!-- Carbs -->
+          <div class="res-card res-yellow">
+            <span class="res-lbl">Uglevodlar</span>
+            <div class="res-bar-container">
+              <div class="res-bar-fill black-fill" id="diet-carbs-bar" style="width: 40%;"></div>
+            </div>
+            <div class="res-pct-row">
+              <span id="diet-carbs-pct">40%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
+          <!-- Fat -->
+          <div class="res-card res-orange">
+            <span class="res-lbl">Yog'lar</span>
+            <div class="res-bar-container">
+              <div class="res-bar-fill black-fill" id="diet-fat-bar" style="width: 30%;"></div>
+            </div>
+            <div class="res-pct-row">
+              <span id="diet-fat-pct">30%</span>
+              <span>100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Goal Card -->
+        <div class="diet-goal-card">
+          <div class="goal-icon-circle">🎯</div>
+          <div class="goal-text-box">
+            <strong>Maqsad</strong>
+            <p id="diet-detail-goal">Yurak Salomatligi, Vaznni Saqlash</p>
+          </div>
+        </div>
+
+        <!-- Bottom Action Button -->
+        <div class="sheet-action-wrapper" style="margin-top:20px;">
+          <button class="btn-add-diet" onclick="addSelectedDietToUser()">Rejimimga Qo'shish</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ==================== AI SCAN RESULT SHEET MODAL (Figma Screen 2) ==================== -->
+  <!-- ==================== AI SCAN RESULT SHEET MODAL ==================== -->
   <div class="result-sheet-overlay" id="result-sheet" style="display:none;">
     <div class="result-sheet-content">
       
@@ -370,17 +656,17 @@
       <!-- Result Card Body -->
       <div class="sheet-body">
         
-        <!-- 4 Macro Cards Grid (Figma Palette) -->
+        <!-- 4 Macro Cards Grid -->
         <div class="result-macros-grid">
-          <!-- Calories (Purple) -->
+          <!-- Calories -->
           <div class="res-card res-purple">
-            <span class="res-lbl">Calories</span>
+            <span class="res-lbl">Kaloriyalar</span>
             <h3 class="res-val" id="res-cal-val">2,230 kcal</h3>
           </div>
 
-          <!-- Protein (Green) -->
+          <!-- Protein -->
           <div class="res-card res-green">
-            <span class="res-lbl">Protein</span>
+            <span class="res-lbl">Oqsillar</span>
             <div class="res-bar-container">
               <div class="res-bar-fill black-fill" id="res-protein-fill" style="width: 83%;"></div>
             </div>
@@ -390,9 +676,9 @@
             </div>
           </div>
 
-          <!-- Carbs (Yellow) -->
+          <!-- Carbs -->
           <div class="res-card res-yellow">
-            <span class="res-lbl">Carbs</span>
+            <span class="res-lbl">Uglevodlar</span>
             <div class="res-bar-container">
               <div class="res-bar-fill black-fill" id="res-carbs-fill" style="width: 50%;"></div>
             </div>
@@ -402,9 +688,9 @@
             </div>
           </div>
 
-          <!-- Fat (Coral Orange) -->
+          <!-- Fat -->
           <div class="res-card res-orange">
-            <span class="res-lbl">Fat</span>
+            <span class="res-lbl">Yog'lar</span>
             <div class="res-bar-container">
               <div class="res-bar-fill black-fill" id="res-fat-fill" style="width: 63%;"></div>
             </div>
@@ -418,14 +704,14 @@
         <!-- Detailed Breakdown Items -->
         <div class="result-items-list" id="res-items-container">
           <div class="item-breakdown-card">
-            <h4>Grilled Chicken Strips</h4>
-            <p>220 kcal &nbsp;|&nbsp; Protein: 30g &nbsp;|&nbsp; Carbs: 0g &nbsp;|&nbsp; Fat: 5g</p>
+            <h4>Tovuq Go'shti Strips</h4>
+            <p>220 kcal &nbsp;|&nbsp; Oqsil: 30g &nbsp;|&nbsp; Uglevod: 0g &nbsp;|&nbsp; Yog': 5g</p>
           </div>
         </div>
 
         <!-- Bottom Action Button -->
         <div class="sheet-action-wrapper">
-          <button class="btn-add-diet" onclick="saveResultMealToDiet()">Add to My Diet</button>
+          <button class="btn-add-diet" onclick="saveResultMealToDiet()">Dietamga Qo'shish</button>
         </div>
       </div>
     </div>

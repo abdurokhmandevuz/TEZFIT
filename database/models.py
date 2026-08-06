@@ -11,15 +11,22 @@ class User(Base):
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True, nullable=False)
     username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    phone_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    photo_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    dob: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, default="2000-01-01")
     
     weight_kg: Mapped[Optional[float]] = mapped_column(Float, nullable=True, default=70.0)
     height_cm: Mapped[Optional[float]] = mapped_column(Float, nullable=True, default=170.0)
     age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, default=25)
-    gender: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, default="male")  # male / female
+    gender: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, default="Male")  # Male / Female
     
     daily_goal_kcal: Mapped[float] = mapped_column(Float, default=2000.0)
     is_vip: Mapped[bool] = mapped_column(Boolean, default=False)
     streak_days: Mapped[int] = mapped_column(Integer, default=0)
+    points: Mapped[int] = mapped_column(Integer, default=100)
+    level: Mapped[int] = mapped_column(Integer, default=1)
     free_requests_today: Mapped[int] = mapped_column(Integer, default=0)
     last_request_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     last_streak_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
@@ -42,7 +49,7 @@ class Meal(Base):
     protein_g: Mapped[float] = mapped_column(Float, default=0.0)
     fat_g: Mapped[float] = mapped_column(Float, default=0.0)
     carbs_g: Mapped[float] = mapped_column(Float, default=0.0)
-    meal_time: Mapped[str] = mapped_column(String(50), default="snack")  # breakfast, lunch, dinner, snack
+    meal_time: Mapped[str] = mapped_column(String(50), default="snack")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="meals")
@@ -63,7 +70,7 @@ class Reminder(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     reminder_time: Mapped[str] = mapped_column(String(10), nullable=False, default="08:00")
-    reminder_type: Mapped[str] = mapped_column(String(50), nullable=False, default="breakfast")  # breakfast, lunch, dinner
+    reminder_type: Mapped[str] = mapped_column(String(50), nullable=False, default="breakfast")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     user: Mapped["User"] = relationship("User", back_populates="reminders")

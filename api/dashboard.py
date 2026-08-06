@@ -31,16 +31,44 @@ class GoalUpdateRequest(BaseModel):
     daily_goal_kcal: Optional[float] = None
     weight_kg: Optional[float] = None
 
+class ProfileUpdateRequest(BaseModel):
+    initData: str = ""
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+    dob: Optional[str] = None
+    gender: Optional[str] = None
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+
 @router.get("/dashboard")
 async def get_dashboard_data(initData: str = ""):
     user_data = verify_telegram_web_app_data(initData)
     if not user_data:
-        user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
+        user_data = {"id": 123456789, "first_name": "Foydalanuvchi", "last_name": "", "username": "tezfit_user"}
 
     telegram_id = user_data["id"]
+    tg_first_name = user_data.get("first_name", "")
+    tg_last_name = user_data.get("last_name", "")
+    tg_username = user_data.get("username", "")
+    tg_photo_url = user_data.get("photo_url", "")
 
     async with AsyncSessionLocal() as session:
         user = await UserService.get_or_create_user(session, telegram_id)
+
+        # Update Telegram user info if missing
+        updated = False
+        if tg_first_name and not getattr(user, "first_name", None):
+            user.first_name = tg_first_name
+            updated = True
+        if tg_last_name and not getattr(user, "last_name", None):
+            user.last_name = tg_last_name
+            updated = True
+        if tg_photo_url and not getattr(user, "photo_url", None):
+            user.photo_url = tg_photo_url
+            updated = True
+        if updated:
+            await session.commit()
+
         today_stats = await MealService.get_today_stats(session, user.id)
         weekly_stats = await MealService.get_weekly_stats(session, user.id)
         today_meals = await MealService.get_today_meals(session, user.id)
@@ -59,24 +87,76 @@ async def get_dashboard_data(initData: str = ""):
                 "time": m.created_at.strftime("%H:%M") if m.created_at else "Bugun"
             })
 
+        display_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or user.name or user.username or "Foydalanuvchi"
+        contact_info = user.phone_number if getattr(user, "phone_number", None) else f"ID: {user.telegram_id}"
+
     return {
         "status": "success",
         "user": {
-            "name": user.first_name or user.username or "Foydalanuvchi",
+            "telegram_id": user.telegram_id,
+            "name": display_name,
+            "first_name": user.first_name or "",
+            "last_name": user.last_name or "",
+            "username": user.username or "",
+            "phone_number": getattr(user, "phone_number", None) or f"ID: {user.telegram_id}",
+            "photo_url": getattr(user, "photo_url", None) or "",
+            "contact_info": contact_info,
+            "dob": getattr(user, "dob", "2000-01-01"),
             "daily_goal_kcal": user.daily_goal_kcal,
             "is_vip": user.is_vip,
             "streak_days": user.streak_days,
-            "points": user.points,
-            "level": user.level,
+            "points": getattr(user, "points", 100),
+            "level": getattr(user, "level", 1),
             "weight_kg": user.weight_kg,
             "height_cm": user.height_cm,
             "age": user.age,
-            "gender": user.gender
+            "gender": user.gender or "Male"
         },
         "today_stats": today_stats,
         "weekly_stats": weekly_stats,
         "today_meals": meals_list,
         "badges": badges
+    }
+
+@router.post("/profile")
+async def update_profile_data(body: ProfileUpdateRequest):
+    user_data = verify_telegram_web_app_data(body.initData)
+    if not user_data:
+        user_data = {"id": 123456789, "first_name": "Foydalanuvchi"}
+
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, user_data["id"])
+        
+        if body.name:
+            user.name = body.name
+            parts = body.name.split(" ", 1)
+            user.first_name = parts[0]
+            if len(parts) > 1:
+                user.last_name = parts[1]
+        if body.phone_number:
+            user.phone_number = body.phone_number
+        if body.dob:
+            user.dob = body.dob
+        if body.gender:
+            user.gender = body.gender
+        if body.height_cm:
+            user.height_cm = body.height_cm
+        if body.weight_kg:
+            user.weight_kg = body.weight_kg
+
+        await session.commit()
+        await session.refresh(user)
+
+    return {
+        "status": "success",
+        "user": {
+            "telegram_id": user.telegram_id,
+            "name": f"{user.first_name or ''} {user.last_name or ''}".strip() or user.name or "Foydalanuvchi",
+            "phone_number": getattr(user, "phone_number", None) or f"ID: {user.telegram_id}",
+            "gender": user.gender,
+            "height_cm": user.height_cm,
+            "weight_kg": user.weight_kg
+        }
     }
 
 @router.post("/scan-photo")
