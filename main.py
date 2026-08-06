@@ -18,18 +18,29 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 polling_task = None
+startup_error = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global polling_task
-    logger.info("Initializing database tables...")
-    await init_db()
+    global polling_task, startup_error
+    try:
+        logger.info("Initializing database tables...")
+        await init_db()
+    except Exception as e:
+        logger.error(f"DB Init Error: {e}", exc_info=True)
+        startup_error = str(e)
 
-    logger.info("Starting APScheduler meal reminders...")
-    setup_reminders(bot)
+    try:
+        logger.info("Starting APScheduler meal reminders...")
+        setup_reminders(bot)
+    except Exception as e:
+        logger.error(f"Reminder Setup Error: {e}", exc_info=True)
 
-    logger.info("Starting Aiogram bot polling in background...")
-    polling_task = asyncio.create_task(dp.start_polling(bot))
+    try:
+        logger.info("Starting Aiogram bot polling in background...")
+        polling_task = asyncio.create_task(dp.start_polling(bot))
+    except Exception as e:
+        logger.error(f"Bot Polling Error: {e}", exc_info=True)
 
     yield
 
@@ -40,7 +51,10 @@ async def lifespan(app: FastAPI):
             await polling_task
         except asyncio.CancelledError:
             pass
-    await bot.session.close()
+    try:
+        await bot.session.close()
+    except Exception:
+        pass
     logger.info("Shutdown complete.")
 
 app = FastAPI(title="Kalorix API & Web App", lifespan=lifespan)
@@ -49,14 +63,21 @@ app = FastAPI(title="Kalorix API & Web App", lifespan=lifespan)
 app.include_router(api_router)
 
 # Mount Static Files for Web App
-app.mount("/web_app", StaticFiles(directory="web_app", html=True), name="web_app")
+if os.path.exists("web_app"):
+    app.mount("/web_app", StaticFiles(directory="web_app", html=True), name="web_app")
 
 @app.get("/")
 async def root():
-    return {"message": "Kalorix Bot & Web App API service running!"}
+    status = "OK" if not startup_error else f"Warning: {startup_error}"
+    return {"status": status, "message": "Kalorix Bot & Web App API service running!"}
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", settings.PORT))
-    logger.info(f"Starting server on 0.0.0.0:{port}")
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+    port_env = os.environ.get("PORT", "8000")
+    try:
+        port = int(port_env)
+    except ValueError:
+        port = 8000
+    
+    logger.info(f"Starting server on host 0.0.0.0 and port {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
