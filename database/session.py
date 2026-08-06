@@ -1,10 +1,10 @@
 from typing import AsyncGenerator
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from config import settings
 from database.base import Base
 
 db_url = settings.DATABASE_URL
-# Fallback formatting for SQLite & Railway Postgres (postgres:// or postgresql://)
 if db_url.startswith("sqlite://") and not db_url.startswith("sqlite+aiosqlite://"):
     db_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
 elif db_url.startswith("postgres://"):
@@ -25,6 +25,21 @@ AsyncSessionLocal = async_sessionmaker(
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        columns_to_add = [
+            ("first_name", "VARCHAR(255)"),
+            ("last_name", "VARCHAR(255)"),
+            ("phone_number", "VARCHAR(100)"),
+            ("photo_url", "VARCHAR(512)"),
+            ("dob", "VARCHAR(100) DEFAULT '2003-05-21'"),
+            ("points", "INTEGER DEFAULT 100"),
+            ("level", "INTEGER DEFAULT 1"),
+        ]
+        for col_name, col_type in columns_to_add:
+            try:
+                await conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+            except Exception:
+                pass
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
