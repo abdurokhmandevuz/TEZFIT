@@ -1,3 +1,4 @@
+import os
 from typing import AsyncGenerator
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -11,6 +12,17 @@ elif db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+asyncpg://")
 elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+asyncpg://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+
+# Ensure directory exists for SQLite files (including Railway Volumes)
+if "sqlite" in db_url:
+    try:
+        db_path = db_url.split(":///")[-1]
+        if "/" in db_path:
+            db_dir = os.path.dirname(db_path)
+            if db_dir:
+                os.makedirs(db_dir, exist_ok=True)
+    except Exception:
+        pass
 
 engine = create_async_engine(db_url, echo=False, future=True)
 
