@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "main.py"]
+CMD ["sh", "-c", "python -m django migrate --settings=admin_panel.settings && python main.py"]
