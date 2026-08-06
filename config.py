@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     
     WEB_APP_URL: str = "http://localhost:8000/web_app"
     HOST: str = "0.0.0.0"
-    PORT: int = int(os.getenv("PORT", 8000))
+    PORT: int = int(os.environ.get("PORT", "8000"))
     
     USER_FREE_DAILY_LIMIT: int = 10
 
