@@ -81,31 +81,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'admin_panel.wsgi.application'
 
-# Database Configuration (pointing to SQLite / Postgres)
+# Resolve absolute SQLite database file path matching SQLAlchemy
 db_url = app_settings.DATABASE_URL
 if "sqlite" in db_url:
-    db_path = db_url.split(":///")[-1]
-    if not os.path.isabs(db_path) and not db_path.startswith("./"):
-        db_path = f"./{db_path}"
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': db_path,
-            'OPTIONS': {
-                'timeout': 20,
-            }
-        }
-    }
+    raw_path = db_url.split(":///")[-1]
+    raw_path = raw_path.replace("sqlite+aiosqlite://", "").replace("sqlite://", "")
+    if raw_path.startswith("./"):
+        db_path = str((BASE_DIR / raw_path[2:]).resolve())
+    elif not os.path.isabs(raw_path):
+        db_path = str((BASE_DIR / raw_path).resolve())
+    else:
+        db_path = raw_path
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'kalorix.db',
-            'OPTIONS': {
-                'timeout': 20,
-            }
+    db_path = str((BASE_DIR / 'kalorix.db').resolve())
+
+print(f"[Django Settings] SQLite database path: {db_path}", file=sys.stderr)
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': db_path,
+        'OPTIONS': {
+            'timeout': 30,
         }
     }
+}
 
 AUTH_PASSWORD_VALIDATORS = []
 
