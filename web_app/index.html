@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalorix Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web_app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="glass-card header">
+      <div class="user-info">
+        <div class="avatar" id="user-avatar">K</div>
+        <div>
+          <h2 id="user-name">Yuklanmoqda...</h2>
+          <span class="badge-streak" id="user-streak">🔥 0 kun</span>
+          <span class="badge-vip" id="user-vip" style="display:none;">💎 VIP</span>
+        </div>
+      </div>
+      <button class="icon-btn" id="open-goal-btn">⚙️ Maqsad</button>
+    </header>
+
+    <!-- Main Calorie Progress Card -->
+    <section class="glass-card calorie-card">
+      <div class="calorie-summary">
+        <div>
+          <span class="label">Qabul qilindi</span>
+          <h1 id="consumed-cal">0</h1>
+          <span class="subtext">kcal</span>
+        </div>
+        <div class="ring-container">
+          <canvas id="calorieGauge"></canvas>
+          <div class="gauge-center">
+            <span id="gauge-percent">0%</span>
+          </div>
+        </div>
+        <div>
+          <span class="label">Kunlik norma</span>
+          <h2 id="goal-cal">2000</h2>
+          <span class="subtext">kcal</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Macros Grid -->
+    <section class="macros-grid">
+      <div class="glass-card macro-card protein">
+        <div class="macro-icon">🥩</div>
+        <div class="macro-info">
+          <span class="label">Oqsil</span>
+          <h3 id="protein-val">0g</h3>
+        </div>
+      </div>
+      <div class="glass-card macro-card fat">
+        <div class="macro-icon">🧈</div>
+        <div class="macro-info">
+          <span class="label">Yog'</span>
+          <h3 id="fat-val">0g</h3>
+        </div>
+      </div>
+      <div class="glass-card macro-card carbs">
+        <div class="macro-icon">🍚</div>
+        <div class="macro-info">
+          <span class="label">Uglevod</span>
+          <h3 id="carbs-val">0g</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Weekly Chart -->
+    <section class="glass-card chart-card">
+      <h3>📈 Haftalik kaloriya dinamikasi</h3>
+      <div class="chart-wrapper">
+        <canvas id="weeklyChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Today's Meals Timeline -->
+    <section class="glass-card meals-card">
+      <h3>🍽 Bugungi ovqatlar tarixi</h3>
+      <div class="meals-list" id="meals-list">
+        <p class="empty-state">Hali ovqatlar yozilmadi</p>
+      </div>
+    </section>
+
+    <!-- Achievements / Badges -->
+    <section class="glass-card badges-card">
+      <h3>🎖 Yutuqlar va Nishonlar</h3>
+      <div class="badges-grid" id="badges-grid">
+        <p class="empty-state">Yutuqlar yuklanmoqda...</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Goal Edit Modal -->
+  <div class="modal" id="goal-modal">
+    <div class="modal-content glass-card">
+      <h3>🎯 Maqsadni o'zgartirish</h3>
+      <div class="form-group">
+        <label>Kunlik kaloriya normasi (kcal)</label>
+        <input type="number" id="input-goal-cal" placeholder="2000">
+      </div>
+      <div class="form-group">
+        <label>Vazn (kg)</label>
+        <input type="number" id="input-weight" placeholder="70">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="close-modal-btn">Bekor qilish</button>
+        <button class="btn btn-primary" id="save-goal-btn">Saqlash</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
