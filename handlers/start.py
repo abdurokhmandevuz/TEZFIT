@@ -22,8 +22,8 @@ async def cmd_start(message: Message, state: FSMContext):
 
     welcome_text = (
         f"Assalomu alaykum, {message.from_user.first_name}! 🥗\n\n"
-        f"**Kalorix** — Sizning intellektual kaloriya va taom tahlilchi yordamchingiz.\n\n"
-        f"📸 **Shunchaki ovqatingiz rasmini yuboring** yoki matn ko'rinishida yozing (masalan: `200g osh`).\n\n"
-        f"AI soniyalar ichida uning kaloriyasi va BJU (oqsil/yog'/uglevod) miqdorini aniqlab beradi! 🚀"
+        f"**TezFIT** — Sizning intellektual kaloriya va taom tahlilchi yordamchingiz.\n\n"
+        f"📱 **TezFIT Web App** orqali ovqatlanishingizni kuzating, rasmga olib AI bilan kaloriyalarni hisoblang hamda maqsadlaringizga erishing! 🚀\n\n"
+        f"Boshlash uchun pastdagi **📱 TezFIT Web App** tugmasini bosing:"
     )
     await message.answer(welcome_text, reply_markup=get_main_reply_keyboard(), parse_mode="Markdown")

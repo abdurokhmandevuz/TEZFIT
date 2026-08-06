@@ -2,117 +2,384 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kalorix Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TezFIT — Smart Nutrition Companion</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web_app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Header -->
-    <header class="glass-card header">
-      <div class="user-info">
-        <div class="avatar" id="user-avatar">K</div>
-        <div>
-          <h2 id="user-name">Yuklanmoqda...</h2>
-          <span class="badge-streak" id="user-streak">🔥 0 kun</span>
-          <span class="badge-vip" id="user-vip" style="display:none;">💎 VIP</span>
+
+  <!-- ==================== ONBOARDING FLOW ==================== -->
+  <div id="onboarding-flow" class="onboarding-wrapper">
+    
+    <!-- Splash Screen -->
+    <div class="onboard-slide slide-splash active" id="slide-splash">
+      <div class="splash-header">
+        <div class="tezfit-logo-large">
+          Tez<span class="highlight">FIT</span>
+        </div>
+        <div class="tag-pill">
+          Eating <span class="pill-accent">healthy</span> made easy!
         </div>
       </div>
-      <button class="icon-btn" id="open-goal-btn">⚙️ Maqsad</button>
+      <div class="floating-shapes-container">
+        <div class="shape shape-triangle">
+          <svg viewBox="0 0 100 100">
+            <polygon points="50,15 90,85 10,85" fill="#38bdf8"/>
+            <circle cx="40" cy="55" r="5" fill="#000"/>
+            <circle cx="60" cy="55" r="5" fill="#000"/>
+            <path d="M 45 68 Q 50 73 55 68" stroke="#000" stroke-width="3" fill="none"/>
+          </svg>
+        </div>
+        <div class="shape shape-square">
+          <svg viewBox="0 0 100 100">
+            <rect x="15" y="15" width="70" height="70" rx="16" fill="#facc15"/>
+            <path d="M 35 45 L 45 45 M 55 45 L 65 45" stroke="#000" stroke-width="4"/>
+            <path d="M 40 65 Q 50 55 60 65" stroke="#000" stroke-width="3" fill="none"/>
+          </svg>
+        </div>
+        <div class="shape shape-pill">
+          <div class="pill-inner">Today</div>
+        </div>
+        <div class="shape shape-orange">
+          <div class="face-sleeping">😴</div>
+        </div>
+        <div class="shape shape-green">
+          <div class="shape-text">Healthy</div>
+        </div>
+        <div class="shape shape-arch">
+          <div class="face-confused">🥴</div>
+        </div>
+        <div class="shape shape-heart">
+          <svg viewBox="0 0 100 100">
+            <path d="M 50 85 C 20 60 5 40 20 20 C 35 5 50 25 50 25 C 50 25 65 5 80 20 C 95 40 80 60 50 85 Z" fill="#f43f5e"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onboard Slide 1 (Purple - Watermelon GOOD) -->
+    <div class="onboard-slide slide-purple" id="slide-1">
+      <div class="status-bar">9:41</div>
+      <div class="illustration-container">
+        <div class="speech-bubble">GOOD</div>
+        <div class="retro-character">
+          <svg viewBox="0 0 200 200" class="retro-svg">
+            <path d="M 30 90 A 70 70 0 0 0 170 90 Z" fill="#fff" stroke="#000" stroke-width="4"/>
+            <path d="M 40 90 A 60 60 0 0 0 160 90 Z" fill="#ff6b6b"/>
+            <!-- Seeds & Face -->
+            <circle cx="85" cy="115" r="5" fill="#000"/>
+            <circle cx="115" cy="115" r="5" fill="#000"/>
+            <path d="M 95 130 Q 100 138 105 130" stroke="#000" stroke-width="3" fill="none"/>
+            <!-- Arms & Legs -->
+            <path d="M 35 100 C 10 120 10 70 30 70" stroke="#000" stroke-width="4" fill="none"/>
+            <path d="M 165 100 C 190 80 180 60 160 70" stroke="#000" stroke-width="4" fill="none"/>
+            <path d="M 80 150 L 70 185" stroke="#000" stroke-width="4"/>
+            <path d="M 120 150 L 130 185" stroke="#000" stroke-width="4"/>
+            <ellipse cx="65" cy="188" rx="12" ry="6" fill="#000"/>
+            <ellipse cx="135" cy="188" rx="12" ry="6" fill="#000"/>
+          </svg>
+        </div>
+      </div>
+      <div class="slide-content">
+        <h2>Aqliy Ovqatlanish Hamrohingiz</h2>
+        <p>Taomlaringizni kuzating, oziq moddalarni tahlil qiling va AI yordamida salomatlik maqsadlaringizga erishing.</p>
+      </div>
+      <div class="slide-action-box">
+        <button class="btn-next-pill" onclick="nextSlide(2)">
+          <span>Keyingisi</span>
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Onboard Slide 2 (Green - Strawberry GROOVY) -->
+    <div class="onboard-slide slide-green" id="slide-2">
+      <div class="status-bar">9:41</div>
+      <div class="illustration-container">
+        <div class="groovy-text">GROOVY</div>
+        <div class="retro-character">
+          <svg viewBox="0 0 200 200" class="retro-svg">
+            <path d="M 100 40 C 140 40 160 90 140 150 C 120 170 80 170 60 150 C 40 90 60 40 100 40 Z" fill="#4ade80" stroke="#000" stroke-width="4"/>
+            <!-- Leaves -->
+            <path d="M 80 40 Q 100 20 100 40 Q 100 20 120 40" stroke="#000" stroke-width="4" fill="#15803d"/>
+            <!-- Eyes & Smile -->
+            <circle cx="85" cy="95" r="6" fill="#000"/>
+            <circle cx="115" cy="95" r="6" fill="#000"/>
+            <path d="M 88 120 Q 100 135 112 120 Z" fill="#000"/>
+            <!-- Legs -->
+            <path d="M 85 160 L 75 190" stroke="#000" stroke-width="4"/>
+            <path d="M 115 160 L 125 190" stroke="#000" stroke-width="4"/>
+            <ellipse cx="70" cy="192" rx="12" ry="6" fill="#000"/>
+            <ellipse cx="130" cy="192" rx="12" ry="6" fill="#000"/>
+          </svg>
+        </div>
+      </div>
+      <div class="slide-content">
+        <h2>Barcha Muhim Ko'rsatkichlarni Kuzating</h2>
+        <p>Kaloriyalar, BJU, suv va faollik — hammasi bitta joyda.</p>
+      </div>
+      <div class="slide-action-box">
+        <button class="btn-next-pill" onclick="nextSlide(3)">
+          <span>Keyingisi</span>
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Onboard Slide 3 (Coral Orange - Lemon) -->
+    <div class="onboard-slide slide-orange" id="slide-3">
+      <div class="status-bar">9:41</div>
+      <div class="illustration-container">
+        <div class="groovy-text">LEMON</div>
+        <div class="retro-character">
+          <svg viewBox="0 0 200 200" class="retro-svg">
+            <ellipse cx="100" cy="100" rx="65" ry="45" transform="rotate(-20 100 100)" fill="#fbbf24" stroke="#000" stroke-width="4"/>
+            <circle cx="85" cy="95" r="5" fill="#000"/>
+            <circle cx="115" cy="90" r="5" fill="#000"/>
+            <path d="M 90 115 Q 100 125 110 110" stroke="#000" stroke-width="3" fill="none"/>
+            <path d="M 75 135 L 65 175" stroke="#000" stroke-width="4"/>
+            <path d="M 115 130 L 125 170" stroke="#000" stroke-width="4"/>
+            <ellipse cx="60" cy="178" rx="12" ry="6" fill="#000"/>
+            <ellipse cx="130" cy="173" rx="12" ry="6" fill="#000"/>
+          </svg>
+        </div>
+      </div>
+      <div class="slide-content">
+        <h2>Salomatlik Yo'lingiz Shu Yerdan Boshlanadi</h2>
+        <p>Sizga sog'lom ovqatlar tanlashda va mazali, to'yimli taomlardan bahramand bo'lishda yordam beramiz.</p>
+      </div>
+      <div class="slide-action-box">
+        <button class="btn-next-pill btn-finish" onclick="finishOnboarding()">
+          <span>Boshlash</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN SINGLE PAGE APPLICATION ==================== -->
+  <div id="app-main" class="app-main-wrapper" style="display:none;">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-name">Tez<span class="highlight">FIT</span></span>
+      </div>
+      <div class="user-pill">
+        <span class="avatar-circle" id="user-avatar">T</span>
+        <span id="user-name">Foydalanuvchi</span>
+        <span class="streak-badge" id="user-streak">🔥 0</span>
+      </div>
     </header>
 
-    <!-- Main Calorie Progress Card -->
-    <section class="glass-card calorie-card">
-      <div class="calorie-summary">
-        <div>
-          <span class="label">Qabul qilindi</span>
-          <h1 id="consumed-cal">0</h1>
-          <span class="subtext">kcal</span>
-        </div>
-        <div class="ring-container">
-          <canvas id="calorieGauge"></canvas>
-          <div class="gauge-center">
-            <span id="gauge-percent">0%</span>
+    <!-- Main Container Body -->
+    <main class="main-body">
+      
+      <!-- TAB 1: HOME (Dashboard) -->
+      <section class="tab-page active" id="page-home">
+        <!-- Calorie Ring Card -->
+        <div class="glass-card main-calorie-card">
+          <div class="ring-wrapper">
+            <canvas id="calorieRingCanvas"></canvas>
+            <div class="ring-center">
+              <span class="big-cal-val" id="consumed-cal">0</span>
+              <span class="cal-unit">/ <span id="goal-cal">2000</span> kcal</span>
+              <span class="pct-badge" id="gauge-percent">0%</span>
+            </div>
           </div>
         </div>
-        <div>
-          <span class="label">Kunlik norma</span>
-          <h2 id="goal-cal">2000</h2>
-          <span class="subtext">kcal</span>
+
+        <!-- BJU Macros Row -->
+        <div class="macros-row">
+          <div class="macro-box protein">
+            <span class="icon">🥩</span>
+            <span class="label">Oqsil</span>
+            <h4 id="protein-val">0g</h4>
+          </div>
+          <div class="macro-box fat">
+            <span class="icon">🧈</span>
+            <span class="label">Yog'</span>
+            <h4 id="fat-val">0g</h4>
+          </div>
+          <div class="macro-box carbs">
+            <span class="icon">🍚</span>
+            <span class="label">Uglevod</span>
+            <h4 id="carbs-val">0g</h4>
+          </div>
+        </div>
+
+        <!-- Quick Scan Trigger Banner -->
+        <div class="banner-card" onclick="switchTab('scan')">
+          <div class="banner-text">
+            <h3>📸 Ovqatni AI bilan skan qiling</h3>
+            <p>Rasmga oling yoki matn kiriting</p>
+          </div>
+          <div class="banner-btn">Skaner</div>
+        </div>
+
+        <!-- Today Meals -->
+        <div class="glass-card section-card">
+          <div class="section-title">
+            <h3>🍽 Bugungi ovqatlar tarixi</h3>
+          </div>
+          <div class="meals-list" id="meals-list">
+            <p class="empty-text">Bugun hali ovqat kiritilmadi</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: SCANNER (AI Camera & Text) -->
+      <section class="tab-page" id="page-scan">
+        <div class="glass-card scan-card">
+          <h2>📸 TezFIT AI Skaner</h2>
+          <p class="scan-subtitle">Ovqat rasmini yuklang yoki nomini yozing</p>
+
+          <!-- Action mode selector -->
+          <div class="scan-mode-tabs">
+            <button class="mode-btn active" id="btn-mode-photo" onclick="toggleScanMode('photo')">📸 Rasm Yuklash</button>
+            <button class="mode-btn" id="btn-mode-text" onclick="toggleScanMode('text')">📝 Matn Kiriting</button>
+          </div>
+
+          <!-- Photo Mode Box -->
+          <div class="scan-box" id="box-photo">
+            <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="onFileSelected(event)">
+            <div class="upload-dropzone" onclick="document.getElementById('file-input').click()">
+              <div class="drop-icon">📷</div>
+              <span>Rasm tanlash uchun bosing</span>
+              <small>yoki kameradan oling</small>
+            </div>
+            <div id="image-preview-container" style="display:none;" class="image-preview">
+              <img id="image-preview" src="" alt="Ovqat rasmi">
+            </div>
+            <button class="btn-scan-action" id="btn-submit-photo" style="display:none;" onclick="submitPhotoScan()">🔍 AI Tahlil Qilish</button>
+          </div>
+
+          <!-- Text Mode Box -->
+          <div class="scan-box" id="box-text" style="display:none;">
+            <div class="form-group">
+              <input type="text" id="text-food-input" placeholder="Masalan: 200g osh, 2 ta tuxum..." class="input-styled">
+            </div>
+            <button class="btn-scan-action" onclick="submitTextScan()">🔍 Matnni Tahlil Qilish</button>
+          </div>
+
+          <!-- Scan Loading Indicator -->
+          <div class="scan-loading" id="scan-loading" style="display:none;">
+            <div class="spinner"></div>
+            <p>🔍 TezFIT AI tahlil qilmoqda...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: STATS (Weekly & Badges) -->
+      <section class="tab-page" id="page-stats">
+        <div class="glass-card section-card">
+          <h3>📊 Haftalik Kaloriya Dinamikasi</h3>
+          <div class="chart-wrapper">
+            <canvas id="weeklyChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card section-card">
+          <h3>🎖 Yutuqlar va Nishonlar</h3>
+          <div class="badges-grid" id="badges-grid">
+            <p class="empty-text">Nishonlar yuklanmoqda...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: PROFILE & GOALS -->
+      <section class="tab-page" id="page-profile">
+        <div class="glass-card section-card profile-card">
+          <div class="profile-header">
+            <div class="profile-avatar" id="prof-avatar">T</div>
+            <h2 id="prof-name">Foydalanuvchi</h2>
+            <span class="vip-tag" id="prof-vip" style="display:none;">💎 VIP Status</span>
+          </div>
+
+          <div class="profile-details-grid">
+            <div class="detail-item">
+              <span class="lbl">Kunlik Norma</span>
+              <h3 id="prof-goal">2000 kcal</h3>
+            </div>
+            <div class="detail-item">
+              <span class="lbl">Vazn</span>
+              <h3 id="prof-weight">70 kg</h3>
+            </div>
+            <div class="detail-item">
+              <span class="lbl">Bo'y</span>
+              <h3 id="prof-height">170 sm</h3>
+            </div>
+            <div class="detail-item">
+              <span class="lbl">Streak</span>
+              <h3 id="prof-streak">🔥 0 kun</h3>
+            </div>
+          </div>
+
+          <div class="profile-actions">
+            <button class="btn-edit-goal" onclick="openGoalModal()">🎯 Maqsadni Yangilash</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Asosiy</span>
+      </button>
+      <button class="nav-item" id="nav-scan" onclick="switchTab('scan')">
+        <span class="nav-icon">📸</span>
+        <span class="nav-label">Skaner</span>
+      </button>
+      <button class="nav-item" id="nav-stats" onclick="switchTab('stats')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Statistika</span>
+      </button>
+      <button class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profil</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Scan Result Confirmation Modal -->
+  <div class="modal-overlay" id="result-modal" style="display:none;">
+    <div class="modal-content glass-card">
+      <h3 id="result-food-name">🍽 Ovqat nomi</h3>
+      <div class="result-breakdown">
+        <div class="res-cal" id="result-calories">🔥 0 kcal</div>
+        <div class="res-weight" id="result-weight">⚖️ 100g</div>
+        <div class="res-macros" id="result-macros">
+          🥩 Oqsil: 0g | 🧈 Yog': 0g | 🍚 Uglevod: 0g
         </div>
       </div>
-    </section>
-
-    <!-- Macros Grid -->
-    <section class="macros-grid">
-      <div class="glass-card macro-card protein">
-        <div class="macro-icon">🥩</div>
-        <div class="macro-info">
-          <span class="label">Oqsil</span>
-          <h3 id="protein-val">0g</h3>
-        </div>
+      <div class="modal-buttons">
+        <button class="btn-secondary" onclick="closeResultModal()">❌ Bekor qilish</button>
+        <button class="btn-primary" onclick="confirmSaveMeal()">✅ Saqlash</button>
       </div>
-      <div class="glass-card macro-card fat">
-        <div class="macro-icon">🧈</div>
-        <div class="macro-info">
-          <span class="label">Yog'</span>
-          <h3 id="fat-val">0g</h3>
-        </div>
-      </div>
-      <div class="glass-card macro-card carbs">
-        <div class="macro-icon">🍚</div>
-        <div class="macro-info">
-          <span class="label">Uglevod</span>
-          <h3 id="carbs-val">0g</h3>
-        </div>
-      </div>
-    </section>
-
-    <!-- Weekly Chart -->
-    <section class="glass-card chart-card">
-      <h3>📈 Haftalik kaloriya dinamikasi</h3>
-      <div class="chart-wrapper">
-        <canvas id="weeklyChart"></canvas>
-      </div>
-    </section>
-
-    <!-- Today's Meals Timeline -->
-    <section class="glass-card meals-card">
-      <h3>🍽 Bugungi ovqatlar tarixi</h3>
-      <div class="meals-list" id="meals-list">
-        <p class="empty-state">Hali ovqatlar yozilmadi</p>
-      </div>
-    </section>
-
-    <!-- Achievements / Badges -->
-    <section class="glass-card badges-card">
-      <h3>🎖 Yutuqlar va Nishonlar</h3>
-      <div class="badges-grid" id="badges-grid">
-        <p class="empty-state">Yutuqlar yuklanmoqda...</p>
-      </div>
-    </section>
+    </div>
   </div>
 
   <!-- Goal Edit Modal -->
-  <div class="modal" id="goal-modal">
+  <div class="modal-overlay" id="goal-modal" style="display:none;">
     <div class="modal-content glass-card">
       <h3>🎯 Maqsadni o'zgartirish</h3>
       <div class="form-group">
         <label>Kunlik kaloriya normasi (kcal)</label>
-        <input type="number" id="input-goal-cal" placeholder="2000">
+        <input type="number" id="input-goal-cal" placeholder="2000" class="input-styled">
       </div>
       <div class="form-group">
         <label>Vazn (kg)</label>
-        <input type="number" id="input-weight" placeholder="70">
+        <input type="number" id="input-weight" placeholder="70" class="input-styled">
       </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="close-modal-btn">Bekor qilish</button>
-        <button class="btn btn-primary" id="save-goal-btn">Saqlash</button>
+      <div class="modal-buttons">
+        <button class="btn-secondary" onclick="closeGoalModal()">Bekor qilish</button>
+        <button class="btn-primary" onclick="submitGoalUpdate()">Saqlash</button>
       </div>
     </div>
   </div>

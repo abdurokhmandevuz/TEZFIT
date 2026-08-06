@@ -9,9 +9,10 @@ def _decode_b64(val: str) -> str:
         return ""
 
 FALLBACK_BOT_TOKEN = _decode_b64("ODgxNzQ0NjQ5MTpBQUVkQkJGWi1FSTlqbDIwT0ZlcHVuZXpvZE1oXzdSSlpaRQ==")
-FALLBACK_OPENROUTER_KEY = _decode_b64("c2stb3ItdjEtZDY5MzUzODE4NmU1MTQ4OTJjZTZkYzIyZjI4ZmZkMGUzZjZiMTE5YzdjNGQ1ODFmZDJhZjQyODI5M2ZhMWNiNQ==")
+FALLBACK_OPENROUTER_KEY = _decode_b64("c2stb3ItdjEtZDY5MzUzODE4NmU1MTQ4OTJjZTZkYzIyZjI4ZmZkMGUzZjZiMTE5YzdjNGQ1ODFmZDJhZjQyODI9")
 
 class Settings(BaseSettings):
+    BOT_NAME: str = "TezFIT"
     BOT_TOKEN: str = "YOUR_BOT_TOKEN"
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
@@ -33,7 +34,6 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Dynamically resolve tokens from environment with guaranteed fallback
 env_bot_token = os.environ.get("BOT_TOKEN", "").strip()
 if env_bot_token and env_bot_token != "YOUR_BOT_TOKEN" and "example" not in env_bot_token:
     settings.BOT_TOKEN = env_bot_token
