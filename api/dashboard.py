@@ -8,7 +8,7 @@ from services.user_service import UserService
 from services.meal_service import MealService
 from services.gamification_service import GamificationService
 from services.ai_service import AIService
-from utils.helpers import verify_telegram_web_app_data
+from api.auth import verify_telegram_web_app_data
 
 router = APIRouter(prefix="/api", tags=["dashboard"])
 
@@ -148,6 +148,7 @@ async def update_goals(body: GoalUpdateRequest):
     telegram_id = user_data["id"]
 
     async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
         user = await UserService.update_profile(
             session=session,
             user=user,
