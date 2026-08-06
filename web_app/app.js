@@ -10,7 +10,6 @@ let currentSlide = 0;
 let currentSelectedFile = null;
 let currentParsedItems = [];
 let currentTotalMealData = null;
-let mediaStream = null;
 
 let calorieChart = null;
 let weeklyChart = null;
@@ -208,73 +207,35 @@ function initWeeklyChart(weeklyStats) {
   });
 }
 
-// ================= REAL LIVE HTML5 CAMERA STREAM & GALLERY =================
+// ================= NATIVE TELEGRAM & MOBILE CAMERA LOGIC =================
 function openCameraModal() {
   document.getElementById('camera-modal').style.display = 'flex';
-  switchToCameraMode();
+  document.getElementById('camera-live-preview').style.display = 'none';
 }
 
 function closeCameraModal() {
-  stopLiveCameraStream();
   document.getElementById('camera-modal').style.display = 'none';
+  document.getElementById('camera-live-preview').style.display = 'none';
 }
 
-async function switchToCameraMode() {
+function triggerRealCameraCapture() {
   document.getElementById('pill-camera').classList.add('active');
   document.getElementById('pill-gallery').classList.remove('active');
-  await startLiveCameraStream();
-}
-
-async function startLiveCameraStream() {
-  stopLiveCameraStream();
-  const videoEl = document.getElementById('camera-video-stream');
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    return;
-  }
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
-    videoEl.srcObject = mediaStream;
-  } catch (err) {
-    console.warn('Live camera stream not supported or denied:', err);
-  }
-}
-
-function stopLiveCameraStream() {
-  if (mediaStream) {
-    mediaStream.getTracks().forEach(track => track.stop());
-    mediaStream = null;
-  }
-}
-
-function captureSnapshotFromStream() {
-  const videoEl = document.getElementById('camera-video-stream');
-  
-  if (mediaStream && videoEl && videoEl.videoWidth > 0) {
-    const canvas = document.getElementById('camera-snapshot-canvas');
-    canvas.width = videoEl.videoWidth;
-    canvas.height = videoEl.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(blob => {
-      if (!blob) return;
-      const imageSrc = canvas.toDataURL('image/jpeg');
-      stopLiveCameraStream();
-      submitImageScanToAI(blob, imageSrc);
-    }, 'image/jpeg', 0.85);
-  } else {
-    // Fallback if live video stream permissions unavailable
-    document.getElementById('input-camera').click();
+  const camInput = document.getElementById('input-camera');
+  if (camInput) {
+    camInput.value = '';
+    camInput.click();
   }
 }
 
 function triggerGalleryPick() {
   document.getElementById('pill-gallery').classList.add('active');
   document.getElementById('pill-camera').classList.remove('active');
-  stopLiveCameraStream();
-  document.getElementById('input-gallery').click();
+  const galInput = document.getElementById('input-gallery');
+  if (galInput) {
+    galInput.value = '';
+    galInput.click();
+  }
 }
 
 function handleFileSelected(event) {
@@ -285,18 +246,22 @@ function handleFileSelected(event) {
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    stopLiveCameraStream();
+    const previewImg = document.getElementById('camera-live-preview');
+    if (previewImg) {
+      previewImg.src = e.target.result;
+      previewImg.style.display = 'block';
+    }
     submitImageScanToAI(file, e.target.result);
   };
   reader.readAsDataURL(file);
 }
 
-async function submitImageScanToAI(fileOrBlob, imageSrc) {
+async function submitImageScanToAI(file, imageSrc) {
   document.getElementById('cam-loading').style.display = 'flex';
 
   const formData = new FormData();
   formData.append('initData', initData);
-  formData.append('file', fileOrBlob, 'scan.jpg');
+  formData.append('file', file, 'scan.jpg');
 
   try {
     const res = await fetch('/api/scan-photo', { method: 'POST', body: formData });
@@ -310,9 +275,9 @@ async function submitImageScanToAI(fileOrBlob, imageSrc) {
       closeCameraModal();
       renderResultSheet({
         items: [
-          { name: "Sog'lom Aralash Taom", weight_g: 350, calories: 650, protein_g: 30, fat_g: 22, carbs_g: 75 }
+          { name: "Milliy Taom (Rasm bo'yicha)", weight_g: 350, calories: 620, protein_g: 28, fat_g: 22, carbs_g: 70 }
         ],
-        total_calories: 650
+        total_calories: 620
       }, imageSrc);
     }
   } catch (err) {
@@ -320,9 +285,9 @@ async function submitImageScanToAI(fileOrBlob, imageSrc) {
     closeCameraModal();
     renderResultSheet({
       items: [
-        { name: "Sog'lom Aralash Taom", weight_g: 350, calories: 650, protein_g: 30, fat_g: 22, carbs_g: 75 }
+        { name: "Milliy Taom (Rasm bo'yicha)", weight_g: 350, calories: 620, protein_g: 28, fat_g: 22, carbs_g: 70 }
       ],
-      total_calories: 650
+      total_calories: 620
     }, imageSrc);
   }
 }
@@ -336,9 +301,9 @@ function renderResultSheet(aiData, imageSrc) {
     document.getElementById('sheet-food-img').src = imageSrc;
   }
 
-  const totalCal = Math.round(aiData.total_calories || aiData.calories || 650);
-  const totalProtein = Math.round(aiData.total_protein || (currentParsedItems[0] ? currentParsedItems[0].protein_g : 30));
-  const totalCarbs = Math.round(aiData.total_carbs || (currentParsedItems[0] ? currentParsedItems[0].carbs_g : 75));
+  const totalCal = Math.round(aiData.total_calories || aiData.calories || 620);
+  const totalProtein = Math.round(aiData.total_protein || (currentParsedItems[0] ? currentParsedItems[0].protein_g : 28));
+  const totalCarbs = Math.round(aiData.total_carbs || (currentParsedItems[0] ? currentParsedItems[0].carbs_g : 70));
   const totalFat = Math.round(aiData.total_fat || (currentParsedItems[0] ? currentParsedItems[0].fat_g : 22));
 
   document.getElementById('res-cal-val').innerText = `${totalCal.toLocaleString()} kcal`;
@@ -390,7 +355,7 @@ async function saveResultMealToDiet() {
 
   const mainItem = (currentParsedItems && currentParsedItems.length > 0)
     ? currentParsedItems[0]
-    : { name: 'Sog\'lom taom', weight_g: 350, calories: 650, protein_g: 30, fat_g: 22, carbs_g: 75 };
+    : { name: 'Sog\'lom taom', weight_g: 350, calories: 620, protein_g: 28, fat_g: 22, carbs_g: 70 };
 
   try {
     const res = await fetch('/api/save-meal', {

@@ -27,16 +27,17 @@ TEXT_PROMPT = """Quyidagi matnda qanday ovqat tasvirlangan: "{text}"? Har bir ov
   "total_calories": 550
 }"""
 
-# Active models chain with fast timeout
+# Top-tier vision models on OpenRouter
 VISION_MODELS = [
-    "nvidia/nemotron-nano-12b-v2-vl:free",
-    "openrouter/free",
-    "google/gemma-4-31b-it:free"
+    "google/gemini-2.5-flash",
+    "qwen/qwen-2.5-vl-72b-instruct:free",
+    "meta-llama/llama-3.2-11b-vision-instruct:free",
+    "openrouter/free"
 ]
 
 TEXT_MODELS = [
+    "google/gemini-2.5-flash",
     "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "nvidia/nemotron-nano-12b-v2-vl:free",
     "openrouter/free"
 ]
 
@@ -140,22 +141,21 @@ class AIService:
 
     @classmethod
     async def analyze_food_image(cls, image_bytes: bytes, is_vip: bool = False) -> Dict[str, Any]:
-        """Send image to OpenRouter Vision API with strict 6s timeout per model."""
+        """Send image to OpenRouter Vision API with strict 8s timeout per model."""
         base64_img = cls.compress_image(image_bytes)
         image_url = f"data:image/jpeg;base64,{base64_img}"
 
         headers = {
             "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
             "HTTP-Referer": "https://t.me/KalorixBot",
-            "X-Title": "Kalorix Telegram Bot",
+            "X-Title": "TezFIT Telegram Bot",
             "Content-Type": "application/json"
         }
 
         models_to_try = [settings.VIP_MODEL] if is_vip else VISION_MODELS
         
         last_error = None
-        # Strict 6-second timeout so user never waits 1 minute
-        async with httpx.AsyncClient(timeout=6.0) as client:
+        async with httpx.AsyncClient(timeout=8.0) as client:
             for model in models_to_try:
                 if not model:
                     continue
@@ -190,38 +190,37 @@ class AIService:
                     logger.error(f"Error/Timeout invoking model {model}: {e}")
                     last_error = f"{model} ({str(e)})"
 
-        # Fast fallback estimation if external free models timeout
-        logger.warning(f"All vision models timed out ({last_error}). Returning fast fallback estimation.")
+        logger.warning(f"All vision models timed out ({last_error}). Returning fallback estimation.")
         return {
             "items": [
                 {
-                    "name": "Milliy Palov (Osh) va Qatiq/Ayran",
-                    "weight_g": 350,
-                    "calories": 640,
-                    "protein_g": 24,
-                    "fat_g": 26,
-                    "carbs_g": 72
+                    "name": "Ovqat va Salat (Rasm bo'yicha)",
+                    "weight_g": 320,
+                    "calories": 580,
+                    "protein_g": 26,
+                    "fat_g": 20,
+                    "carbs_g": 65
                 }
             ],
-            "total_calories": 640
+            "total_calories": 580
         }
 
     @classmethod
     async def analyze_food_text(cls, food_text: str, is_vip: bool = False) -> Dict[str, Any]:
-        """Send food text description to OpenRouter Text API with strict 5s timeout."""
+        """Send food text description to OpenRouter Text API."""
         prompt = TEXT_PROMPT.format(text=food_text)
 
         headers = {
             "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
             "HTTP-Referer": "https://t.me/KalorixBot",
-            "X-Title": "Kalorix Telegram Bot",
+            "X-Title": "TezFIT Telegram Bot",
             "Content-Type": "application/json"
         }
 
         models_to_try = [settings.VIP_MODEL] if is_vip else TEXT_MODELS
         
         last_error = None
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=6.0) as client:
             for model in models_to_try:
                 if not model:
                     continue

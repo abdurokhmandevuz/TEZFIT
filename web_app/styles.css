@@ -554,7 +554,21 @@ body {
   height: 280px;
   border-radius: 28px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.tap-hint-text {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
 }
 
 .vf-corner {

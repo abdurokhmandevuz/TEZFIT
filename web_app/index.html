@@ -293,34 +293,34 @@
     </nav>
   </div>
 
-  <!-- ==================== AI CAMERA VIEWFINDER MODAL (Real Live Stream) ==================== -->
+  <!-- ==================== AI CAMERA VIEWFINDER MODAL ==================== -->
   <div class="camera-modal-overlay" id="camera-modal" style="display:none;">
     <div class="camera-header">
       <span class="camera-title">AI Camera</span>
       <button class="btn-camera-close" onclick="closeCameraModal()">✕</button>
     </div>
 
-    <!-- Viewfinder Area with HTML5 Live Video Stream -->
+    <!-- Viewfinder Box Area -->
     <div class="viewfinder-container">
-      <div class="viewfinder-box">
-        <video id="camera-video-stream" autoplay playsinline class="preview-img-fill"></video>
-        <canvas id="camera-snapshot-canvas" style="display:none;"></canvas>
+      <div class="viewfinder-box" onclick="triggerRealCameraCapture()">
+        <img id="camera-live-preview" src="" style="display:none;" class="preview-img-fill">
         <div class="scan-laser-line"></div>
         <div class="vf-corner top-left"></div>
         <div class="vf-corner top-right"></div>
         <div class="vf-corner bottom-left"></div>
         <div class="vf-corner bottom-right"></div>
+        <div class="tap-hint-text">📸 Rasmga olish uchun bosing</div>
       </div>
     </div>
 
-    <!-- Hidden File Inputs -->
+    <!-- Native Mobile Camera & Gallery File Inputs -->
     <input type="file" id="input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelected(event)">
     <input type="file" id="input-gallery" accept="image/*" style="display:none;" onchange="handleFileSelected(event)">
 
     <!-- Bottom Controls Bar -->
     <div class="camera-bottom-panel">
       <div class="camera-mode-pills">
-        <button class="cam-pill active" id="pill-camera" onclick="switchToCameraMode()">
+        <button class="cam-pill active" id="pill-camera" onclick="triggerRealCameraCapture()">
           <span class="p-icon">📷</span> AI Camera
         </button>
         <button class="cam-pill" id="pill-gallery" onclick="triggerGalleryPick()">
@@ -329,7 +329,7 @@
       </div>
 
       <div class="shutter-wrapper">
-        <button class="shutter-btn" onclick="captureSnapshotFromStream()"></button>
+        <button class="shutter-btn" onclick="triggerRealCameraCapture()"></button>
       </div>
     </div>
 
