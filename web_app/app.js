@@ -207,20 +207,19 @@ function initWeeklyChart(weeklyStats) {
   });
 }
 
-// ================= NATIVE TELEGRAM & MOBILE CAMERA LOGIC =================
+// ================= TELEGRAM NATIVE CAMERA & DIRECT FILE PICKER =================
 function openCameraModal() {
-  document.getElementById('camera-modal').style.display = 'flex';
-  document.getElementById('camera-live-preview').style.display = 'none';
-}
-
-function closeCameraModal() {
-  document.getElementById('camera-modal').style.display = 'none';
-  document.getElementById('camera-live-preview').style.display = 'none';
+  // If native Telegram WebApp camera is available, use it directly
+  if (tg && tg.showScanQrPopup) {
+    // Or trigger native camera picker
+    triggerRealCameraCapture();
+  } else {
+    triggerRealCameraCapture();
+  }
 }
 
 function triggerRealCameraCapture() {
-  document.getElementById('pill-camera').classList.add('active');
-  document.getElementById('pill-gallery').classList.remove('active');
+  // Direct trigger of camera input
   const camInput = document.getElementById('input-camera');
   if (camInput) {
     camInput.value = '';
@@ -229,8 +228,6 @@ function triggerRealCameraCapture() {
 }
 
 function triggerGalleryPick() {
-  document.getElementById('pill-gallery').classList.add('active');
-  document.getElementById('pill-camera').classList.remove('active');
   const galInput = document.getElementById('input-gallery');
   if (galInput) {
     galInput.value = '';
@@ -246,33 +243,35 @@ function handleFileSelected(event) {
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    const previewImg = document.getElementById('camera-live-preview');
-    if (previewImg) {
-      previewImg.src = e.target.result;
-      previewImg.style.display = 'block';
-    }
     submitImageScanToAI(file, e.target.result);
   };
   reader.readAsDataURL(file);
 }
 
 async function submitImageScanToAI(file, imageSrc) {
-  document.getElementById('cam-loading').style.display = 'flex';
+  // Show full screen loading spinner
+  let loadingEl = document.getElementById('cam-loading');
+  if (!loadingEl) {
+    loadingEl = document.createElement('div');
+    loadingEl.id = 'cam-loading';
+    loadingEl.className = 'camera-loading-overlay';
+    loadingEl.innerHTML = '<div class="spinner"></div><p style="margin-top:12px; font-weight:700;">🔍 AI Taomni tahlil qilmoqda...</p>';
+    document.body.appendChild(loadingEl);
+  }
+  loadingEl.style.display = 'flex';
 
   const formData = new FormData();
   formData.append('initData', initData);
-  formData.append('file', file, 'scan.jpg');
+  formData.append('file', file, 'food_scan.jpg');
 
   try {
     const res = await fetch('/api/scan-photo', { method: 'POST', body: formData });
     const data = await res.json();
-    document.getElementById('cam-loading').style.display = 'none';
+    loadingEl.style.display = 'none';
 
     if (data && data.data) {
-      closeCameraModal();
       renderResultSheet(data.data, imageSrc);
     } else {
-      closeCameraModal();
       renderResultSheet({
         items: [
           { name: "Milliy Taom (Rasm bo'yicha)", weight_g: 350, calories: 620, protein_g: 28, fat_g: 22, carbs_g: 70 }
@@ -281,8 +280,7 @@ async function submitImageScanToAI(file, imageSrc) {
       }, imageSrc);
     }
   } catch (err) {
-    document.getElementById('cam-loading').style.display = 'none';
-    closeCameraModal();
+    loadingEl.style.display = 'none';
     renderResultSheet({
       items: [
         { name: "Milliy Taom (Rasm bo'yicha)", weight_g: 350, calories: 620, protein_g: 28, fat_g: 22, carbs_g: 70 }
