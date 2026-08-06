@@ -8,6 +8,10 @@ SECRET_KEY = 'django-insecure-tezfit-admin-key-secret-super-safe'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/admin/login/'
+
 # CSRF & Proxy Configuration for Railway HTTPS
 CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
