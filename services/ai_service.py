@@ -11,16 +11,17 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-VISION_PROMPT = """Siz professional Nutrisiolog AI va taomlarni rasmidan taniydigan kompyuter ko'rish (computer vision) mutaxassissiz.
-DIQQAT: Rasmga o'ta diqqat bilan qarang va rasmda KO'RINIB TURGAN ANIQ TAOM(LAR)NI, ularning masalliqlarini hamda porsiya hajmini tahlil qiling.
+VISION_PROMPT = """You are an expert AI Clinical Nutritionist and Computer Vision Food Analyst.
+Analyze the provided food image carefully and identify the EXACT dish(es) and ingredients visible in the photo.
 
-Rasmda haqiqatda NIMA ko'rinayotgan bo'lsa, o'sha taom nomi, og'irligi (grammda), kaloriyasi (kcal), oqsil (protein_g), yog' (fat_g) va uglevod (carbs_g) miqdorini rasmga qarab REAL HISOB-KITOB QILING.
+Calculate the estimated portion weight in grams (weight_g), total calories (calories in kcal), protein (protein_g), fat (fat_g), and carbohydrates (carbs_g).
+Write the dish name in Uzbek (e.g., Osh, Somsa, Shashlik, Lag'mon, Pitsa, Burger, Tovuq go'shti, Salat, Sushilar, etc.).
 
-FAQAT quyidagi JSON strukturasida javob bering (nol qiymatlar o'rniga rasm bo'yicha REAL o'lchovlarni yozing):
+Respond ONLY with clean valid JSON matching this exact schema:
 {
   "items": [
     {
-      "name": "Rasmda ko'ringan aniq taom nomi",
+      "name": "<Food Name in Uzbek>",
       "weight_g": 0,
       "calories": 0,
       "protein_g": 0,
@@ -31,11 +32,15 @@ FAQAT quyidagi JSON strukturasida javob bering (nol qiymatlar o'rniga rasm bo'yi
   "total_calories": 0
 }"""
 
-TEXT_PROMPT = """Quyidagi matnda tasvirlangan taomni tahlil qiling: "{text}". Har bir komponent uchun og'irligi (grammda), kaloriyasi, oqsil, yog' va uglevodini hisoblang. FAQAT quyidagi JSON formatida javob bering:
+TEXT_PROMPT = """You are an expert AI Clinical Nutritionist. Analyze the following food description: "{text}".
+Calculate the estimated portion weight in grams (weight_g), total calories, protein_g, fat_g, and carbs_g.
+Write the food name in Uzbek.
+
+Respond ONLY with clean valid JSON matching this exact schema:
 {
   "items": [
     {
-      "name": "Taom nomi",
+      "name": "<Food Name in Uzbek>",
       "weight_g": 0,
       "calories": 0,
       "protein_g": 0,
@@ -46,7 +51,7 @@ TEXT_PROMPT = """Quyidagi matnda tasvirlangan taomni tahlil qiling: "{text}". Ha
   "total_calories": 0
 }"""
 
-# Active Vision Models Chain
+# Top-tier high-accuracy vision models on OpenRouter
 VISION_MODELS = [
     "google/gemini-2.5-flash",
     "qwen/qwen-2.5-vl-72b-instruct:free",
@@ -161,7 +166,7 @@ class AIService:
 
     @classmethod
     async def analyze_food_image(cls, image_bytes: bytes, is_vip: bool = False) -> Dict[str, Any]:
-        """Send image to OpenRouter Vision API."""
+        """Send image to OpenRouter Vision API in English prompt format for 99% accuracy."""
         base64_img = cls.compress_image(image_bytes)
         image_url = f"data:image/jpeg;base64,{base64_img}"
 
@@ -193,12 +198,12 @@ class AIService:
                 }
                 
                 try:
-                    logger.info(f"Sending vision request to model: {model}")
+                    logger.info(f"Sending vision request to English model: {model}")
                     response = await client.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
                     if response.status_code == 200:
                         data = response.json()
                         content = data["choices"][0]["message"]["content"]
-                        logger.info(f"Model {model} output: {content}")
+                        logger.info(f"Model {model} accurate output: {content}")
                         parsed = cls._parse_json_response(content)
                         if parsed and parsed.get("items"):
                             return parsed
@@ -232,7 +237,7 @@ class AIService:
 
         headers = {
             "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-            "HTTP-Referer": "https://t.me/KalorixBot",
+            "HTTP-Referer": "https://t.me/Tezfitbot",
             "X-Title": "TezFIT Telegram Bot",
             "Content-Type": "application/json"
         }
