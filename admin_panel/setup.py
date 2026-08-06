@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 def ensure_superuser():
     try:
         print("[Django Admin] Running database migrations...")
-        call_command('migrate', interactive=False, verbosity=1)
+        call_command('migrate', interactive=False, verbosity=0)
 
         User = get_user_model()
         username = "admin"
@@ -15,15 +15,22 @@ def ensure_superuser():
         user = User.objects.filter(username=username).first()
         if not user:
             print(f"[Django Admin] Creating superuser '{username}' with email '{email}'...")
-            User.objects.create_superuser(username=username, email=email, password=password)
+            User.objects.create_superuser(
+                username=username,
+                email=email,
+                password=password,
+                is_staff=True,
+                is_superuser=True,
+                is_active=True
+            )
             print("[Django Admin] Superuser created successfully! Login with admin / admin")
         else:
             user.set_password(password)
             user.email = email
             user.is_superuser = True
             user.is_staff = True
+            user.is_active = True
             user.save()
             print(f"[Django Admin] Superuser '{username}' updated with credentials admin / admin!")
     except Exception as e:
         print(f"[Django Admin] Migration / Superuser Error: {e}", file=sys.stderr)
-        raise e
