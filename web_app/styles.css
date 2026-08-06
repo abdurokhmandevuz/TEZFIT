@@ -65,16 +65,17 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  padding: 40px 10px 0 10px;
 }
 
 .splash-header {
-  margin-top: 60px;
+  margin-top: 40px;
   text-align: center;
 }
 
 .tezfit-logo-large {
   font-family: var(--font-heading);
-  font-size: 48px;
+  font-size: 52px;
   font-weight: 900;
   letter-spacing: -1px;
 }
@@ -86,8 +87,9 @@ body {
 .tag-pill {
   display: inline-block;
   margin-top: 16px;
-  padding: 8px 20px;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   font-size: 16px;
   font-weight: 600;
@@ -96,7 +98,7 @@ body {
 .tag-pill .pill-accent {
   background: var(--accent-orange);
   color: #fff;
-  padding: 3px 10px;
+  padding: 3px 12px;
   border-radius: 999px;
 }
 
@@ -105,15 +107,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding-bottom: 20px;
 }
 
 .splash-shapes-img {
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
 }
 
 /* Purple Slide */
