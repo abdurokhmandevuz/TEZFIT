@@ -4,6 +4,17 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from a2wsgi import WSGIMiddleware
+
+# Initialize Django Settings for Jazzmin Admin Panel
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'admin_panel.settings')
+import django
+django.setup()
+
+from admin_panel.setup import ensure_superuser
+from django.core.wsgi import get_wsgi_application
+
+django_wsgi_app = get_wsgi_application()
 
 from config import settings
 from database.session import init_db
@@ -39,6 +50,7 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("Initializing database tables...")
         await init_db()
+        ensure_superuser()
     except Exception as e:
         logger.error(f"DB Init Error: {e}", exc_info=True)
         startup_error = str(e)
@@ -69,7 +81,7 @@ async def lifespan(app: FastAPI):
         pass
     logger.info("Shutdown complete.")
 
-app = FastAPI(title="Kalorix API & Web App", lifespan=lifespan)
+app = FastAPI(title="TezFIT API, Web App & Django Jazzmin Admin", lifespan=lifespan)
 
 # Mount FastAPI REST API endpoints
 app.include_router(api_router)
@@ -78,10 +90,18 @@ app.include_router(api_router)
 if os.path.exists("web_app"):
     app.mount("/web_app", StaticFiles(directory="web_app", html=True), name="web_app")
 
+# Mount Django Jazzmin Admin Panel at /admin
+app.mount("/admin", WSGIMiddleware(django_wsgi_app))
+
 @app.get("/")
 async def root():
     status = "OK" if not startup_error else f"Warning: {startup_error}"
-    return {"status": status, "message": "Kalorix Bot & Web App API service running!"}
+    return {
+        "status": status,
+        "message": "TezFIT Bot, Web App & Django Jazzmin Admin Service Running!",
+        "admin_url": "/admin",
+        "web_app_url": "/web_app"
+    }
 
 if __name__ == "__main__":
     import uvicorn
