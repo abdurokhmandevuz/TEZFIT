@@ -1,12 +1,13 @@
 :root {
-  --bg-dark: #0d0e12;
+  --bg-dark: #0f1015;
   --card-bg: rgba(255, 255, 255, 0.05);
   --card-border: rgba(255, 255, 255, 0.1);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --accent-orange: #ff6b4a;
-  --accent-purple: #c4b5fd;
-  --accent-green: #34d399;
+  --accent-purple: #d8b4fe;
+  --accent-yellow: #fef08a;
+  --accent-green: #86efac;
   --accent-blue: #38bdf8;
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
@@ -60,6 +61,10 @@ body {
 .slide-splash {
   background-color: #0c0d10;
   color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .splash-header {
@@ -95,86 +100,20 @@ body {
   border-radius: 999px;
 }
 
-/* Floating Shapes Container */
-.floating-shapes-container {
-  position: relative;
-  height: 360px;
+.splash-shapes-wrapper {
   width: 100%;
-}
-
-.shape {
-  position: absolute;
-  border: 3px solid #000;
-  box-shadow: 4px 4px 0px #000;
-}
-
-.shape-triangle {
-  left: 10px;
-  bottom: 80px;
-  width: 80px;
-  height: 80px;
-  border: none;
-  box-shadow: none;
-}
-
-.shape-square {
-  right: 15px;
-  bottom: 120px;
-  width: 80px;
-  height: 80px;
-  border: none;
-  box-shadow: none;
-}
-
-.shape-pill {
-  left: 20px;
-  bottom: 10px;
-  background: #34d399;
-  border-radius: 40px;
-  padding: 20px 10px;
-  writing-mode: vertical-rl;
-  font-weight: 800;
-  color: #000;
-}
-
-.shape-orange {
-  left: 90px;
-  bottom: 20px;
-  width: 100px;
-  height: 120px;
-  background: #ff6b4a;
-  border-radius: 24px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 32px;
+  align-items: flex-end;
+  padding-bottom: 20px;
 }
 
-.shape-green {
-  right: 110px;
-  bottom: 80px;
-  width: 90px;
-  height: 90px;
-  background: #4ade80;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  color: #000;
-}
-
-.shape-arch {
-  right: 10px;
-  bottom: 10px;
-  width: 100px;
-  height: 120px;
-  background: #c4b5fd;
-  border-radius: 50px 50px 16px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
+.splash-shapes-img {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
 }
 
 /* Purple Slide */
@@ -195,44 +134,21 @@ body {
   color: #000;
 }
 
-.status-bar {
-  font-size: 14px;
-  font-weight: 700;
-  padding-top: 8px;
-}
-
 .illustration-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 40px;
 }
 
-.speech-bubble {
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 20px;
-  padding: 8px 24px;
-  font-family: var(--font-heading);
-  font-size: 28px;
-  font-weight: 900;
-  box-shadow: 4px 4px 0px #000;
-  margin-bottom: 10px;
-}
-
-.groovy-text {
-  font-family: var(--font-heading);
-  font-size: 42px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
-  text-shadow: 3px 3px 0px #000;
-}
-
-.retro-svg {
-  width: 220px;
-  height: 220px;
+.retro-hero-img {
+  width: 230px;
+  height: auto;
+  max-height: 270px;
+  object-fit: contain;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
 }
 
 .slide-content {
@@ -288,165 +204,303 @@ body {
   transform: scale(0.96);
 }
 
-/* ================= MAIN APP LAYOUT ================= */
+/* ================= MAIN APP LAYOUT (FIGMA) ================= */
 .app-main-wrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-bottom: 80px;
+  padding-bottom: 95px;
 }
 
+/* Header */
 .app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: rgba(13, 14, 18, 0.8);
-  backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid var(--card-border);
 }
 
-.brand-name {
-  font-family: var(--font-heading);
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.brand-name .highlight {
-  color: var(--accent-orange);
-}
-
-.user-pill {
+.header-user-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 600;
+  gap: 12px;
 }
 
 .avatar-circle {
-  width: 28px;
-  height: 28px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: var(--accent-orange);
-  color: #fff;
+  background: #facc15;
+  color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 800;
+  border: 2px solid #fff;
 }
 
-.streak-badge {
-  background: rgba(255, 107, 74, 0.2);
-  color: var(--accent-orange);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-}
-
-.main-body {
-  padding: 16px 20px;
-}
-
-.tab-page {
-  display: none;
-}
-
-.tab-page.active {
-  display: block;
-}
-
-/* Cards & Glassmorphism */
-.glass-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 24px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  margin-bottom: 16px;
-}
-
-.main-calorie-card {
-  text-align: center;
-}
-
-.ring-wrapper {
-  position: relative;
-  width: 220px;
-  height: 220px;
-  margin: 0 auto;
-}
-
-.ring-center {
-  position: absolute;
-  inset: 0;
+.greeting-box {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 
-.big-cal-val {
-  font-family: var(--font-heading);
-  font-size: 42px;
-  font-weight: 800;
-}
-
-.cal-unit {
-  font-size: 14px;
+.greeting-text {
+  font-size: 13px;
   color: var(--text-muted);
 }
 
-.pct-badge {
-  margin-top: 6px;
-  background: rgba(56, 189, 248, 0.2);
-  color: var(--accent-blue);
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 12px;
+.user-display-name {
+  font-size: 16px;
   font-weight: 700;
 }
 
-/* Macros Row */
-.macros-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+.header-actions {
+  display: flex;
+  gap: 8px;
 }
 
-.macro-box {
-  background: var(--card-bg);
+.header-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--card-border);
-  border-radius: 18px;
-  padding: 14px 10px;
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.main-body {
+  padding: 0 20px;
+}
+
+/* Calendar Date Strip */
+.calendar-strip {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #000;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.day-col .d-name {
+  color: #64748b;
+}
+
+.day-col .d-num {
+  font-size: 13px;
+}
+
+.day-col.active-day {
+  background: #e9d5ff;
+  border-radius: 20px;
+  padding: 6px 10px;
+}
+
+.day-col .active-pill {
+  background: #000;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-heading {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+/* Figma Purple Calorie Card */
+.purple-calorie-card {
+  background: #d8b4fe;
+  border-radius: 28px;
+  padding: 20px;
+  color: #000;
+  margin-bottom: 16px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(216, 180, 254, 0.2);
+}
+
+.card-tag {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.semi-ring-wrapper {
+  position: relative;
+  width: 200px;
+  height: 120px;
+  margin: 10px auto 0 auto;
+}
+
+.ring-center-content {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
   text-align: center;
 }
 
-.macro-box .icon {
-  font-size: 20px;
+.left-val {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 900;
   display: block;
-  margin-bottom: 4px;
 }
 
-.macro-box .label {
+.left-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.ring-bounds {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
   font-size: 12px;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: #475569;
 }
 
-.macro-box h4 {
-  font-size: 16px;
-  margin-top: 4px;
+/* Macros Grid (Carbs & Protein Cards) */
+.macros-grid-figma {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
-/* Banner Card */
+.macro-card-figma {
+  border-radius: 24px;
+  padding: 16px;
+  color: #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 130px;
+}
+
+.carbs-card {
+  background: #fef08a;
+}
+
+.protein-card {
+  background: #86efac;
+}
+
+.macro-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.macro-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.macro-icon-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.macro-progress-bar {
+  background: rgba(0, 0, 0, 0.1);
+  height: 8px;
+  border-radius: 999px;
+  margin: 12px 0 8px 0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #000;
+  border-radius: 999px;
+}
+
+.macro-values-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.macro-values-row .max-val {
+  opacity: 0.6;
+}
+
+/* Floating Bottom Capsule Navigation Dock */
+.bottom-floating-dock {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  z-index: 950;
+  display: flex;
+  justify-content: center;
+}
+
+.dock-container {
+  background: rgba(30, 32, 42, 0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 8px 12px;
+  display: flex;
+  gap: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+}
+
+.dock-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dock-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.dock-item.active .dock-icon-circle {
+  background: var(--accent-orange);
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.4);
+}
+
+/* Other Cards */
 .banner-card {
   background: linear-gradient(135deg, #ff6b4a 0%, #f43f5e 100%);
   border-radius: 20px;
@@ -479,48 +533,23 @@ body {
   font-size: 13px;
 }
 
-/* Bottom Navigation Bar */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 72px;
-  background: rgba(13, 14, 18, 0.95);
-  backdrop-filter: blur(16px);
-  border-top: 1px solid var(--card-border);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  z-index: 900;
+.glass-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  margin-bottom: 16px;
 }
 
-.nav-item {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: color 0.2s;
+.tab-page {
+  display: none;
 }
 
-.nav-item.active {
-  color: var(--accent-orange);
+.tab-page.active {
+  display: block;
 }
 
-.nav-icon {
-  font-size: 22px;
-}
-
-.nav-label {
-  font-size: 11px;
-  font-weight: 600;
-}
-
-/* Scanner styles */
 .scan-mode-tabs {
   display: flex;
   gap: 8px;

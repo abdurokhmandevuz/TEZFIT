@@ -55,7 +55,7 @@ function hideOnboarding() {
 // Navigation Tabs
 function switchTab(tabName) {
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.dock-item').forEach(n => n.classList.remove('active'));
 
   const targetPage = document.getElementById(`page-${tabName}`);
   const targetNav = document.getElementById(`nav-${tabName}`);
@@ -72,15 +72,15 @@ async function loadDashboard() {
     renderDashboard(data);
   } catch (err) {
     console.warn('Backend ga ulanishda ogohlantirish:', err);
-    // Demo fallback rendering if opened outside Telegram initData
+    // Demo fallback rendering
     renderDashboard({
       user: { name: 'Foydalanuvchi', daily_goal_kcal: 2000, streak_days: 1 },
-      today_stats: { total_calories: 650, total_protein: 25, total_fat: 18, total_carbs: 75, remaining_calories: 1350, progress_percent: 33 },
+      today_stats: { total_calories: 328, total_protein: 60, total_fat: 18, total_carbs: 140, remaining_calories: 1672, progress_percent: 16 },
       weekly_stats: [
         { day: 'Du', calories: 1850 }, { day: 'Se', calories: 2100 },
         { day: 'Ch', calories: 1900 }, { day: 'Pa', calories: 1650 },
         { day: 'Ju', calories: 2200 }, { day: 'Sh', calories: 1950 },
-        { day: 'Ya', calories: 650 }
+        { day: 'Ya', calories: 328 }
       ],
       today_meals: [],
       badges: []
@@ -94,7 +94,6 @@ function renderDashboard(data) {
   if (user) {
     document.getElementById('user-name').innerText = user.name || 'Foydalanuvchi';
     document.getElementById('user-avatar').innerText = (user.name || 'T')[0].toUpperCase();
-    document.getElementById('user-streak').innerText = `🔥 ${user.streak_days || 0}`;
     document.getElementById('prof-name').innerText = user.name || 'Foydalanuvchi';
     document.getElementById('prof-avatar').innerText = (user.name || 'T')[0].toUpperCase();
     document.getElementById('prof-goal').innerText = `${user.daily_goal_kcal || 2000} kcal`;
@@ -102,15 +101,27 @@ function renderDashboard(data) {
   }
 
   if (today_stats) {
-    document.getElementById('consumed-cal').innerText = Math.round(today_stats.total_calories || 0);
-    document.getElementById('goal-cal').innerText = Math.round(user ? user.daily_goal_kcal : 2000);
-    document.getElementById('gauge-percent').innerText = `${Math.round(today_stats.progress_percent || 0)}%`;
+    const consumed = Math.round(today_stats.total_calories || 0);
+    const goal = Math.round(user ? user.daily_goal_kcal : 2000);
+    const remaining = Math.max(0, goal - consumed);
 
-    document.getElementById('protein-val').innerText = `${Math.round(today_stats.total_protein || 0)}g`;
-    document.getElementById('fat-val').innerText = `${Math.round(today_stats.total_fat || 0)}g`;
-    document.getElementById('carbs-val').innerText = `${Math.round(today_stats.total_carbs || 0)}g`;
+    document.getElementById('remaining-cal').innerText = remaining;
 
-    initCalorieRing(today_stats.total_calories || 0, user ? user.daily_goal_kcal : 2000);
+    const carbsVal = Math.round(today_stats.total_carbs || 0);
+    const proteinVal = Math.round(today_stats.total_protein || 0);
+
+    const carbsGoal = 200;
+    const proteinGoal = 120;
+
+    document.getElementById('carbs-consumed').innerText = `${carbsVal}g`;
+    document.getElementById('carbs-goal').innerText = `${carbsGoal}g`;
+    document.getElementById('carbs-bar-fill').style.width = `${Math.min(100, (carbsVal / carbsGoal) * 100)}%`;
+
+    document.getElementById('protein-consumed').innerText = `${proteinVal}g`;
+    document.getElementById('protein-goal').innerText = `${proteinGoal}g`;
+    document.getElementById('protein-bar-fill').style.width = `${Math.min(100, (proteinVal / proteinGoal) * 100)}%`;
+
+    initCalorieRing(consumed, goal);
   }
 
   if (today_meals && today_meals.length > 0) {
@@ -141,13 +152,15 @@ function initCalorieRing(consumed, goal) {
     data: {
       datasets: [{
         data: [consumed, remaining],
-        backgroundColor: ['#ff6b4a', 'rgba(255, 255, 255, 0.08)'],
+        backgroundColor: ['#000000', 'rgba(0, 0, 0, 0.12)'],
         borderWidth: 0,
         borderRadius: 20
       }]
     },
     options: {
-      cutout: '82%',
+      rotation: -90,
+      circumference: 180,
+      cutout: '80%',
       responsive: true,
       maintainAspectRatio: false,
       plugins: { tooltip: { enabled: false } }
