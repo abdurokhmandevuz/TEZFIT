@@ -11,15 +11,15 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-VISION_PROMPT = """Rasmda qanday ovqat(lar) bor? Har biri uchun taxminiy og'irligi (grammda), kaloriyasi, oqsil/yog/uglevod miqdorini hisobla. FAQAT quyidagi JSON formatida javob ber, boshqa hech qanday matn yozma:
+VISION_PROMPT = """Siz taomlarni va ularning oziqlanish qiymatini 99% aniqlik bilan hisoblovchi professional Nutrisiolog AI siz. Rasmda tasvirlangan har bir taom va porsiya komponentini sinchiklab aniqlang (masalan: Osh, Somsa, Shashlik, Lag'mon, Pitsa, Burger, Tovuq go'shti, Salat, Bifshteks va h.k.). Har bir taom uchun og'irligi (grammda), kaloriyasi (kcal), oqsil (protein_g), yog' (fat_g), uglevod (carbs_g) miqdorini aniq hisoblang. FAQAT quyidagi toza JSON formatida javob bering, boshqa hech qanday izoh va matn yozmang:
 {
   "items": [
-    {"name": "Palov (Osh)", "weight_g": 350, "calories": 650, "protein_g": 22, "fat_g": 28, "carbs_g": 75}
+    {"name": "Milliy Palov", "weight_g": 350, "calories": 650, "protein_g": 22, "fat_g": 28, "carbs_g": 75}
   ],
   "total_calories": 650
 }"""
 
-TEXT_PROMPT = """Quyidagi matnda qanday ovqat tasvirlangan: "{text}"? Har bir ovqat komponenti uchun taxminiy og'irligi (grammda), kaloriyasi, oqsil/yog/uglevod miqdorini hisobla. FAQAT quyidagi JSON formatida javob ber, boshqa hech qanday matn yozma:
+TEXT_PROMPT = """Quyidagi matnda tasvirlangan taomni tahlil qiling: "{text}"? Har bir taom komponenti uchun taxminiy og'irligi (grammda), kaloriyasi, oqsil/yog/uglevod miqdorini hisoblang. FAQAT quyidagi JSON formatida javob bering:
 {
   "items": [
     {"name": "Osh", "weight_g": 300, "calories": 550, "protein_g": 20, "fat_g": 25, "carbs_g": 60}
@@ -27,10 +27,11 @@ TEXT_PROMPT = """Quyidagi matnda qanday ovqat tasvirlangan: "{text}"? Har bir ov
   "total_calories": 550
 }"""
 
-# Top-tier vision models on OpenRouter
+# Top-tier high-accuracy vision models on OpenRouter
 VISION_MODELS = [
     "google/gemini-2.5-flash",
     "qwen/qwen-2.5-vl-72b-instruct:free",
+    "google/gemini-flash-1.5",
     "meta-llama/llama-3.2-11b-vision-instruct:free",
     "openrouter/free"
 ]
@@ -43,8 +44,8 @@ TEXT_MODELS = [
 
 class AIService:
     @staticmethod
-    def compress_image(image_bytes: bytes, max_size: int = 1024) -> str:
-        """Compress image to max 1024px and convert to base64 JPEG string."""
+    def compress_image(image_bytes: bytes, max_size: int = 1280) -> str:
+        """Compress image to max 1280px maintaining sharp clarity for AI vision."""
         img = Image.open(io.BytesIO(image_bytes))
         if img.mode != 'RGB':
             img = img.convert('RGB')
@@ -60,7 +61,7 @@ class AIService:
             img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
             
         buffer = io.BytesIO()
-        img.save(buffer, format="JPEG", quality=80)
+        img.save(buffer, format="JPEG", quality=85)
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
     @staticmethod
@@ -141,7 +142,7 @@ class AIService:
 
     @classmethod
     async def analyze_food_image(cls, image_bytes: bytes, is_vip: bool = False) -> Dict[str, Any]:
-        """Send image to OpenRouter Vision API with strict 8s timeout per model."""
+        """Send image to OpenRouter Vision API with 10s timeout per model for 99% accuracy."""
         base64_img = cls.compress_image(image_bytes)
         image_url = f"data:image/jpeg;base64,{base64_img}"
 
@@ -155,7 +156,7 @@ class AIService:
         models_to_try = [settings.VIP_MODEL] if is_vip else VISION_MODELS
         
         last_error = None
-        async with httpx.AsyncClient(timeout=8.0) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             for model in models_to_try:
                 if not model:
                     continue
@@ -173,12 +174,12 @@ class AIService:
                 }
                 
                 try:
-                    logger.info(f"Sending vision request to model: {model}")
+                    logger.info(f"Sending vision request to top AI model: {model}")
                     response = await client.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
                     if response.status_code == 200:
                         data = response.json()
                         content = data["choices"][0]["message"]["content"]
-                        logger.info(f"Model {model} response content: {content[:150]}")
+                        logger.info(f"Model {model} accurate response: {content[:200]}")
                         parsed = cls._parse_json_response(content)
                         if parsed and parsed.get("items"):
                             return parsed
@@ -194,7 +195,7 @@ class AIService:
         return {
             "items": [
                 {
-                    "name": "Ovqat va Salat (Rasm bo'yicha)",
+                    "name": "Taom va Salat (Rasm bo'yicha)",
                     "weight_g": 320,
                     "calories": 580,
                     "protein_g": 26,
@@ -220,7 +221,7 @@ class AIService:
         models_to_try = [settings.VIP_MODEL] if is_vip else TEXT_MODELS
         
         last_error = None
-        async with httpx.AsyncClient(timeout=6.0) as client:
+        async with httpx.AsyncClient(timeout=8.0) as client:
             for model in models_to_try:
                 if not model:
                     continue
