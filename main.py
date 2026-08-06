@@ -92,4 +92,4 @@ if __name__ == "__main__":
         port = 8000
     
     logger.info(f"Starting server on host 0.0.0.0 and port {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
