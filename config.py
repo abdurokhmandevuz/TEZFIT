@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     
     DATABASE_URL: str = "sqlite+aiosqlite:///./kalorix.db"
     
-    WEB_APP_URL: str = "http://localhost:8000/web_app"
+    WEB_APP_URL: str = "https://tezfit-production.up.railway.app/web_app"
     HOST: str = "0.0.0.0"
     PORT: int = int(os.environ.get("PORT", "8000"))
     

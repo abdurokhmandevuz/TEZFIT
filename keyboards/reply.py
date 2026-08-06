@@ -5,12 +5,9 @@ from config import settings
 def get_main_reply_keyboard() -> ReplyKeyboardMarkup:
     web_app_url = os.environ.get("WEB_APP_URL", settings.WEB_APP_URL)
     
-    # Fallback to railway domain if localhost or localtunnel in production
-    if "localhost" in web_app_url or "loca.lt" in web_app_url or not web_app_url.startswith("https://"):
-        if os.environ.get("RAILWAY_STATIC_URL"):
-            web_app_url = f"https://{os.environ.get('RAILWAY_STATIC_URL')}/web_app"
-        elif not web_app_url.startswith("https://"):
-            web_app_url = web_app_url.replace("http://", "https://")
+    # Guarantee production Railway domain for Web App button
+    if "loca.lt" in web_app_url or "localhost" in web_app_url or "127.0.0.1" in web_app_url or not web_app_url.startswith("https://"):
+        web_app_url = "https://tezfit-production.up.railway.app/web_app"
 
     kb = ReplyKeyboardMarkup(
         keyboard=[
