@@ -8,6 +8,9 @@ SECRET_KEY = 'django-insecure-tezfit-admin-key-secret-super-safe'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+# Ensure Django Admin URLs build with /admin prefix when mounted in FastAPI
+FORCE_SCRIPT_NAME = '/admin'
+
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -62,7 +65,6 @@ if "sqlite" in db_url:
         }
     }
 else:
-    # Postgres
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -77,7 +79,7 @@ TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/'
+STATIC_URL = '/admin/static/'
 STATIC_ROOT = BASE_DIR / 'static_collected'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
