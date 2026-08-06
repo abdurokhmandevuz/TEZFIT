@@ -1,12 +1,16 @@
+import os
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 from config import settings
 
 def get_main_reply_keyboard() -> ReplyKeyboardMarkup:
-    web_app_url = settings.WEB_APP_URL
-    if not web_app_url.startswith("https://"):
-        web_app_url = web_app_url.replace("http://", "https://")
-        if not web_app_url.startswith("https://"):
-            web_app_url = "https://" + web_app_url
+    web_app_url = os.environ.get("WEB_APP_URL", settings.WEB_APP_URL)
+    
+    # Fallback to railway domain if localhost or localtunnel in production
+    if "localhost" in web_app_url or "loca.lt" in web_app_url or not web_app_url.startswith("https://"):
+        if os.environ.get("RAILWAY_STATIC_URL"):
+            web_app_url = f"https://{os.environ.get('RAILWAY_STATIC_URL')}/web_app"
+        elif not web_app_url.startswith("https://"):
+            web_app_url = web_app_url.replace("http://", "https://")
 
     kb = ReplyKeyboardMarkup(
         keyboard=[
