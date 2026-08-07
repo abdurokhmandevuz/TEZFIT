@@ -967,20 +967,43 @@ input[type=number] {
   width: 60px !important;
   height: 60px !important;
   border-radius: 50% !important;
-  background: linear-gradient(135deg, #ff6b4a 0%, #ff8f70 100%) !important;
-  box-shadow: 0 12px 28px rgba(255, 107, 74, 0.55), 0 0 0 5px #09090b !important;
+  background: var(--color-yellow) !important; /* Uglevodlar container background color (#fef08a) */
+  border: none !important; /* Qora border olib tashlandi */
+  box-shadow: 0 10px 25px rgba(254, 240, 138, 0.5) !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  animation: cameraGlowPulse 2.5s infinite ease-in-out !important;
 }
+
+@keyframes cameraGlowPulse {
+  0% {
+    box-shadow: 0 8px 20px rgba(254, 240, 138, 0.4), 0 0 0 0px rgba(254, 240, 138, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 14px 30px rgba(254, 240, 138, 0.75), 0 0 0 10px rgba(254, 240, 138, 0);
+    transform: scale(1.04);
+  }
+  100% {
+    box-shadow: 0 8px 20px rgba(254, 240, 138, 0.4), 0 0 0 0px rgba(254, 240, 138, 0);
+    transform: scale(1);
+  }
+}
+
+.dock-item-center:hover .center-raised-circle {
+  transform: scale(1.1) translateY(-2px) !important;
+}
+
 .dock-item-center:active .center-raised-circle {
-  transform: scale(0.90);
+  transform: scale(0.92) !important;
 }
+
 .center-icon-img {
   width: 28px !important;
   height: 28px !important;
-  filter: brightness(0) invert(1); /* Pure crisp white camera icon */
+  filter: brightness(0) !important; /* Qora toza kamera belgisi */
 }
 
 /* Sub-sheets Overlay & Result Sheets */
@@ -1384,4 +1407,70 @@ html, body {
 .input-figma {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* ==================== NOTIFICATION SHEET TOGGLE STYLES ==================== */
+.notif-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.notif-toggle-row:last-child {
+  border-bottom: none;
+}
+
+.notif-toggle-row span {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #3f3f46;
+  transition: .3s ease;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: .3s ease;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+input:checked + .slider {
+  background-color: #ff6b4a;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
 }

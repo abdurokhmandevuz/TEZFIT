@@ -54,44 +54,62 @@ function getTimeGreeting() {
   return 'Xayrli kech 🌙';
 }
 
-const DIET_PLANS = [
-  {
-    id: 'mediterranean',
-    title: "O'rta Yer Dengizi Parhezi",
-    description: "Ushbu rejim tabiiy va to'liq mahsulotlarga yo'naltirilgan bo'lib, yangi sabzavotlar, sifatli zaytun yog'i, yog'siz baliq, yong'oqlar va foydali don mahsulotlarini o'z ichiga oladi.",
-    calories: 2000,
-    protein: 120,
-    carbs: 200,
-    fat: 70,
-    goal: "Yurak Salomatligi, Vaznni Saqlash",
-    image: 'assets/diet_mediterranean.jpg',
-    isMyDiet: false
-  },
-  {
-    id: 'lowcarb',
-    title: "Past Uglevodli Yog' Erituvchi",
-    description: "Tana yog' almashinuvini jadallashtirish uchun uglevodlarni cheklab, foydali yog'lar, avokado va oqsillarga asoslangan rejim.",
-    calories: 1800,
-    protein: 160,
-    carbs: 100,
-    fat: 80,
-    goal: "Tezkor Yog' Yo'qotish, Insulinga Sezgirlik",
-    image: 'assets/diet_lowcarb.jpg',
-    isMyDiet: true
-  },
-  {
-    id: 'vegan',
-    title: "Vegalarning Quvvat Rejasi",
-    description: "100% o'simlikka asoslangan, dukkakli ekinlar, dimlangan brokkoli, kinoa va foydali urug'lar bilan boyitilgan to'yimli diet.",
-    calories: 2000,
-    protein: 125,
-    carbs: 300,
-    fat: 55,
-    goal: "Toza Energiya, Hujayraviy Yangilanish",
-    image: 'assets/diet_vegan.jpg',
-    isMyDiet: true
+let DIET_PLANS = [];
+
+async function fetchDietsFromBackend() {
+  try {
+    const res = await fetch('/api/diets');
+    if (!res.ok) throw new Error('Diets API error');
+    const data = await res.json();
+    if (data && data.status === 'success' && data.diets && data.diets.length > 0) {
+      DIET_PLANS = data.diets;
+      renderDietsPage();
+    }
+  } catch (err) {
+    console.warn('Backend diet rejimlarini yuklashda ogohlantirish, zaxira ishlatilmoqda:', err);
+    if (!DIET_PLANS || DIET_PLANS.length === 0) {
+      DIET_PLANS = [
+        {
+          id: 'mediterranean',
+          title: "O'rta Yer Dengizi Parhezi",
+          description: "Ushbu rejim tabiiy va to'liq mahsulotlarga yo'naltirilgan bo'lib, yangi sabzavotlar, sifatli zaytun yog'i, yog'siz baliq, yong'oqlar va foydali don mahsulotlarini o'z ichiga oladi.",
+          calories: 2000,
+          protein: 120,
+          carbs: 200,
+          fat: 70,
+          goal: "Yurak Salomatligi, Vaznni Saqlash",
+          image: 'assets/diet_mediterranean.jpg',
+          isMyDiet: false
+        },
+        {
+          id: 'lowcarb',
+          title: "Past Uglevodli Yog' Erituvchi",
+          description: "Tana yog' almashinuvini jadallashtirish uchun uglevodlarni cheklab, foydali yog'lar, avokado va oqsillarga asoslangan rejim.",
+          calories: 1800,
+          protein: 160,
+          carbs: 100,
+          fat: 80,
+          goal: "Tezkor Yog' Yo'qotish, Insulinga Sezgirlik",
+          image: 'assets/diet_lowcarb.jpg',
+          isMyDiet: true
+        },
+        {
+          id: 'vegan',
+          title: "Vegalarning Quvvat Rejasi",
+          description: "100% o'simlikka asoslangan, dukkakli ekinlar, dimlangan brokkoli, kinoa va foydali urug'lar bilan boyitilgan to'yimli diet.",
+          calories: 2000,
+          protein: 125,
+          carbs: 300,
+          fat: 55,
+          goal: "Toza Energiya, Hujayraviy Yangilanish",
+          image: 'assets/diet_vegan.jpg',
+          isMyDiet: true
+        }
+      ];
+      renderDietsPage();
+    }
   }
-];
+}
 
 // Startup check
 document.addEventListener('DOMContentLoaded', () => {
@@ -100,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updatePickerLabels('height');
   updatePickerLabels('weight');
   updatePickerLabels('target-weight');
+  fetchDietsFromBackend();
   
   // Cache Telegram SDK user if present
   if (tgUser) {
@@ -803,12 +822,53 @@ function closeNotificationSheet() {
   document.getElementById('notification-sheet').style.display = 'none';
 }
 
+let userFavorites = [];
+try {
+  userFavorites = JSON.parse(localStorage.getItem('tezfit_favorites_v3') || '[]');
+} catch (e) { userFavorites = []; }
+
 function openFavoriteSheet() {
+  renderFavoriteSheet();
   document.getElementById('favorite-sheet').style.display = 'block';
 }
 
 function closeFavoriteSheet() {
   document.getElementById('favorite-sheet').style.display = 'none';
+}
+
+function renderFavoriteSheet() {
+  const container = document.getElementById('favorite-cards-list');
+  if (!container) return;
+
+  if (!userFavorites || userFavorites.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:48px 20px; color:#94a3b8;">
+        <span style="font-size:48px; display:block; margin-bottom:12px;">❤️</span>
+        <h4 style="color:#ffffff; font-size:18px; font-weight:700; margin-bottom:6px;">Hali sevimlilar yo'q</h4>
+        <p style="font-size:13px; margin:0;">Taomlar yoki rejimlar oynasida <strong>♥</strong> tugmasini bossangiz, ular shu yerda ko'rinadi.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = userFavorites.map((fav, index) => `
+    <div class="diet-card" style="position:relative; margin-bottom:12px;">
+      <img src="${fav.image || 'assets/watermelon_good.png'}" alt="${fav.title}" class="diet-card-img">
+      <div class="diet-card-body" style="flex:1;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <h3 class="diet-card-title">${fav.title}</h3>
+          <button onclick="removeFavoriteItem(${index})" style="background:rgba(239, 68, 68, 0.15); border:none; color:#ef4444; width:28px; height:28px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="O'chirish">✕</button>
+        </div>
+        <p class="diet-card-subtext">${fav.calories ? fav.calories + ' kcal' : ''} ${fav.subtext ? ' &nbsp;|&nbsp; ' + fav.subtext : ''}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function removeFavoriteItem(index) {
+  userFavorites.splice(index, 1);
+  localStorage.setItem('tezfit_favorites_v3', JSON.stringify(userFavorites));
+  renderFavoriteSheet();
 }
 
 function showMoreInfo() {
@@ -1207,7 +1267,37 @@ function closeResultSheet() {
 }
 
 function toggleFavorite() {
-  alert('❤️ Taom sevimlilarga qo\'shildi!');
+  if (!currentTotalMealData) {
+    alert('❤️ Sevimlilarga qo\'shish uchun taom ma\'lumotlari topilmadi');
+    return;
+  }
+
+  const mainItem = (currentParsedItems && currentParsedItems.length > 0)
+    ? currentParsedItems[0]
+    : { name: 'Sog\'lom taom', calories: currentTotalMealData.total_calories || 600 };
+
+  const title = mainItem.name || 'Sog\'lom Taom';
+  const existingIndex = userFavorites.findIndex(f => f.title === title);
+
+  if (existingIndex >= 0) {
+    userFavorites.splice(existingIndex, 1);
+    localStorage.setItem('tezfit_favorites_v3', JSON.stringify(userFavorites));
+    alert(`💔 "${title}" sevimlilardan olib tashlandi`);
+  } else {
+    const photoImg = document.getElementById('sheet-food-img');
+    const imageSrc = photoImg ? photoImg.src : 'assets/watermelon_good.png';
+    const cal = Math.round(currentTotalMealData.total_calories || mainItem.calories || 0);
+
+    userFavorites.push({
+      id: 'meal_' + Date.now(),
+      title: title,
+      calories: cal,
+      subtext: `Oqsil: ${mainItem.protein_g || 0}g | Yog': ${mainItem.fat_g || 0}g | Uglevod: ${mainItem.carbs_g || 0}g`,
+      image: imageSrc
+    });
+    localStorage.setItem('tezfit_favorites_v3', JSON.stringify(userFavorites));
+    alert(`❤️ "${title}" sevimlilarga qo'shildi!`);
+  }
 }
 
 async function saveResultMealToDiet() {

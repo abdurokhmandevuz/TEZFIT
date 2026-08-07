@@ -90,3 +90,27 @@ class Reminder(models.Model):
 
     def __str__(self):
         return f"{self.reminder_type} ({self.reminder_time}) - {self.user}"
+
+class DietPlan(models.Model):
+    id = models.AutoField(primary_key=True)
+    slug = models.CharField(max_length=100, unique=True, verbose_name="Kodi / Slug")
+    title = models.CharField(max_length=255, verbose_name="Rejim Nomi")
+    description = models.TextField(verbose_name="Tavsifi")
+    calories = models.FloatField(default=2000.0, verbose_name="Kaloriya (kcal)")
+    protein_g = models.FloatField(default=120.0, verbose_name="Oqsil (g)")
+    carbs_g = models.FloatField(default=200.0, verbose_name="Uglevod (g)")
+    fat_g = models.FloatField(default=70.0, verbose_name="Yog' (g)")
+    goal = models.CharField(max_length=255, default="Sog'lom turmush tarzi", verbose_name="Maqsadi")
+    image_url = models.CharField(max_length=512, default="assets/diet_mediterranean.jpg", verbose_name="Rasm URL")
+    is_active = models.BooleanField(default=True, verbose_name="Faolmi")
+    is_my_diet = models.BooleanField(default=False, verbose_name="Mening Rejimimda sukut bo'yicha")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Kiritilgan vaqti")
+
+    class Meta:
+        db_table = "diet_plans"
+        verbose_name = "Parhez Rejimi"
+        verbose_name_plural = "5. Parhez Rejimlar"
+
+    def __str__(self):
+        return f"{self.title} ({self.calories} kcal)"
+

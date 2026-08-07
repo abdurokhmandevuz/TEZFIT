@@ -10,5 +10,6 @@ urlpatterns = [
     path('api/save-meal', views.api_save_meal, name='api_save_meal'),
     path('api/goals', views.api_goals, name='api_goals'),
     path('api/reset-user', views.api_reset_user, name='api_reset_user'),
+    path('api/diets', views.api_diets, name='api_diets'),
     path('', admin.site.urls),
 ]

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import User, Meal, Achievement, Reminder
+from .models import User, Meal, Achievement, Reminder, DietPlan
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -66,3 +66,21 @@ class ReminderAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'reminder_type')
     search_fields = ('user__name', 'user__telegram_id')
     list_editable = ('is_active', 'reminder_time')
+
+@admin.register(DietPlan)
+class DietPlanAdmin(admin.ModelAdmin):
+    list_display = ('id', 'image_preview', 'title', 'slug', 'calories_badge', 'protein_g', 'carbs_g', 'fat_g', 'is_my_diet', 'is_active')
+    list_filter = ('is_active', 'is_my_diet')
+    search_fields = ('title', 'slug', 'description', 'goal')
+    list_editable = ('is_active', 'is_my_diet', 'calories')
+    ordering = ('id',)
+
+    def image_preview(self, obj):
+        if obj.image_url:
+            return format_html('<img src="{}" style="width:50px;height:36px;border-radius:8px;object-fit:cover;" />', obj.image_url)
+        return "—"
+    image_preview.short_description = "Rasm"
+
+    def calories_badge(self, obj):
+        return format_html('<span style="color:#ff6b4a;font-weight:bold;">🔥 {} kcal</span>', round(obj.calories))
+    calories_badge.short_description = "Kaloriya"

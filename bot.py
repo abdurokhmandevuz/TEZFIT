@@ -5,6 +5,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config import settings
 
 from handlers.start import router as start_router
+from handlers.admin import router as admin_router
 from handlers.photo import router as photo_router
 from handlers.text_meal import router as text_meal_router
 from handlers.inline import router as inline_router
@@ -20,6 +21,7 @@ storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
 # Register routers in priority order
+dp.include_router(admin_router)
 dp.include_router(start_router)
 dp.include_router(stats_router)
 dp.include_router(goals_router)

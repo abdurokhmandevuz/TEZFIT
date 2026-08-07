@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     PORT: int = 8000
     
     USER_FREE_DAILY_LIMIT: int = 10
+    ADMIN_IDS: list[int] = [7225597812]
 
     model_config = SettingsConfigDict(
         extra="ignore"

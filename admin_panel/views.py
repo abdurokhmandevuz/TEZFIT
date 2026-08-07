@@ -360,3 +360,27 @@ def api_reset_user(request):
         user.save()
         
     return JsonResponse({"status": "success", "message": "User reset successfully"})
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def api_diets(request):
+    try:
+        from .models import DietPlan
+        diets = DietPlan.objects.filter(is_active=True).order_by('id')
+        diet_list = []
+        for d in diets:
+            diet_list.append({
+                "id": d.slug,
+                "title": d.title,
+                "description": d.description,
+                "calories": round(d.calories),
+                "protein": round(d.protein_g),
+                "carbs": round(d.carbs_g),
+                "fat": round(d.fat_g),
+                "goal": d.goal,
+                "image": d.image_url,
+                "isMyDiet": d.is_my_diet
+            })
+        return JsonResponse({"status": "success", "diets": diet_list})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
