@@ -81,6 +81,10 @@ const DIET_PLANS = [
 // Startup check
 document.addEventListener('DOMContentLoaded', () => {
   renderDynamicCalendar();
+  setupSwipeWheelPickers();
+  updatePickerLabels('height');
+  updatePickerLabels('weight');
+  updatePickerLabels('target-weight');
   
   // Cache Telegram SDK user if present
   if (tgUser) {
@@ -101,6 +105,123 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboard();
   }
 });
+
+// Dynamic Horizontal Wheel Picker Helpers (Height, Weight, Target Weight)
+function updatePickerLabels(type) {
+  let inputId, prevId, nextId;
+  if (type === 'height') {
+    inputId = 'input-height-val';
+    prevId = 'height-sub-prev';
+    nextId = 'height-sub-next';
+  } else if (type === 'weight') {
+    inputId = 'input-weight-val';
+    prevId = 'weight-sub-prev';
+    nextId = 'weight-sub-next';
+  } else if (type === 'target-weight') {
+    inputId = 'input-target-weight-val';
+    prevId = 'target-weight-sub-prev';
+    nextId = 'target-weight-sub-next';
+  }
+
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const val = parseInt(input.value) || 0;
+  const prevEl = document.getElementById(prevId);
+  const nextEl = document.getElementById(nextId);
+
+  if (prevEl) prevEl.innerText = val - 1;
+  if (nextEl) nextEl.innerText = val + 1;
+
+  calculatePlanSummary();
+}
+
+function stepPicker(type, delta) {
+  let inputId;
+  if (type === 'height') inputId = 'input-height-val';
+  else if (type === 'weight') inputId = 'input-weight-val';
+  else if (type === 'target-weight') inputId = 'input-target-weight-val';
+
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  let val = (parseInt(input.value) || 0) + delta;
+  val = Math.max(1, val);
+  input.value = val;
+  updatePickerLabels(type);
+}
+
+function setupSwipeWheelPickers() {
+  const pickers = [
+    { type: 'height', containerId: 'picker-container-height' },
+    { type: 'weight', containerId: 'picker-container-weight' },
+    { type: 'target-weight', containerId: 'picker-container-target-weight' }
+  ];
+
+  pickers.forEach(p => {
+    const el = document.getElementById(p.containerId);
+    if (!el) return;
+
+    let startX = 0;
+    let isDragging = false;
+
+    // Touch events
+    el.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      const currentX = e.touches[0].clientX;
+      const diff = currentX - startX;
+
+      if (Math.abs(diff) > 20) {
+        if (diff > 0) {
+          stepPicker(p.type, -1); // Dragged right -> decrease value (e.g. 70 -> 69)
+        } else {
+          stepPicker(p.type, 1);  // Dragged left -> increase value (e.g. 70 -> 71)
+        }
+        startX = currentX;
+      }
+    }, { passive: true });
+
+    el.addEventListener('touchend', () => { isDragging = false; });
+
+    // Mouse drag events for Desktop/Web
+    el.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      isDragging = true;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const currentX = e.clientX;
+      const diff = currentX - startX;
+
+      if (Math.abs(diff) > 20) {
+        if (diff > 0) {
+          stepPicker(p.type, -1);
+        } else {
+          stepPicker(p.type, 1);
+        }
+        startX = currentX;
+      }
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    // Wheel mouse scroll event
+    el.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      if (e.deltaY > 0) {
+        stepPicker(p.type, -1);
+      } else {
+        stepPicker(p.type, 1);
+      }
+    }, { passive: false });
+  });
+}
 
 function renderDynamicCalendar(selectedDateStr = null) {
   const container = document.getElementById('calendar-strip');

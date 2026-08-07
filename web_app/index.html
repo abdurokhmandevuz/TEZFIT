@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web_app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="styles.css?v=2.5.1">
+  <link rel="stylesheet" href="styles.css?v=2.5.2">
 </head>
 <body>
 
@@ -85,12 +85,12 @@
       <div class="wizard-body">
         <h2 class="wizard-title">Bo'yingiz qancha?</h2>
         
-        <div class="wheel-picker-container">
-          <span class="wheel-sub-val">158</span>
+        <div class="wheel-picker-container" id="picker-container-height">
+          <span class="wheel-sub-val" id="height-sub-prev" onclick="stepPicker('height', -1)">169</span>
           <div class="wheel-main-box">
-            <input type="number" id="input-height-val" value="170" class="wheel-large-input" onchange="calculatePlanSummary()">
+            <input type="number" id="input-height-val" value="170" class="wheel-large-input" oninput="updatePickerLabels('height')">
           </div>
-          <span class="wheel-sub-val">172</span>
+          <span class="wheel-sub-val" id="height-sub-next" onclick="stepPicker('height', 1)">171</span>
         </div>
 
         <div class="unit-capsule-toggle">
@@ -117,12 +117,12 @@
       <div class="wizard-body">
         <h2 class="wizard-title">Hozirgi vazningiz qancha?</h2>
         
-        <div class="weight-horiz-picker">
-          <span class="w-sub">68</span>
+        <div class="weight-horiz-picker" id="picker-container-weight">
+          <span class="w-sub" id="weight-sub-prev" onclick="stepPicker('weight', -1)">69</span>
           <div class="w-main-box">
-            <input type="number" id="input-weight-val" value="70" class="w-large-input" onchange="calculatePlanSummary()">
+            <input type="number" id="input-weight-val" value="70" class="w-large-input" oninput="updatePickerLabels('weight')">
           </div>
-          <span class="w-sub">72</span>
+          <span class="w-sub" id="weight-sub-next" onclick="stepPicker('weight', 1)">71</span>
         </div>
 
         <div class="unit-capsule-toggle">
@@ -149,12 +149,12 @@
       <div class="wizard-body">
         <h2 class="wizard-title">Maqsadli vazningiz qancha?</h2>
         
-        <div class="weight-horiz-picker">
-          <span class="w-sub">62</span>
+        <div class="weight-horiz-picker" id="picker-container-target-weight">
+          <span class="w-sub" id="target-weight-sub-prev" onclick="stepPicker('target-weight', -1)">64</span>
           <div class="w-main-box">
-            <input type="number" id="input-target-weight-val" value="65" class="w-large-input" onchange="calculatePlanSummary()">
+            <input type="number" id="input-target-weight-val" value="65" class="w-large-input" oninput="updatePickerLabels('target-weight')">
           </div>
-          <span class="w-sub">68</span>
+          <span class="w-sub" id="target-weight-sub-next" onclick="stepPicker('target-weight', 1)">66</span>
         </div>
 
         <div class="unit-capsule-toggle">
@@ -1003,6 +1003,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=2.5.1"></script>
+  <script src="app.js?v=2.5.2"></script>
 </body>
 </html>
