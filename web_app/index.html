@@ -382,15 +382,13 @@
         </div>
 
         <!-- Premium Promotion Banner -->
-        <div class="premium-promo-banner" onclick="openPremiumModal()">
+        <div class="premium-promo-banner" onclick="openPremiumPage()" id="premium-banner">
           <div class="promo-text-side">
-            <h3>Premium bilan erkin va o'zingizga mos tezlikda erishing! 🚀</h3>
-            <span class="promo-sub-badge">Barcha AI cheklovlarni olib tashlang</span>
+            <h3>Premium bilan cheksiz imkoniyatlarga erishing 👑</h3>
+            <span class="promo-sub-badge">AI cheklov yo'q • Barcha tahlillar</span>
           </div>
           <div class="promo-badge-graphic">
-            <div class="rocket-badge-circle">
-              <span class="infinity-symbol">♾️</span>
-            </div>
+            <img src="assets/premium_badge.jpg" alt="Premium" class="promo-badge-img">
           </div>
         </div>
 
@@ -448,8 +446,8 @@
         <!-- Quick Scan Trigger Banner -->
         <div class="banner-card" onclick="openCameraChoiceModal()">
           <div class="banner-text">
-            <h3>📸 Ovqatni AI bilan skan qiling</h3>
-            <p>Kameradan rasmga oling yoki galereyadan tanlang</p>
+            <span class="banner-scan-title">📸 AI bilan skan qiling</span>
+            <small class="banner-scan-sub">Kameradan oling yoki galereyadan tanlang</small>
           </div>
           <div class="banner-btn">AI Kamera</div>
         </div>
@@ -1021,9 +1019,9 @@
     </div>
   </div>
 
-  <!-- ==================== TEZFIT PREMIUM MULTI-STEP FLOW MODAL ==================== -->
-  <div class="modal-overlay" id="premium-modal" style="display:none; z-index:350;">
-    <div class="result-sheet-content premium-flow-sheet" style="padding: 20px; max-height:90vh; overflow-y:auto;">
+  <!-- ==================== TEZFIT PREMIUM FULL SCREEN PAGE ==================== -->
+  <div class="premium-fullscreen-page" id="premium-modal" style="display:none;">
+    <div class="premium-fullscreen-inner">
       
       <!-- SCREEN 1: ONE TIME OFFER / PROMO LANDING -->
       <div class="p-flow-screen active" id="p-screen-offer">
@@ -1037,8 +1035,8 @@
         </div>
 
         <!-- Offer Hero Graphic Box -->
-        <div class="offer-graphic-box">
-          <div class="gift-icon-wrap">🎁</div>
+        <div class="offer-graphic-box" style="padding:0; overflow:hidden; border-radius:24px; min-height:180px;">
+          <img src="assets/premium_banner.jpg" alt="Premium" style="width:100%; height:200px; object-fit:cover; display:block;">
           <span class="discount-badge-tag">50% CHEGIRMA</span>
         </div>
 
@@ -1181,10 +1179,10 @@
         <div class="card-details-box">
           <span style="font-size:12px; color:#94a3b8; display:block; margin-bottom:6px;">Quyidagi kartaga to'lovni o'tkazing:</span>
           <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.06); padding:12px 14px; border-radius:12px; margin-bottom:8px;">
-            <strong id="card-number-text" style="font-size:16px; letter-spacing:1px; color:#ffffff;">8600 1234 5678 9012</strong>
+            <strong id="card-number-text" style="font-size:15px; letter-spacing:2px; color:#ffffff; font-family:'Courier New', monospace;">5614 6821 1306 2543</strong>
             <button onclick="copyCardNumber()" style="background:#ff5500; border:none; color:#fff; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">Nusxalash</button>
           </div>
-          <span style="font-size:12px; color:#64748b;">Karta egasi: <strong>TEZFIT PREMIUM</strong></span>
+          <span style="font-size:12px; color:#64748b;">Karta egasi: <strong style="color:#e2e8f0;">UMIDA MUMINOVA</strong></span>
         </div>
 
         <!-- Receipt Image Upload Box -->
@@ -1223,6 +1221,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=2.8.0"></script>
+  <script src="app.js?v=2.9.1"></script>
 </body>
 </html>

@@ -1410,16 +1410,24 @@ function showPremiumScreen(screenId) {
 }
 
 function openPremiumModal() {
+  openPremiumPage();
+}
+
+function openPremiumPage() {
   const modal = document.getElementById('premium-modal');
   if (modal) {
     showPremiumScreen('offer');
-    modal.style.display = 'flex';
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
   }
 }
 
 function closePremiumModal() {
   const modal = document.getElementById('premium-modal');
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
 }
 
 function selectPlanAndGoDetail(planType) {
@@ -1437,11 +1445,11 @@ function selectPlanAndGoDetail(planType) {
 
 function copyCardNumber() {
   const cardNumText = document.getElementById('card-number-text');
-  const cardNum = cardNumText ? cardNumText.innerText.replace(/\s+/g, '') : "8600123456789012";
+  const cardNum = cardNumText ? cardNumText.innerText.replace(/\s+/g, '') : "5614682113062543";
   navigator.clipboard.writeText(cardNum).then(() => {
     alert("📋 Karta raqami nusxalandi: " + cardNum);
   }).catch(() => {
-    alert("Karta raqami: 8600 1234 5678 9012");
+    alert("Karta raqami: 5614 6821 1306 2543");
   });
 }
 
