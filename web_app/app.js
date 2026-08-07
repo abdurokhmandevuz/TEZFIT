@@ -2076,4 +2076,76 @@ document.addEventListener('focusout', (e) => {
   }
 });
 
+// ==================== 🥤 DRINK SCANNER HANDLERS ====================
+function triggerDrinkScan() {
+  const input = document.getElementById('input-drink-camera');
+  if (input) input.click();
+}
+
+function closeDrinkResultSheet() {
+  document.getElementById('drink-result-sheet').style.display = 'none';
+}
+
+async function handleDrinkFileSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const overlay = document.getElementById('camera-loading-overlay');
+  const overlaySub = document.getElementById('loading-sub-text');
+  if (overlaySub) overlaySub.textContent = "AI Suv va Ichimlikni tahlil qilmoqda...";
+  if (overlay) overlay.style.display = 'flex';
+
+  const formData = new FormData();
+  formData.append('initData', initData || '');
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('/api/scan-drink', {
+      method: 'POST',
+      body: formData
+    });
+    const result = await res.json();
+    if (overlay) overlay.style.display = 'none';
+
+    if (result.status === 'limit_reached') {
+      openPremiumModal();
+      alert(result.message);
+      return;
+    }
+
+    if (result.status === 'success' && result.data) {
+      showDrinkAnalysisResult(result.data);
+    } else {
+      alert("Kechirasiz, ichimlikni tahlil qilishda xatolik yuz berdi.");
+    }
+  } catch (err) {
+    if (overlay) overlay.style.display = 'none';
+    alert("Serverga ulanishda xatolik yuz berdi.");
+  }
+}
+
+function showDrinkAnalysisResult(data) {
+  document.getElementById('drink-res-title').textContent = data.drink_name || 'Ichimlik / Suv';
+  document.getElementById('drink-res-cal').textContent = `${data.calories || 0} kcal`;
+  document.getElementById('drink-res-sugar').textContent = `${data.sugar_g || 0}g (${data.sugar_level || 'Normal'})`;
+  
+  const halalBadge = document.getElementById('drink-halal-badge');
+  if (halalBadge) {
+    halalBadge.textContent = data.halal_status || (data.is_halal ? '🟢 Halol — Harom moddalar aniqlanmadi' : '⚠️ Shubhali');
+    if (data.is_halal) {
+      halalBadge.style.background = 'rgba(34,197,94,0.15)';
+      halalBadge.style.color = '#22c55e';
+    } else {
+      halalBadge.style.background = 'rgba(239,68,68,0.15)';
+      halalBadge.style.color = '#ef4444';
+    }
+  }
+
+  document.getElementById('drink-res-health').textContent = data.health_assessment || '';
+  document.getElementById('drink-res-details').textContent = data.details || '';
+
+  document.getElementById('drink-result-sheet').style.display = 'block';
+}
+
+
 

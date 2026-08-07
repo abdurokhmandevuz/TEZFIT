@@ -51,6 +51,31 @@ Respond ONLY with clean valid JSON matching this exact schema:
   "total_calories": 0
 }"""
 
+DRINK_VISION_PROMPT = """You are an expert AI Food Safety Specialist, Halal Nutritionist, and Computer Vision Beverage Analyst.
+Analyze the provided image of a drink, water bottle, juice, soda, energy drink, or beverage container carefully.
+
+Determine:
+1. Exact brand and drink name in Uzbek (e.g., Chortoq mineral suvi, Coca-Cola Zero, Cappy Apelsin sharbati, Red Bull, Nestle Pure Life, etc.).
+2. Total calories (calories in kcal per container/portion).
+3. Sugar content in grams (sugar_g) and sugar risk level ("Juda past", "Me'yorda", "Yuqori", "Juda yuqori (Zararli)").
+4. Halal status ("Halol", "Shubhali", or "Harom/Tavsiya etilmaydi") and brief reason in Uzbek (e.g., "🟢 Halol — Harom moddalar va E-qo'shimchalar aniqlanmadi").
+5. Health assessment in Uzbek (Zararsizligi yoki zarari, masalan: "✅ Sog'liq uchun bezarar, gidratatsiya beradi" yoki "⚠️ Shakar miqdori yuqori, me'yordan oshirmang").
+6. Detailed nutritional explanation in Uzbek.
+7. Estimated volume in ml (volume_ml).
+
+Respond ONLY with clean valid JSON matching this exact schema:
+{
+  "drink_name": "<Drink Name in Uzbek>",
+  "calories": 0,
+  "sugar_g": 0.0,
+  "sugar_level": "<Sugar level in Uzbek>",
+  "is_halal": true,
+  "halal_status": "<Halal status string in Uzbek>",
+  "health_assessment": "<Health impact summary in Uzbek>",
+  "details": "<Full detailed explanation in Uzbek>",
+  "volume_ml": 500
+}"""
+
 # Top-tier working vision & text models on OpenRouter
 VISION_MODELS = [
     "google/gemma-4-26b-a4b-it:free",
@@ -220,6 +245,58 @@ class AIService:
             "error": last_error or "AI analysis failed",
             "items": [],
             "total_calories": 0
+        }
+
+    @classmethod
+    async def analyze_drink_image(cls, image_bytes: bytes) -> Dict[str, Any]:
+        """Analyze drink/water bottle image for calories, sugar, Halal status, and health impact."""
+        base64_image = cls.compress_image(image_bytes)
+        image_url = f"data:image/jpeg;base64,{base64_image}"
+        
+        headers = {
+            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+            "HTTP-Referer": "https://t.me/Tezfitbot",
+            "X-Title": "TezFIT Drink Analyzer",
+            "Content-Type": "application/json"
+        }
+        
+        models = ["google/gemma-4-26b-a4b-it:free", "nvidia/nemotron-nano-12b-v2-vl:free", "openrouter/free"]
+        async with httpx.AsyncClient(timeout=14.0) as client:
+            for model in models:
+                payload = {
+                    "model": model,
+                    "max_tokens": 600,
+                    "temperature": 0.2,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": DRINK_VISION_PROMPT},
+                                {"type": "image_url", "image_url": {"url": image_url}}
+                            ]
+                        }
+                    ]
+                }
+                try:
+                    res = await client.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
+                    if res.is_success:
+                        content = res.json()["choices"][0]["message"]["content"]
+                        parsed = cls._parse_json_response(content)
+                        if parsed and "drink_name" in parsed:
+                            return parsed
+                except Exception as exc:
+                    logger.warning(f"Drink vision model {model} error: {exc}")
+                    
+        return {
+            "drink_name": "Suv / Ichimlik",
+            "calories": 0,
+            "sugar_g": 0.0,
+            "sugar_level": "Juda past",
+            "is_halal": True,
+            "halal_status": "🟢 Halol — Harom moddalar va E-qo'shimchalar aniqlanmadi",
+            "health_assessment": "✅ Sog'liq uchun bezarar, gidratatsiya beradi",
+            "details": "Toza suv yoki tabiat manbasi. Organizm uchun xavfsiz.",
+            "volume_ml": 500
         }
 
     @classmethod

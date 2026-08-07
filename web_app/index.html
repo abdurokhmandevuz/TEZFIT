@@ -443,6 +443,18 @@
           </div>
         </div>
 
+        <!-- 🥤 Suv / Ichimlik Tekshirish Feature Banner -->
+        <div class="drink-scan-banner-card" onclick="triggerDrinkScan()">
+          <div class="drink-banner-left">
+            <div class="drink-icon-badge">🥤</div>
+            <div class="drink-banner-text">
+              <span class="drink-banner-title">Suv / Ichimlik Tekshirish</span>
+              <small class="drink-banner-sub">Halolligi, Shakar, Kaloriya va Zararini aniqlash</small>
+            </div>
+          </div>
+          <div class="drink-banner-btn">AI Skan</div>
+        </div>
+
         <!-- Quick Scan Trigger Banner -->
         <div class="banner-card" onclick="openCameraChoiceModal()">
           <div class="banner-text">
@@ -1415,7 +1427,51 @@
     </div>
   </div>
 
-  <script src="app.js?v=3.0.8"></script>
+  <!-- ==================== DRINK ANALYSIS RESULT SHEET ==================== -->
+  <div class="result-sheet-overlay" id="drink-result-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding:20px;">
+      <div class="sheet-top-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+        <h2 class="font-heading" style="font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
+          🥤 Ichimlik & Suv Tahlili
+        </h2>
+        <button class="btn-round-nav" onclick="closeDrinkResultSheet()">✕</button>
+      </div>
+
+      <div class="drink-result-card">
+        <h3 id="drink-res-title" style="font-size:20px; font-weight:900; color:#fff; margin-bottom:12px;">Coca-Cola Zero</h3>
+        
+        <!-- Halal Badge -->
+        <div class="drink-status-badge" id="drink-halal-badge" style="margin-bottom:14px; padding:10px 14px; border-radius:14px; background:rgba(34,197,94,0.15); color:#22c55e; font-weight:700; font-size:14px;">
+          🟢 Halol — Harom moddalar aniqlanmadi
+        </div>
+
+        <!-- Metrics Row: Calories & Sugar -->
+        <div class="drink-metrics-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+          <div class="metric-box" style="background:rgba(255,255,255,0.04); padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.06); text-align:center;">
+            <span style="font-size:11px; color:#94a3b8; display:block;">🔥 Kaloriya</span>
+            <strong id="drink-res-cal" style="font-size:18px; color:#ff6b4a;">0 kcal</strong>
+          </div>
+          <div class="metric-box" style="background:rgba(255,255,255,0.04); padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.06); text-align:center;">
+            <span style="font-size:11px; color:#94a3b8; display:block;">🍬 Shakar miqdori</span>
+            <strong id="drink-res-sugar" style="font-size:18px; color:#60a5fa;">0g</strong>
+          </div>
+        </div>
+
+        <!-- Health Assessment & Details -->
+        <div class="drink-health-box" style="background:rgba(255,255,255,0.03); padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,0.06); margin-bottom:20px;">
+          <h4 style="font-size:13px; color:#c084fc; margin:0 0 6px 0;">🩺 Salomatlikka ta'siri (Zarar/Foydasi):</h4>
+          <p id="drink-res-health" style="font-size:13px; color:#e2e8f0; line-height:1.5; margin:0 0 8px 0;"></p>
+          <p id="drink-res-details" style="font-size:12px; color:#94a3b8; line-height:1.4; margin:0;"></p>
+        </div>
+
+        <button class="btn-orange-full" onclick="closeDrinkResultSheet()">Tushunarli</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="input-drink-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleDrinkFileSelected(event)">
+
+  <script src="app.js?v=3.0.9"></script>
 </body>
 </html>
 

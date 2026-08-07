@@ -267,6 +267,26 @@ async def scan_photo(initData: str = Form(""), file: UploadFile = File(...)):
     parsed_data = await AIService.analyze_food_image(image_bytes, is_vip=user.is_vip)
     return {"status": "success", "data": parsed_data, "remaining": remaining}
 
+@router.post("/scan-drink")
+async def scan_drink(initData: str = Form(""), file: UploadFile = File(...)):
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        allowed, remaining = await UserService.check_and_increment_limit(session, user)
+
+    if not allowed:
+        return {
+            "status": "limit_reached",
+            "message": "Bugungi tekin skan limiti tugadi! TezFIT Premium-ga o'ting 👑",
+            "remaining": 0
+        }
+
+    image_bytes = await file.read()
+    parsed_data = await AIService.analyze_drink_image(image_bytes)
+    return {"status": "success", "data": parsed_data, "remaining": remaining}
+
 @router.post("/scan-text")
 async def scan_text(body: ScanTextRequest):
     user_data = verify_telegram_web_app_data(body.initData)
