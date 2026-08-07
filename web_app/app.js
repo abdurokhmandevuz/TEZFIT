@@ -324,7 +324,7 @@ function selectDietPref(prefVal) {
   if (target) target.classList.add('active');
 }
 
-// Calculate Plan Summary via Mifflin-St Jeor Formula
+// Calculate Plan Summary via 3-Step Mifflin-St Jeor Formula
 function calculatePlanSummary() {
   const heightInput = parseFloat(document.getElementById('input-height-val').value) || 170;
   const weightInput = parseFloat(document.getElementById('input-weight-val').value) || 70;
@@ -334,24 +334,40 @@ function calculatePlanSummary() {
   selectedWeight = (selectedWeightUnit === 'lbs') ? weightInput * 0.453592 : weightInput;
   selectedTargetWeight = (selectedTargetWeightUnit === 'lbs') ? targetWeightInput * 0.453592 : targetWeightInput;
 
-  let bmr = (10 * selectedWeight) + (6.25 * selectedHeight) - (5 * 25);
-  bmr += (selectedGender === 'Female') ? -161 : 5;
+  // 1-QADAM: BMR (asosiy almashinuv) — Mifflin-St Jeor formulasi
+  const age = 25;
+  let bmr = (10 * selectedWeight) + (6.25 * selectedHeight) - (5 * age);
+  if (selectedGender === 'Female') {
+    bmr -= 161;
+  } else {
+    bmr += 5;
+  }
 
-  let mult = 1.375;
-  if (selectedActivity.includes('Sedentary')) mult = 1.2;
-  else if (selectedActivity.includes('Lightly')) mult = 1.375;
+  // 2-QADAM: TDEE (kunlik umumiy sarf) — faollik koeffitsientiga ko'paytirish
+  let mult = 1.2;
+  if (selectedActivity.includes('Lightly')) mult = 1.375;
   else if (selectedActivity.includes('Moderately')) mult = 1.55;
   else if (selectedActivity.includes('Very')) mult = 1.725;
   else if (selectedActivity.includes('Athlete')) mult = 1.9;
+  else if (selectedActivity.includes('Sedentary')) mult = 1.2;
 
   let tdee = bmr * mult;
+
+  // 3-QADAM: Maqsadga qarab yakuniy kaloriya
+  let dailyKcal = tdee;
   if (selectedTargetWeight < selectedWeight) {
-    tdee -= 350;
+    dailyKcal = tdee - 500; // Vazn kamaytirish
   } else if (selectedTargetWeight > selectedWeight) {
-    tdee += 300;
+    dailyKcal = tdee + 400; // Vazn oshirish
+  } else {
+    dailyKcal = tdee;       // Vazn saqlash
   }
 
-  calculatedDailyKcal = Math.max(1200, Math.round(tdee));
+  // MUHIM XAVFSIZLIK QOIDASI:
+  // Erkaklar: minimal 1500 kcal
+  // Ayollar: minimal 1200 kcal
+  const minAllowedKcal = (selectedGender === 'Female') ? 1200 : 1500;
+  calculatedDailyKcal = Math.max(minAllowedKcal, Math.round(dailyKcal));
 
   const carbsKcal = Math.round(calculatedDailyKcal * 0.45);
   const proteinKcal = Math.round(calculatedDailyKcal * 0.30);
