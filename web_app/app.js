@@ -1794,7 +1794,13 @@ function renderWeightChart(history) {
 function createChatBubble(text, className) {
   const bubble = document.createElement('div');
   bubble.className = `ai-chat-bubble ${className}`;
-  bubble.textContent = text;
+  const safeText = String(text || '')
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+  bubble.innerHTML = safeText;
   return bubble;
 }
 
@@ -1806,28 +1812,33 @@ async function sendAIChat() {
 
   const container = document.getElementById('ai-chat-messages');
   container.appendChild(createChatBubble(msg, 'user-bubble'));
-  container.innerHTML += `<div class="ai-chat-bubble ai-bubble" id="ai-typing">⏳ Javob yozilmoqda...</div>`;
+  
+  const typing = document.createElement('div');
+  typing.className = 'ai-chat-bubble ai-bubble';
+  typing.id = 'ai-typing';
+  typing.textContent = '⏳ AI Javob yozmoqda...';
+  container.appendChild(typing);
   container.scrollTop = container.scrollHeight;
 
   try {
     const res = await fetch('/api/ai-chat', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ initData: initData || '', message: msg })
     });
     const data = await res.json();
-    const typing = document.getElementById('ai-typing');
-    if (typing) typing.remove();
+    if (typing.parentNode) typing.remove();
 
     if (data.status === 'error') {
-      container.innerHTML += `<div class="ai-chat-bubble ai-bubble">🔒 ${data.message}</div>`;
+      container.appendChild(createChatBubble('🔒 ' + (data.message || 'Xatolik'), 'ai-bubble'));
     } else {
       container.appendChild(createChatBubble(data.reply || 'Javob topilmadi', 'ai-bubble'));
     }
     container.scrollTop = container.scrollHeight;
   } catch(e) {
-    const typing = document.getElementById('ai-typing');
-    if (typing) typing.remove();
-    container.innerHTML += `<div class="ai-chat-bubble ai-bubble">⚠️ Xatolik yuz berdi</div>`;
+    if (typing.parentNode) typing.remove();
+    container.appendChild(createChatBubble('⚠️ Internet yoki ulanishda xatolik yuz berdi.', 'ai-bubble'));
+    container.scrollTop = container.scrollHeight;
   }
 }
 

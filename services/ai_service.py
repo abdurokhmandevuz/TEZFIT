@@ -231,19 +231,24 @@ class AIService:
             "X-Title": "TezFIT AI Maslahatchi",
             "Content-Type": "application/json",
         }
-        models_to_try = [settings.FREE_MODEL, settings.FALLBACK_MODEL]
+        models_to_try = [
+            "google/gemma-4-26b-a4b-it:free",
+            "nvidia/nemotron-3-nano-30b-a3b:free",
+            "nvidia/nemotron-nano-12b-v2-vl:free",
+            "openrouter/free"
+        ]
         async with httpx.AsyncClient(timeout=18.0) as client:
-            for model in dict.fromkeys(m for m in models_to_try if m):
+            for model in models_to_try:
                 try:
                     response = await client.post(
                         f"{settings.OPENROUTER_BASE_URL}/chat/completions",
                         headers=headers,
                         json={
                             "model": model,
-                            "max_tokens": 350,
+                            "max_tokens": 400,
                             "temperature": 0.5,
                             "messages": [
-                                {"role": "system", "content": "Sen TezFITning ehtiyotkor ovqatlanish maslahatchisisan. Faqat o'zbek tilida, qisqa va amaliy javob ber. Tibbiy tashxis qo'ymagin; jiddiy holatlarda shifokorga murojaat qilishni ayt."},
+                                {"role": "system", "content": "Sen TezFITning ehtiyotkor va bilimli ovqatlanish maslahatchisisan. Faqat o'zbek tilida, do'stona, qisqa va amaliy javob ber. Tibbiy tashxis qo'ymagin."},
                                 {"role": "user", "content": prompt},
                             ],
                         },
@@ -252,7 +257,7 @@ class AIService:
                         content = response.json()["choices"][0]["message"]["content"].strip()
                         if content:
                             return content
-                    logger.warning("Advisor model %s returned %s", model, response.status_code)
+                    logger.warning("Advisor model %s returned status %s: %s", model, response.status_code, response.text[:100])
                 except Exception as exc:
                     logger.warning("Advisor model %s failed: %s", model, exc)
         return "Hozir AI maslahatchiga ulanib bo'lmadi. Bir ozdan keyin qayta urinib ko'ring."
