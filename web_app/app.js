@@ -1266,12 +1266,21 @@ function handleFileSelected(event) {
 }
 
 async function submitImageScanToAI(fileOrBlob, imageSrc) {
+  closeCameraChoiceModal();
+  closeLiveCamera();
+
   let loadingEl = document.getElementById('cam-loading');
   if (!loadingEl) {
     loadingEl = document.createElement('div');
     loadingEl.id = 'cam-loading';
     loadingEl.className = 'camera-loading-overlay';
-    loadingEl.innerHTML = '<div class="spinner"></div><p style="margin-top:12px; font-weight:700;">🔍 AI Taomni tahlil qilmoqda...</p>';
+    loadingEl.innerHTML = `
+      <div class="ai-loader-box">
+        <div class="ai-spinner"></div>
+        <h3 style="color:#ffffff; font-family:'Outfit', sans-serif; font-size:18px; font-weight:900; margin-top:20px; margin-bottom:6px;">🔍 AI Taomni tahlil qilmoqda...</h3>
+        <p style="color:#94a3b8; font-size:13px; margin:0; line-height:1.4;">Bir oz kuting, kaloriya va BJU hisoblanmoqda ✨</p>
+      </div>
+    `;
     document.body.appendChild(loadingEl);
   }
   loadingEl.style.display = 'flex';
