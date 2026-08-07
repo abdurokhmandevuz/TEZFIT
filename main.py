@@ -23,12 +23,20 @@ from database.session import init_db
 from bot import bot, dp
 from api.dashboard import router as api_router
 from services.reminder_service import setup_reminders
+from services.admin_notifier import TelegramAdminLogHandler, notify_server_startup, notify_server_shutdown
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+# Attach Telegram Admin Log Handler to root logger to report errors instantly
+try:
+    admin_log_handler = TelegramAdminLogHandler(bot)
+    logging.getLogger().addHandler(admin_log_handler)
+except Exception as _e:
+    pass
 
 polling_task = None
 startup_error = None
@@ -67,9 +75,20 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Bot Polling Task Error: {e}", exc_info=True)
 
+    # Notify admin on Telegram that server redeployed and is online
+    try:
+        await notify_server_startup(bot)
+    except Exception as e:
+        logger.warning(f"Startup notify error: {e}")
+
     yield
 
     logger.info("Shutting down bot polling...")
+    try:
+        await notify_server_shutdown(bot)
+    except Exception:
+        pass
+
     if polling_task:
         polling_task.cancel()
         try:

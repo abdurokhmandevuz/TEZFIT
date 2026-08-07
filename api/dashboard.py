@@ -5,7 +5,7 @@ from database.models import Meal, WaterLog, Exercise, WeightLog, FavoriteMeal
 from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from bot import bot
 
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
@@ -680,3 +680,29 @@ async def get_weekly_report(initData: str = ""):
             "goal_kcal": user.daily_goal_kcal
         }
     }
+
+
+# ==================== RAILWAY WEBHOOK FOR LOGS / DEPLOY ALERTS ====================
+
+@router.post("/railway-webhook")
+async def railway_webhook(request: Request):
+    """Receive Railway deployment and error webhooks to notify Admin immediately."""
+    try:
+        data = await request.json()
+        event_type = data.get("type", "unknown")
+        deployment = data.get("deployment", {})
+        status = deployment.get("status", "unknown")
+        meta = data.get("meta", {})
+        
+        msg = (
+            f"🚆 **RAILWAY BILDIRISHNOMA (LOG / DEPLOY)!**\n\n"
+            f"⏰ **Vaqt:** `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`\n"
+            f"📌 **Event:** `{event_type}`\n"
+            f"📊 **Status:** `{status}`\n"
+            f"📝 **Batafsil:** `{str(meta or deployment)[:300]}`"
+        )
+        await bot.send_message(chat_id=7225597812, text=msg, parse_mode="Markdown")
+    except Exception as e:
+        print("Railway webhook error:", e)
+    return {"status": "ok"}
+
