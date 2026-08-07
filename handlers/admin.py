@@ -10,8 +10,18 @@ from database.session import AsyncSessionLocal
 from database.models import User, Meal
 from states.user_states import BroadcastState
 
+from aiogram.exceptions import TelegramBadRequest
+
 logger = logging.getLogger(__name__)
 router = Router()
+
+async def safe_edit_text(message, text, **kwargs):
+    try:
+        return await message.edit_text(text, **kwargs)
+    except TelegramBadRequest as e:
+        if "message is not modified" in str(e).lower() or "query is too old" in str(e).lower():
+            return None
+        raise e
 
 ADMIN_IDS = [7225597812, 123456789]
 
@@ -77,7 +87,7 @@ async def admin_help_callback(call: CallbackQuery):
         ]
     )
 
-    await call.message.edit_text(help_text, parse_mode="Markdown", reply_markup=back_kb)
+    await safe_edit_text(call.message, help_text, parse_mode="Markdown", reply_markup=back_kb)
     await call.answer()
 
 @router.callback_query(F.data == "admin_stats")
@@ -106,7 +116,7 @@ async def admin_stats_callback(call: CallbackQuery):
         ]
     )
 
-    await call.message.edit_text(stats_text, parse_mode="Markdown", reply_markup=back_kb)
+    await safe_edit_text(call.message, stats_text, parse_mode="Markdown", reply_markup=back_kb)
     await call.answer()
 
 @router.callback_query(F.data == "admin_vip_menu")
@@ -128,7 +138,7 @@ async def admin_vip_menu_callback(call: CallbackQuery):
         ]
     )
 
-    await call.message.edit_text(vip_info, parse_mode="Markdown", reply_markup=back_kb)
+    await safe_edit_text(call.message, vip_info, parse_mode="Markdown", reply_markup=back_kb)
     await call.answer()
 
 @router.callback_query(F.data == "admin_broadcast_help")
@@ -142,7 +152,7 @@ async def admin_broadcast_help_callback(call: CallbackQuery):
         [InlineKeyboardButton(text="Yordam", callback_data="admin_broadcast_guide")],
         [InlineKeyboardButton(text="Orqaga", callback_data="admin_main_menu")],
     ])
-    await call.message.edit_text("""<b>Professional xabar tarqatish</b>
+    await safe_edit_text(call.message, """<b>Professional xabar tarqatish</b>
 
 Xabar turini tanlang. Har bir e'lon foydalanuvchiga TezFIT'ni ochish tugmasi bilan yuboriladi.""", parse_mode="HTML", reply_markup=keyboard)
     await call.answer()
@@ -152,7 +162,7 @@ async def admin_broadcast_text_callback(call: CallbackQuery, state: FSMContext):
     if not is_admin(call.from_user.id):
         return await call.answer("Ruxsat yo'q!", show_alert=True)
     await state.set_state(BroadcastState.waiting_for_text)
-    await call.message.edit_text("""<b>Matnli e'lon</b>
+    await safe_edit_text(call.message, """<b>Matnli e'lon</b>
 
 Endi yuboriladigan matnni jo'nating. <code>&lt;b&gt;Qalin&lt;/b&gt;</code> format ishlaydi.""", parse_mode="HTML")
     await call.answer()
@@ -162,14 +172,14 @@ async def admin_broadcast_photo_callback(call: CallbackQuery, state: FSMContext)
     if not is_admin(call.from_user.id):
         return await call.answer("Ruxsat yo'q!", show_alert=True)
     await state.set_state(BroadcastState.waiting_for_photo)
-    await call.message.edit_text("""<b>Rasmli e'lon</b>
+    await safe_edit_text(call.message, """<b>Rasmli e'lon</b>
 
 Rasmni izohi bilan yuboring. Izoh e'lon matni bo'ladi.""", parse_mode="HTML")
     await call.answer()
 
 @router.callback_query(F.data == "admin_broadcast_guide")
 async def admin_broadcast_guide_callback(call: CallbackQuery):
-    await call.message.edit_text("""<b>Tarqatish qoidasi</b>
+    await safe_edit_text(call.message, """<b>Tarqatish qoidasi</b>
 
 - Matn uchun tegishli tugmani bosing.
 - Rasm uchun rasmni izohi bilan yuboring.
@@ -182,8 +192,8 @@ async def admin_main_menu_callback(call: CallbackQuery):
         await call.answer("Ruxsat yo'q!", show_alert=True)
         return
 
-    await call.message.edit_text(
-        "🛠 **TezFIT Telegram Bot Admin Paneli**\n\n"
+    await safe_edit_text(call.message, 
+        "🛠 **TEZFIT ADMIN PANEL**\n\n"
         "Quyidagi bo'limlardan birini tanlang:",
         parse_mode="Markdown",
         reply_markup=get_admin_keyboard()
