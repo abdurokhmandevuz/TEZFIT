@@ -1,7 +1,7 @@
 import logging
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from sqlalchemy import select, func
 from config import settings
 from database.session import AsyncSessionLocal
@@ -218,7 +218,11 @@ async def broadcast_message_handler(message: Message):
 
     text_to_send = message.text.replace("/sendall", "").strip()
     if not text_to_send:
-        await message.answer("⚠️ Matn kiritilmadi! Misol: `/sendall Assalomu alaykum!`", parse_mode="Markdown")
+        await message.answer(
+            "⚠️ **Matn kiritilmadi!**\n"
+            "Misol: `/sendall Salom! TezFIT botimizda va Web App-da yangi imkoniyatlar qo'shildi! 🚀`",
+            parse_mode="Markdown"
+        )
         return
 
     async with AsyncSessionLocal() as session:
@@ -228,18 +232,30 @@ async def broadcast_message_handler(message: Message):
     success_count = 0
     fail_count = 0
 
+    web_app_url = f"{settings.WEB_APP_URL}?v=2.8.1"
+    broadcast_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📱 Web App-da Ochish", web_app=WebAppInfo(url=web_app_url))]
+        ]
+    )
+
     status_msg = await message.answer(f"⏳ `{len(user_ids)}` ta foydalanuvchiga xabar yuborilmoqda...", parse_mode="Markdown")
 
     for tg_id in user_ids:
         try:
-            await message.bot.send_message(chat_id=tg_id, text=text_to_send)
+            await message.bot.send_message(
+                chat_id=tg_id,
+                text=text_to_send,
+                reply_markup=broadcast_kb
+            )
             success_count += 1
         except Exception:
             fail_count += 1
 
     await status_msg.edit_text(
         f"📢 **XABAR TARQATISH YAKUNLANDI!**\n\n"
-        f"✅ Muvaffaqiyatli yuborildi: {success_count} ta\n"
-        f"❌ Yetib bormadi (bloklangan): {fail_count} ta",
+        f"✅ Bot va Web App foydalanuvchilariga yuborildi: {success_count} ta\n"
+        f"❌ Yetib bormadi (bloklangan): {fail_count} ta\n\n"
+        f"📱 *Xabar tagiga Web App-ni 1-bosish bilan ochish tugmasi biriktirildi!*",
         parse_mode="Markdown"
     )
