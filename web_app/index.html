@@ -452,10 +452,50 @@
           <div class="banner-btn" id="banner-scan-btn">AI Kamera</div>
         </div>
 
-        <!-- Today Meals -->
+        <!-- 💧 Water Tracker Card -->
+        <div class="glass-card section-card water-tracker-card">
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>💧 Suv Hisobi</h3>
+            <span class="water-count-label" id="water-count-label">0 / 8 stakan</span>
+          </div>
+          <div class="water-glasses-row" id="water-glasses-row">
+            <span class="water-glass" data-idx="1">💧</span>
+            <span class="water-glass" data-idx="2">💧</span>
+            <span class="water-glass" data-idx="3">💧</span>
+            <span class="water-glass" data-idx="4">💧</span>
+            <span class="water-glass" data-idx="5">💧</span>
+            <span class="water-glass" data-idx="6">💧</span>
+            <span class="water-glass" data-idx="7">💧</span>
+            <span class="water-glass" data-idx="8">💧</span>
+          </div>
+          <div class="water-actions">
+            <button class="water-btn water-minus" onclick="updateWater('remove')">−</button>
+            <button class="water-btn water-plus" onclick="updateWater('add')">+</button>
+          </div>
+        </div>
+
+        <!-- 🏋️ Exercise Card -->
+        <div class="glass-card section-card exercise-card">
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>🏋️ Mashqlar</h3>
+            <span class="exercise-burned-label" id="exercise-burned-label">🔥 0 kcal yoqildi</span>
+          </div>
+          <div class="exercise-list" id="exercise-list">
+            <p class="empty-text">Bugun mashq qilinmadi</p>
+          </div>
+          <button class="btn-add-exercise" onclick="openExerciseSheet()">+ Mashq qo'shish</button>
+        </div>
+
+        <!-- Today Meals with category tabs -->
         <div class="glass-card section-card">
           <div class="section-title">
             <h3>🍽 Bugungi Taomlar Rejasi</h3>
+          </div>
+          <div class="meal-time-tabs">
+            <button class="meal-tab active" data-time="all" onclick="filterMealsByTime('all')">Barchasi</button>
+            <button class="meal-tab" data-time="breakfast" onclick="filterMealsByTime('breakfast')">🌅 Nonushta</button>
+            <button class="meal-tab" data-time="lunch" onclick="filterMealsByTime('lunch')">☀️ Tushlik</button>
+            <button class="meal-tab" data-time="dinner" onclick="filterMealsByTime('dinner')">🌙 Kechki</button>
           </div>
           <div class="meals-list" id="meals-list">
             <p class="empty-text">Bugun hali ovqat kiritilmadi</p>
@@ -517,29 +557,53 @@
             </div>
           </div>
         </div>
+
+        <!-- ⚖️ Weight Tracking Card -->
+        <div class="glass-card section-card weight-card">
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>⚖️ Vazn Kuzatuvi</h3>
+            <button class="btn-small-outline" onclick="openWeightLogSheet()">+ Kiritish</button>
+          </div>
+          <div class="chart-container-trends" style="height:180px;">
+            <canvas id="weightChartCanvas"></canvas>
+          </div>
+          <div class="weight-summary" id="weight-summary">
+            <span>Hozirgi: <strong id="current-weight-val">70</strong> kg</span>
+            <span>Maqsad: <strong id="target-weight-val">65</strong> kg</span>
+          </div>
+        </div>
+
+        <!-- 📤 Share Report Button -->
+        <button class="btn-share-report" onclick="shareWeeklyReport()">📤 Haftalik Hisobotni Ulashish</button>
       </section>
 
-      <!-- TAB 3: DIETS / MEALS -->
+      <!-- TAB 3: AI CHAT + FAVORITES -->
       <section class="tab-page" id="page-meals">
-        <h2 class="section-heading font-heading" style="font-size:26px; margin-bottom:16px;">Parhez Rejimlar</h2>
+        <h2 class="section-heading font-heading" style="font-size:26px; margin-bottom:16px;">AI & Sevimlilar</h2>
 
-        <!-- All Diets vs My Diets Capsule Switcher -->
+        <!-- Tab Switcher -->
         <div class="diet-tab-capsule">
-          <button class="diet-tab-btn active" id="tab-all-diets" onclick="switchDietTab('all')">Barcha Rejimlar</button>
-          <button class="diet-tab-btn" id="tab-my-diets" onclick="switchDietTab('my')">Mening Rejimlarim</button>
+          <button class="diet-tab-btn active" id="tab-ai-chat" onclick="switchMealsSubTab('ai')">🤖 AI Maslahatchi</button>
+          <button class="diet-tab-btn" id="tab-favs" onclick="switchMealsSubTab('favs')">📋 Sevimlilar</button>
         </div>
 
-        <!-- Explore Diet Plans Purple Banner Card -->
-        <div class="explore-diets-banner" id="diets-purple-banner">
-          <h3>Parhez Rejimlarini Kashf Eting</h3>
-          <p>Maqsad va turmush tarzingizga moslashtirilgan rejimlar.</p>
+        <!-- AI Chat Section -->
+        <div id="ai-chat-section">
+          <div class="ai-chat-container" id="ai-chat-messages">
+            <div class="ai-chat-bubble ai-bubble">Salom! Men TezFIT AI maslahatchi. Ovqatlanish haqida savolingiz bormi? 🍏</div>
+          </div>
+          <div class="ai-chat-input-row">
+            <input type="text" id="ai-chat-input" class="input-figma" placeholder="Bugun nima yesam bo'ladi?..." onkeydown="if(event.key==='Enter')sendAIChat()">
+            <button class="btn-send-chat" onclick="sendAIChat()">➤</button>
+          </div>
+          <p class="ai-premium-note" id="ai-premium-note" style="display:none;">🔒 AI Maslahatchi faqat Premium uchun</p>
         </div>
 
-        <h3 class="section-heading" id="diets-section-heading" style="font-size:22px; margin: 20px 0 14px 0;">Rejimlar</h3>
-
-        <!-- Diet Cards List Container -->
-        <div class="diet-cards-container" id="diet-cards-list">
-          <!-- Cards rendered via app.js -->
+        <!-- Favorites Section (hidden by default) -->
+        <div id="favs-section" style="display:none;">
+          <div class="favorites-list" id="favorites-list">
+            <p class="empty-text">Hali sevimli taom yo'q</p>
+          </div>
         </div>
       </section>
 
@@ -588,7 +652,31 @@
           <!-- Favorite -->
           <div class="settings-menu-item" onclick="openFavoriteSheet()">
             <div class="item-left">
-              <span class="menu-item-text">Sevimlilar</span>
+              <span class="menu-item-text">📋 Sevimlilar</span>
+            </div>
+            <span class="chevron-icon">›</span>
+          </div>
+
+          <!-- Goal Setting -->
+          <div class="settings-menu-item" onclick="openGoalSheet()">
+            <div class="item-left">
+              <span class="menu-item-text">🎯 Maqsad Belgilash</span>
+            </div>
+            <span class="chevron-icon">›</span>
+          </div>
+
+          <!-- Achievements -->
+          <div class="settings-menu-item" onclick="openAchievementsSheet()">
+            <div class="item-left">
+              <span class="menu-item-text">🏆 Yutuqlar va Badge'lar</span>
+            </div>
+            <span class="chevron-icon">›</span>
+          </div>
+
+          <!-- Leaderboard -->
+          <div class="settings-menu-item" onclick="openLeaderboardSheet()">
+            <div class="item-left">
+              <span class="menu-item-text">👥 Do'stlar Reytingi</span>
             </div>
             <span class="chevron-icon">›</span>
           </div>
@@ -1235,6 +1323,108 @@
     </div>
   </div>
 
-  <script src="app.js?v=2.9.7"></script>
+  <!-- ==================== EXERCISE SHEET ==================== -->
+  <div class="result-sheet-overlay" id="exercise-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding:20px;">
+      <div class="sheet-top-bar" style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <button class="btn-round-nav" onclick="closeExerciseSheet()">‹</button>
+        <h2 class="font-heading" style="font-size:22px; font-weight:800;">🏋️ Mashq Qo'shish</h2>
+      </div>
+      <div class="form-group-figma">
+        <label>Mashq Turi</label>
+        <select id="exercise-type-select" class="input-figma">
+          <option value="Yurish">🚶 Yurish</option>
+          <option value="Yugurish">🏃 Yugurish</option>
+          <option value="Velosiped">🚴 Velosiped</option>
+          <option value="Suzish">🏊 Suzish</option>
+          <option value="Yoga">🧘 Yoga</option>
+          <option value="Kuch mashqi">💪 Kuch mashqi</option>
+          <option value="Raqslar">💃 Raqslar</option>
+          <option value="Boshqa">🏋️ Boshqa</option>
+        </select>
+      </div>
+      <div class="form-group-figma">
+        <label>Davomiyligi (daqiqa)</label>
+        <input type="number" id="exercise-duration-input" class="input-figma" value="30" min="1" max="300">
+      </div>
+      <button class="btn-orange-full" onclick="saveExercise()" style="margin-top:16px;">Saqlash</button>
+    </div>
+  </div>
+
+  <!-- ==================== WEIGHT LOG SHEET ==================== -->
+  <div class="result-sheet-overlay" id="weight-log-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding:20px;">
+      <div class="sheet-top-bar" style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <button class="btn-round-nav" onclick="closeWeightLogSheet()">‹</button>
+        <h2 class="font-heading" style="font-size:22px; font-weight:800;">⚖️ Vazn Kiritish</h2>
+      </div>
+      <div class="form-group-figma">
+        <label>Bugungi Vazningiz (kg)</label>
+        <input type="number" id="weight-input-val" class="input-figma" value="70" step="0.1" min="30" max="250">
+      </div>
+      <button class="btn-orange-full" onclick="saveWeightLog()" style="margin-top:16px;">Saqlash</button>
+    </div>
+  </div>
+
+  <!-- ==================== GOAL SHEET ==================== -->
+  <div class="result-sheet-overlay" id="goal-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding:20px;">
+      <div class="sheet-top-bar" style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <button class="btn-round-nav" onclick="closeGoalSheet()">‹</button>
+        <h2 class="font-heading" style="font-size:22px; font-weight:800;">🎯 Maqsad Belgilash</h2>
+      </div>
+      <div class="form-group-figma">
+        <label>Maqsad Turi</label>
+        <select id="goal-type-select" class="input-figma">
+          <option value="lose">⬇️ Vazn yo'qotish</option>
+          <option value="maintain">⚖️ Saqlab turish</option>
+          <option value="gain">⬆️ Vazn oshirish</option>
+        </select>
+      </div>
+      <div class="form-group-figma">
+        <label>Maqsadli Vazn (kg)</label>
+        <input type="number" id="goal-target-weight" class="input-figma" value="65" step="0.5">
+      </div>
+      <div class="form-group-figma">
+        <label>Kunlik Kaloriya Maqsadi (kcal)</label>
+        <input type="number" id="goal-daily-cal" class="input-figma" value="2000" step="50">
+      </div>
+      <button class="btn-orange-full" onclick="saveGoal()" style="margin-top:16px;">Saqlash</button>
+    </div>
+  </div>
+
+  <!-- ==================== ACHIEVEMENTS SHEET ==================== -->
+  <div class="result-sheet-overlay" id="achievements-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding:20px;">
+      <div class="sheet-top-bar" style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <button class="btn-round-nav" onclick="closeAchievementsSheet()">‹</button>
+        <h2 class="font-heading" style="font-size:22px; font-weight:800;">🏆 Yutuqlar</h2>
+      </div>
+      <div class="achievements-stats-row">
+        <div class="ach-stat"><span class="ach-stat-val" id="ach-streak-val">0</span><span class="ach-stat-lbl">🔥 Streak</span></div>
+        <div class="ach-stat"><span class="ach-stat-val" id="ach-points-val">0</span><span class="ach-stat-lbl">⭐ Ball</span></div>
+        <div class="ach-stat"><span class="ach-stat-val" id="ach-level-val">1</span><span class="ach-stat-lbl">📊 Daraja</span></div>
+      </div>
+      <div class="badges-grid" id="badges-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LEADERBOARD SHEET ==================== -->
+  <div class="result-sheet-overlay" id="leaderboard-sheet" style="display:none;">
+    <div class="result-sheet-content" style="padding:20px;">
+      <div class="sheet-top-bar" style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+        <button class="btn-round-nav" onclick="closeLeaderboardSheet()">‹</button>
+        <h2 class="font-heading" style="font-size:22px; font-weight:800;">👥 Do'stlar Reytingi</h2>
+      </div>
+      <div class="leaderboard-list" id="leaderboard-list">
+        <p class="empty-text">Yuklanmoqda...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=3.0.0"></script>
 </body>
 </html>
+

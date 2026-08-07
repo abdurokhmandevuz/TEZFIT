@@ -1638,3 +1638,407 @@ function downloadWeeklyPDFReport() {
 
   window.print();
 }
+
+
+// ==================== 💧 WATER TRACKING ====================
+function renderWaterUI(glasses, goal) {
+  const label = document.getElementById('water-count-label');
+  if (label) label.textContent = `${glasses} / ${goal} stakan`;
+  const row = document.getElementById('water-glasses-row');
+  if (row) {
+    const spans = row.querySelectorAll('.water-glass');
+    spans.forEach((s, i) => {
+      if (i < glasses) s.classList.add('filled');
+      else s.classList.remove('filled');
+    });
+  }
+}
+
+async function updateWater(action) {
+  try {
+    const res = await fetch('/api/water', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: initData || '', action })
+    });
+    const data = await res.json();
+    if (data.status === 'success') renderWaterUI(data.glasses, data.goal);
+  } catch(e) { console.error('Water error:', e); }
+}
+
+
+// ==================== 🏋️ EXERCISES ====================
+function openExerciseSheet() { document.getElementById('exercise-sheet').style.display = 'block'; }
+function closeExerciseSheet() { document.getElementById('exercise-sheet').style.display = 'none'; }
+
+function renderExercises(exercises, totalBurned) {
+  const list = document.getElementById('exercise-list');
+  const label = document.getElementById('exercise-burned-label');
+  if (label) label.textContent = `🔥 ${Math.round(totalBurned)} kcal yoqildi`;
+  if (!list) return;
+  if (!exercises || exercises.length === 0) {
+    list.innerHTML = '<p class="empty-text">Bugun mashq qilinmadi</p>';
+    return;
+  }
+  const emojis = {'Yurish':'🚶','Yugurish':'🏃','Velosiped':'🚴','Suzish':'🏊','Yoga':'🧘','Kuch mashqi':'💪','Raqslar':'💃','Boshqa':'🏋️'};
+  list.innerHTML = exercises.map(e => `
+    <div class="exercise-item">
+      <span class="ex-info">${emojis[e.type]||'🏋️'} ${e.type} — ${e.duration} daq</span>
+      <span class="ex-cal">🔥 ${Math.round(e.calories)} kcal</span>
+    </div>
+  `).join('');
+}
+
+async function saveExercise() {
+  const exType = document.getElementById('exercise-type-select').value;
+  const dur = parseInt(document.getElementById('exercise-duration-input').value) || 30;
+  try {
+    const res = await fetch('/api/exercises', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: initData || '', exercise_type: exType, duration_min: dur })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      closeExerciseSheet();
+      alert(`✅ ${data.exercise_type} — ${data.duration} daq, ${Math.round(data.calories_burned)} kcal yoqildi!`);
+      loadDashboard();
+    }
+  } catch(e) { alert('Xatolik: ' + e.message); }
+}
+
+
+// ==================== 🍽️ MEAL TIME FILTER ====================
+let allMealsData = [];
+
+function filterMealsByTime(time) {
+  document.querySelectorAll('.meal-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.meal-tab[data-time="${time}"]`)?.classList.add('active');
+  
+  const filtered = time === 'all' ? allMealsData : allMealsData.filter(m => m.meal_time === time);
+  renderMealsList(filtered);
+}
+
+function renderMealsList(meals) {
+  const list = document.getElementById('meals-list');
+  if (!list) return;
+  if (!meals || meals.length === 0) {
+    list.innerHTML = '<p class="empty-text">Bu kategoriyada taom yo\'q</p>';
+    return;
+  }
+  list.innerHTML = meals.map(m => `
+    <div class="meal-entry-card">
+      <div class="meal-info">
+        <span class="meal-name">${m.food_name}</span>
+        <span class="meal-time-tag">${m.time || ''}</span>
+      </div>
+      <span class="meal-cal">${Math.round(m.calories)} kcal</span>
+    </div>
+  `).join('');
+}
+
+
+// ==================== ⚖️ WEIGHT TRACKING ====================
+let weightChart = null;
+
+function openWeightLogSheet() {
+  const input = document.getElementById('weight-input-val');
+  if (input && currentUserData) input.value = currentUserData.weight_kg || 70;
+  document.getElementById('weight-log-sheet').style.display = 'block';
+}
+function closeWeightLogSheet() { document.getElementById('weight-log-sheet').style.display = 'none'; }
+
+async function saveWeightLog() {
+  const wt = parseFloat(document.getElementById('weight-input-val').value);
+  if (!wt || wt < 30) { alert('Vazn noto\'g\'ri kiritildi'); return; }
+  try {
+    const res = await fetch('/api/weight-log', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: initData || '', weight_kg: wt })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      closeWeightLogSheet();
+      alert(`✅ Bugungi vazn: ${wt} kg saqlandi!`);
+      loadDashboard();
+    }
+  } catch(e) { alert('Xatolik: ' + e.message); }
+}
+
+function renderWeightChart(history) {
+  const canvas = document.getElementById('weightChartCanvas');
+  if (!canvas || !history || history.length === 0) return;
+  if (weightChart) weightChart.destroy();
+  const sorted = [...history].reverse();
+  weightChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: sorted.map(w => w.date.slice(5)),
+      datasets: [{
+        label: 'Vazn (kg)',
+        data: sorted.map(w => w.kg),
+        borderColor: '#c084fc',
+        backgroundColor: 'rgba(192,132,252,0.1)',
+        fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#c084fc', borderWidth: 2
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
+               y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.04)' } } }
+    }
+  });
+  document.getElementById('current-weight-val').textContent = sorted[sorted.length-1]?.kg || 70;
+  if (currentUserData) document.getElementById('target-weight-val').textContent = currentUserData.target_weight_kg || 65;
+}
+
+
+// ==================== 🤖 AI CHAT ====================
+async function sendAIChat() {
+  const input = document.getElementById('ai-chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  const container = document.getElementById('ai-chat-messages');
+  container.innerHTML += `<div class="ai-chat-bubble user-bubble">${msg}</div>`;
+  container.innerHTML += `<div class="ai-chat-bubble ai-bubble" id="ai-typing">⏳ Javob yozilmoqda...</div>`;
+  container.scrollTop = container.scrollHeight;
+
+  try {
+    const res = await fetch('/api/ai-chat', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: initData || '', message: msg })
+    });
+    const data = await res.json();
+    const typing = document.getElementById('ai-typing');
+    if (typing) typing.remove();
+
+    if (data.status === 'error') {
+      container.innerHTML += `<div class="ai-chat-bubble ai-bubble">🔒 ${data.message}</div>`;
+      document.getElementById('ai-premium-note').style.display = 'block';
+    } else {
+      container.innerHTML += `<div class="ai-chat-bubble ai-bubble">${data.reply || 'Javob topilmadi'}</div>`;
+    }
+    container.scrollTop = container.scrollHeight;
+  } catch(e) {
+    const typing = document.getElementById('ai-typing');
+    if (typing) typing.remove();
+    container.innerHTML += `<div class="ai-chat-bubble ai-bubble">⚠️ Xatolik yuz berdi</div>`;
+  }
+}
+
+function switchMealsSubTab(tab) {
+  document.getElementById('tab-ai-chat').classList.toggle('active', tab === 'ai');
+  document.getElementById('tab-favs').classList.toggle('active', tab === 'favs');
+  document.getElementById('ai-chat-section').style.display = tab === 'ai' ? 'block' : 'none';
+  document.getElementById('favs-section').style.display = tab === 'favs' ? 'block' : 'none';
+  if (tab === 'favs') loadFavorites();
+}
+
+
+// ==================== 📋 FAVORITES ====================
+async function loadFavorites() {
+  try {
+    const res = await fetch(`/api/favorites?initData=${encodeURIComponent(initData||'')}`);
+    const data = await res.json();
+    const list = document.getElementById('favorites-list');
+    if (!list) return;
+    if (!data.favorites || data.favorites.length === 0) {
+      list.innerHTML = '<p class="empty-text">Hali sevimli taom yo\'q. Taom skanlaganda ❤️ bosing!</p>';
+      return;
+    }
+    list.innerHTML = data.favorites.map(f => `
+      <div class="fav-item">
+        <div class="fav-item-info">
+          <h4>🍱 ${f.food_name}</h4>
+          <span>🔥 ${Math.round(f.calories)} kcal | O: ${f.protein_g}g | Y: ${f.fat_g}g | U: ${f.carbs_g}g</span>
+        </div>
+        <div class="fav-item-actions">
+          <button class="btn-fav-add" onclick="addFavToMeal(${f.id}, '${f.food_name}', ${f.calories}, ${f.protein_g}, ${f.fat_g}, ${f.carbs_g}, ${f.weight_g})">+</button>
+          <button class="btn-fav-delete" onclick="deleteFavorite(${f.id})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { console.error('Favorites error:', e); }
+}
+
+async function addFavToMeal(id, name, cal, protein, fat, carbs, weight) {
+  try {
+    const res = await fetch('/api/save-meal', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: initData||'', food_name: name, calories: cal, protein_g: protein, fat_g: fat, carbs_g: carbs, weight_g: weight, meal_time: 'snack' })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      alert(`✅ ${name} bugungi ovqatlarga qo'shildi!`);
+      loadDashboard();
+    }
+  } catch(e) { alert('Xatolik: ' + e.message); }
+}
+
+async function deleteFavorite(favId) {
+  try {
+    await fetch(`/api/favorites/${favId}?initData=${encodeURIComponent(initData||'')}`, { method: 'DELETE' });
+    loadFavorites();
+  } catch(e) { console.error(e); }
+}
+
+
+// ==================== 🎯 GOAL SETTING ====================
+function openGoalSheet() {
+  if (currentUserData) {
+    document.getElementById('goal-type-select').value = currentUserData.goal_type || 'maintain';
+    document.getElementById('goal-target-weight').value = currentUserData.target_weight_kg || 65;
+    document.getElementById('goal-daily-cal').value = currentUserData.daily_goal_kcal || 2000;
+  }
+  document.getElementById('goal-sheet').style.display = 'block';
+}
+function closeGoalSheet() { document.getElementById('goal-sheet').style.display = 'none'; }
+
+async function saveGoal() {
+  const goalType = document.getElementById('goal-type-select').value;
+  const targetWt = parseFloat(document.getElementById('goal-target-weight').value);
+  const dailyCal = parseFloat(document.getElementById('goal-daily-cal').value);
+  try {
+    const res = await fetch('/api/goals', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: initData||'', goal_type: goalType, target_weight_kg: targetWt, daily_goal_kcal: dailyCal })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      closeGoalSheet();
+      alert(`✅ Maqsad saqlandi! Kunlik: ${dailyCal} kcal`);
+      loadDashboard();
+    }
+  } catch(e) { alert('Xatolik: ' + e.message); }
+}
+
+
+// ==================== 🏆 ACHIEVEMENTS ====================
+const ALL_BADGES = [
+  {code:'first_meal', emoji:'🍽', name:'Birinchi Taom'},
+  {code:'streak_3', emoji:'🔥', name:'3 Kun Streak'},
+  {code:'streak_7', emoji:'⚡', name:'7 Kun Streak'},
+  {code:'streak_30', emoji:'💎', name:'30 Kun Streak'},
+  {code:'water_master', emoji:'💧', name:'Suv Ustasi'},
+  {code:'exercise_start', emoji:'🏋️', name:'Birinchi Mashq'},
+  {code:'scanner_pro', emoji:'📸', name:'Skan Pro'},
+  {code:'goal_reached', emoji:'🎯', name:'Maqsadga Erishdi'},
+  {code:'favorite_5', emoji:'❤️', name:'5 ta Sevimli'}
+];
+
+function openAchievementsSheet() {
+  document.getElementById('achievements-sheet').style.display = 'block';
+  if (currentUserData) {
+    document.getElementById('ach-streak-val').textContent = currentUserData.streak_days || 0;
+    document.getElementById('ach-points-val').textContent = currentUserData.points || 0;
+    document.getElementById('ach-level-val').textContent = currentUserData.level || 1;
+  }
+  const grid = document.getElementById('badges-grid');
+  const earned = (dashboardData && dashboardData.badges) || [];
+  const earnedCodes = earned.map(b => b.badge_code || b);
+  grid.innerHTML = ALL_BADGES.map(b => {
+    const isEarned = earnedCodes.includes(b.code);
+    return `<div class="badge-card ${isEarned ? 'earned' : 'locked'}">
+      <span class="badge-emoji">${b.emoji}</span>
+      <span class="badge-name">${b.name}</span>
+    </div>`;
+  }).join('');
+}
+function closeAchievementsSheet() { document.getElementById('achievements-sheet').style.display = 'none'; }
+
+
+// ==================== 👥 LEADERBOARD ====================
+function openLeaderboardSheet() {
+  document.getElementById('leaderboard-sheet').style.display = 'block';
+  loadLeaderboard();
+}
+function closeLeaderboardSheet() { document.getElementById('leaderboard-sheet').style.display = 'none'; }
+
+async function loadLeaderboard() {
+  try {
+    const res = await fetch(`/api/leaderboard?initData=${encodeURIComponent(initData||'')}`);
+    const data = await res.json();
+    const list = document.getElementById('leaderboard-list');
+    if (!data.leaderboard || data.leaderboard.length === 0) {
+      list.innerHTML = '<p class="empty-text">Hali foydalanuvchilar yo\'q</p>';
+      return;
+    }
+    const medals = ['🥇','🥈','🥉'];
+    list.innerHTML = data.leaderboard.map((u, i) => `
+      <div class="lb-item ${u.is_me ? 'is-me' : ''}">
+        <span class="lb-rank">${i < 3 ? medals[i] : (i+1)}</span>
+        <div class="lb-info">
+          <span class="lb-name">${u.name}${u.is_me ? ' (Siz)' : ''}</span>
+          <span class="lb-details">⭐ ${u.points} ball | 📊 Lvl ${u.level}</span>
+        </div>
+        <span class="lb-streak">🔥 ${u.streak}</span>
+      </div>
+    `).join('');
+  } catch(e) { console.error('Leaderboard error:', e); }
+}
+
+
+// ==================== 📤 WEEKLY REPORT SHARE ====================
+async function shareWeeklyReport() {
+  try {
+    const res = await fetch(`/api/weekly-report?initData=${encodeURIComponent(initData||'')}`);
+    const data = await res.json();
+    if (data.status !== 'success') { alert('Hisobot yuklanmadi'); return; }
+    const r = data.report;
+    const text = `📊 TezFIT Haftalik Hisobot\n\n` +
+      `👤 ${r.name}\n📅 ${r.period}\n\n` +
+      `🔥 Jami: ${r.total_calories} kcal\n` +
+      `📈 O'rtacha: ${r.avg_daily_calories} kcal/kun\n` +
+      `🍽 Taomlar: ${r.total_meals} ta\n` +
+      `🔥 Streak: ${r.streak} kun\n` +
+      `🎯 Maqsad: ${r.goal_kcal} kcal/kun`;
+    
+    if (navigator.share) {
+      await navigator.share({ title: 'TezFIT Haftalik Hisobot', text });
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert('📋 Hisobot nusxalandi!');
+    }
+  } catch(e) { alert('Xatolik: ' + e.message); }
+}
+
+
+// ==================== DASHBOARD DATA HOOK ====================
+let dashboardData = null;
+
+const origRenderDashboard = typeof renderDashboard === 'function' ? renderDashboard : null;
+
+// Hook into renderDashboard to also render new features
+const _origFetch = window._origFetchDash;
+function hookDashboardData(data) {
+  dashboardData = data;
+  // Water
+  if (data.water_today !== undefined) {
+    renderWaterUI(data.water_today, data.user?.water_goal || 8);
+  }
+  // Exercises
+  if (data.exercises_today) {
+    renderExercises(data.exercises_today, data.total_burned || 0);
+  }
+  // Meals with time filter
+  if (data.today_meals) {
+    allMealsData = data.today_meals;
+  }
+  // Weight
+  if (data.weight_history) {
+    renderWeightChart(data.weight_history);
+  }
+}
+
+// Patch the existing loadDashboard fetch to also call hookDashboardData
+const _realFetch = window.fetch;
+window.fetch = async function(...args) {
+  const res = await _realFetch.apply(this, args);
+  if (typeof args[0] === 'string' && args[0].includes('/api/dashboard')) {
+    const cloned = res.clone();
+    cloned.json().then(data => {
+      if (data && data.status === 'success') hookDashboardData(data);
+    }).catch(() => {});
+  }
+  return res;
+};
+

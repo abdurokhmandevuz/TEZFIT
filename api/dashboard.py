@@ -1,7 +1,7 @@
 import base64
-from datetime import datetime, date as date_cls
-from sqlalchemy import select, and_
-from database.models import Meal
+from datetime import datetime, date as date_cls, timedelta
+from sqlalchemy import select, and_, func, desc
+from database.models import Meal, WaterLog, Exercise, WeightLog, FavoriteMeal
 from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from bot import bot
 
@@ -37,6 +37,8 @@ class GoalUpdateRequest(BaseModel):
     initData: str = ""
     daily_goal_kcal: Optional[float] = None
     weight_kg: Optional[float] = None
+    goal_type: Optional[str] = None
+    target_weight_kg: Optional[float] = None
 
 class ProfileUpdateRequest(BaseModel):
     initData: str = ""
@@ -52,6 +54,32 @@ class SubmitReceiptRequest(BaseModel):
     plan_type: str = "monthly"
     amount_som: float = 29000
     receipt_b64: str = ""
+
+class WaterRequest(BaseModel):
+    initData: str = ""
+    action: str = "add"  # add / remove
+
+class ExerciseRequest(BaseModel):
+    initData: str = ""
+    exercise_type: str = "Yurish"
+    duration_min: int = 30
+
+class WeightLogRequest(BaseModel):
+    initData: str = ""
+    weight_kg: float
+
+class FavoriteRequest(BaseModel):
+    initData: str = ""
+    food_name: str = ""
+    weight_g: float = 150
+    calories: float = 0
+    protein_g: float = 0
+    fat_g: float = 0
+    carbs_g: float = 0
+
+class AIChatRequest(BaseModel):
+    initData: str = ""
+    message: str = ""
 
 
 @router.get("/dashboard")
@@ -116,6 +144,31 @@ async def get_dashboard_data(initData: str = "", date: Optional[str] = None):
         used_today = user.free_requests_today if user.last_request_date == date_cls.today() else 0
         remaining_scans = -1 if user.is_vip else max(0, free_limit - used_today)
 
+        # Water today
+        water_stmt = select(func.coalesce(func.sum(WaterLog.glasses), 0)).where(
+            and_(WaterLog.user_id == user.id, WaterLog.date == date_cls.today())
+        )
+        water_res = await session.execute(water_stmt)
+        water_today = water_res.scalar() or 0
+
+        # Exercises today
+        day_start = datetime.combine(date_cls.today(), datetime.min.time())
+        day_end = datetime.combine(date_cls.today(), datetime.max.time())
+        ex_stmt = select(Exercise).where(
+            and_(Exercise.user_id == user.id, Exercise.created_at >= day_start, Exercise.created_at <= day_end)
+        )
+        ex_res = await session.execute(ex_stmt)
+        exercises_today = [{
+            "id": e.id, "type": e.exercise_type, "duration": e.duration_min,
+            "calories": e.calories_burned, "time": e.created_at.strftime("%H:%M")
+        } for e in ex_res.scalars().all()]
+        total_burned = sum(e["calories"] for e in exercises_today)
+
+        # Weight history (last 30 days)
+        wl_stmt = select(WeightLog).where(WeightLog.user_id == user.id).order_by(desc(WeightLog.date)).limit(30)
+        wl_res = await session.execute(wl_stmt)
+        weight_history = [{"date": w.date.isoformat(), "kg": w.weight_kg} for w in wl_res.scalars().all()]
+
     return {
         "status": "success",
         "user": {
@@ -129,6 +182,9 @@ async def get_dashboard_data(initData: str = "", date: Optional[str] = None):
             "contact_info": contact_info,
             "dob": getattr(user, "dob", "2003-05-21"),
             "daily_goal_kcal": user.daily_goal_kcal,
+            "water_goal": getattr(user, "water_goal", 8),
+            "goal_type": getattr(user, "goal_type", "maintain"),
+            "target_weight_kg": getattr(user, "target_weight_kg", 65.0),
             "is_vip": user.is_vip,
             "streak_days": user.streak_days,
             "points": getattr(user, "points", 100),
@@ -143,7 +199,11 @@ async def get_dashboard_data(initData: str = "", date: Optional[str] = None):
         "today_stats": today_stats,
         "weekly_stats": weekly_stats,
         "today_meals": meals_list,
-        "badges": badges
+        "badges": badges,
+        "water_today": water_today,
+        "exercises_today": exercises_today,
+        "total_burned": total_burned,
+        "weight_history": weight_history
     }
 
 @router.post("/profile")
@@ -284,17 +344,23 @@ async def update_goals(body: GoalUpdateRequest):
 
     async with AsyncSessionLocal() as session:
         user = await UserService.get_or_create_user(session, telegram_id)
-        user = await UserService.update_profile(
-            session=session,
-            user=user,
-            daily_goal_kcal=body.daily_goal_kcal,
-            weight_kg=body.weight_kg
-        )
+        if body.daily_goal_kcal is not None:
+            user.daily_goal_kcal = body.daily_goal_kcal
+        if body.weight_kg is not None:
+            user.weight_kg = body.weight_kg
+        if body.goal_type is not None:
+            user.goal_type = body.goal_type
+        if body.target_weight_kg is not None:
+            user.target_weight_kg = body.target_weight_kg
+        await session.commit()
+        await session.refresh(user)
 
     return {
         "status": "success",
         "daily_goal_kcal": user.daily_goal_kcal,
-        "weight_kg": user.weight_kg
+        "weight_kg": user.weight_kg,
+        "goal_type": user.goal_type,
+        "target_weight_kg": user.target_weight_kg
     }
 
 @router.post("/submit-receipt")
@@ -351,4 +417,271 @@ async def submit_receipt(body: SubmitReceiptRequest):
     return {
         "status": "success",
         "message": "To'lov cheki adminga muvaffaqiyatli yuborildi!"
+    }
+
+
+# ==================== WATER TRACKING ====================
+
+CALORIES_PER_EXERCISE = {
+    "Yurish": 4.0, "Yugurish": 10.0, "Velosiped": 7.0, "Suzish": 8.0,
+    "Yoga": 3.5, "Kuch mashqi": 6.0, "Raqslar": 5.5, "Boshqa": 5.0
+}
+
+@router.get("/water")
+async def get_water(initData: str = ""):
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        stmt = select(func.coalesce(func.sum(WaterLog.glasses), 0)).where(
+            and_(WaterLog.user_id == user.id, WaterLog.date == date_cls.today())
+        )
+        res = await session.execute(stmt)
+        glasses = res.scalar() or 0
+    return {"status": "success", "glasses": glasses, "goal": getattr(user, 'water_goal', 8)}
+
+@router.post("/water")
+async def update_water(body: WaterRequest):
+    user_data = verify_telegram_web_app_data(body.initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        today = date_cls.today()
+        stmt = select(WaterLog).where(and_(WaterLog.user_id == user.id, WaterLog.date == today))
+        res = await session.execute(stmt)
+        log = res.scalars().first()
+        if body.action == "add":
+            if log:
+                log.glasses += 1
+            else:
+                session.add(WaterLog(user_id=user.id, glasses=1, date=today))
+        elif body.action == "remove" and log and log.glasses > 0:
+            log.glasses -= 1
+        await session.commit()
+        stmt2 = select(func.coalesce(func.sum(WaterLog.glasses), 0)).where(
+            and_(WaterLog.user_id == user.id, WaterLog.date == today)
+        )
+        res2 = await session.execute(stmt2)
+        glasses = res2.scalar() or 0
+    return {"status": "success", "glasses": glasses, "goal": getattr(user, 'water_goal', 8)}
+
+
+# ==================== EXERCISES ====================
+
+@router.get("/exercises")
+async def get_exercises(initData: str = ""):
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        day_s = datetime.combine(date_cls.today(), datetime.min.time())
+        day_e = datetime.combine(date_cls.today(), datetime.max.time())
+        stmt = select(Exercise).where(
+            and_(Exercise.user_id == user.id, Exercise.created_at >= day_s, Exercise.created_at <= day_e)
+        ).order_by(Exercise.created_at.desc())
+        res = await session.execute(stmt)
+        items = [{
+            "id": e.id, "type": e.exercise_type, "duration": e.duration_min,
+            "calories": e.calories_burned, "time": e.created_at.strftime("%H:%M")
+        } for e in res.scalars().all()]
+    return {"status": "success", "exercises": items, "total_burned": sum(i["calories"] for i in items)}
+
+@router.post("/exercises")
+async def add_exercise(body: ExerciseRequest):
+    user_data = verify_telegram_web_app_data(body.initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        cal_per_min = CALORIES_PER_EXERCISE.get(body.exercise_type, 5.0)
+        burned = round(cal_per_min * body.duration_min, 1)
+        ex = Exercise(user_id=user.id, exercise_type=body.exercise_type,
+                      duration_min=body.duration_min, calories_burned=burned)
+        session.add(ex)
+        await session.commit()
+    return {"status": "success", "calories_burned": burned, "exercise_type": body.exercise_type, "duration": body.duration_min}
+
+
+# ==================== WEIGHT LOG ====================
+
+@router.get("/weight-log")
+async def get_weight_log(initData: str = ""):
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        stmt = select(WeightLog).where(WeightLog.user_id == user.id).order_by(desc(WeightLog.date)).limit(30)
+        res = await session.execute(stmt)
+        history = [{"date": w.date.isoformat(), "kg": w.weight_kg} for w in res.scalars().all()]
+    return {"status": "success", "history": history, "current_kg": user.weight_kg, "target_kg": user.target_weight_kg}
+
+@router.post("/weight-log")
+async def add_weight_log(body: WeightLogRequest):
+    user_data = verify_telegram_web_app_data(body.initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        today = date_cls.today()
+        stmt = select(WeightLog).where(and_(WeightLog.user_id == user.id, WeightLog.date == today))
+        res = await session.execute(stmt)
+        existing = res.scalars().first()
+        if existing:
+            existing.weight_kg = body.weight_kg
+        else:
+            session.add(WeightLog(user_id=user.id, weight_kg=body.weight_kg, date=today))
+        user.weight_kg = body.weight_kg
+        await session.commit()
+    return {"status": "success", "weight_kg": body.weight_kg}
+
+
+# ==================== FAVORITES ====================
+
+@router.get("/favorites")
+async def get_favorites(initData: str = ""):
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        stmt = select(FavoriteMeal).where(FavoriteMeal.user_id == user.id).order_by(desc(FavoriteMeal.created_at))
+        res = await session.execute(stmt)
+        favs = [{
+            "id": f.id, "food_name": f.food_name, "weight_g": f.weight_g,
+            "calories": f.calories, "protein_g": f.protein_g, "fat_g": f.fat_g, "carbs_g": f.carbs_g
+        } for f in res.scalars().all()]
+    return {"status": "success", "favorites": favs}
+
+@router.post("/favorites")
+async def add_favorite(body: FavoriteRequest):
+    user_data = verify_telegram_web_app_data(body.initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        fav = FavoriteMeal(user_id=user.id, food_name=body.food_name, weight_g=body.weight_g,
+                           calories=body.calories, protein_g=body.protein_g, fat_g=body.fat_g, carbs_g=body.carbs_g)
+        session.add(fav)
+        await session.commit()
+    return {"status": "success", "message": "Sevimliga qo'shildi!"}
+
+@router.delete("/favorites/{fav_id}")
+async def delete_favorite(fav_id: int, initData: str = ""):
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        stmt = select(FavoriteMeal).where(and_(FavoriteMeal.id == fav_id, FavoriteMeal.user_id == user.id))
+        res = await session.execute(stmt)
+        fav = res.scalars().first()
+        if fav:
+            await session.delete(fav)
+            await session.commit()
+    return {"status": "success"}
+
+
+# ==================== AI CHAT (PREMIUM) ====================
+
+@router.post("/ai-chat")
+async def ai_chat(body: AIChatRequest):
+    user_data = verify_telegram_web_app_data(body.initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        if not user.is_vip:
+            return {"status": "error", "message": "AI Maslahatchi faqat Premium foydalanuvchilar uchun! 👑"}
+        today_stats = await MealService.get_today_stats(session, user.id)
+    # Build AI prompt with user context
+    ai_prompt = (
+        f"Sen TezFIT — O'zbek tilida ovqatlanish bo'yicha AI maslahatchi. "
+        f"Foydalanuvchi haqida: vazni {user.weight_kg}kg, bo'yi {user.height_cm}cm, "
+        f"yoshi {user.age}, jinsi {user.gender}, maqsad: {getattr(user, 'goal_type', 'maintain')}. "
+        f"Bugungi iste'mol: {round(today_stats['total_calories'])} kcal / {round(user.daily_goal_kcal)} kcal maqsad. "
+        f"Foydalanuvchi savoli: {body.message}\n\n"
+        f"Qisqa, foydali va O'zbek tilida javob ber. Emoji ishlat."
+    )
+    result = await AIService.analyze_food_text(ai_prompt, is_vip=True)
+    # Extract text response
+    if isinstance(result, dict) and result.get("items"):
+        reply = f"Sizga tavsiyam: {result['items'][0].get('name', '')} — {result['items'][0].get('calories', 0)} kcal"
+    elif isinstance(result, dict) and result.get("error"):
+        reply = "Kechirasiz, hozir javob bera olmadim. Qayta urinib ko'ring."
+    else:
+        reply = str(result) if result else "Kechirasiz, javob topilmadi."
+    return {"status": "success", "reply": reply}
+
+
+# ==================== LEADERBOARD ====================
+
+@router.get("/leaderboard")
+async def get_leaderboard(initData: str = ""):
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        from database.models import User
+        stmt = select(User).order_by(desc(User.streak_days), desc(User.points)).limit(20)
+        res = await session.execute(stmt)
+        users = res.scalars().all()
+        board = []
+        my_rank = 0
+        for i, u in enumerate(users, 1):
+            name = f"{u.first_name or ''} {u.last_name or ''}".strip() or u.name or "Foydalanuvchi"
+            entry = {
+                "rank": i,
+                "name": name,
+                "streak": u.streak_days,
+                "points": u.points,
+                "level": u.level,
+                "is_me": u.telegram_id == telegram_id
+            }
+            board.append(entry)
+            if u.telegram_id == telegram_id:
+                my_rank = i
+    return {"status": "success", "leaderboard": board, "my_rank": my_rank}
+
+
+# ==================== WEEKLY REPORT ====================
+
+@router.get("/weekly-report")
+async def get_weekly_report(initData: str = ""):
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        today = date_cls.today()
+        week_ago = today - timedelta(days=7)
+        day_start = datetime.combine(week_ago, datetime.min.time())
+        day_end = datetime.combine(today, datetime.max.time())
+
+        # Weekly meals
+        stmt = select(Meal).where(
+            and_(Meal.user_id == user.id, Meal.created_at >= day_start, Meal.created_at <= day_end)
+        )
+        res = await session.execute(stmt)
+        meals = res.scalars().all()
+
+        daily_data = {}
+        for m in meals:
+            d = m.created_at.strftime("%Y-%m-%d")
+            if d not in daily_data:
+                daily_data[d] = {"calories": 0, "protein": 0, "carbs": 0, "fat": 0, "count": 0}
+            daily_data[d]["calories"] += m.calories
+            daily_data[d]["protein"] += m.protein_g
+            daily_data[d]["carbs"] += m.carbs_g
+            daily_data[d]["fat"] += m.fat_g
+            daily_data[d]["count"] += 1
+
+        total_cal = sum(d["calories"] for d in daily_data.values())
+        avg_cal = round(total_cal / max(len(daily_data), 1))
+        total_meals = sum(d["count"] for d in daily_data.values())
+
+    name = f"{user.first_name or ''} {user.last_name or ''}".strip() or "Foydalanuvchi"
+    return {
+        "status": "success",
+        "report": {
+            "name": name,
+            "period": f"{week_ago.isoformat()} — {today.isoformat()}",
+            "total_calories": round(total_cal),
+            "avg_daily_calories": avg_cal,
+            "total_meals": total_meals,
+            "streak": user.streak_days,
+            "daily_data": daily_data,
+            "goal_kcal": user.daily_goal_kcal
+        }
     }
