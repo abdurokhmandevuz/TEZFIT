@@ -306,6 +306,11 @@ function renderDynamicCalendar(selectedDateStr = null) {
 function selectCalendarDate(dateIso) {
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
+
+  // Block future dates for everyone
+  if (dateIso > todayStr) {
+    return; // Future dates are not viewable
+  }
   
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
@@ -316,11 +321,12 @@ function selectCalendarDate(dateIso) {
   // Free User History Limitation (Only Today and 1 day ago allowed)
   if (!isPremiumUser && dateIso !== todayStr && dateIso !== yesterdayStr) {
     openPremiumModal();
-    alert("🔒 O'tgan kunlar tarixini to'liq ko'rish faqat TezFIT Premium foydalanuvchilar uchun!\n\nTekin rejimda 1 kun oldingi natijani ko'ra olasiz. Barcha arxivni ochish uchun Premium-ga o'ting 👑");
     return;
   }
 
   renderDynamicCalendar(dateIso);
+  // Reload dashboard for selected date
+  loadDashboardForDate(dateIso);
 }
 
 function showSplashThenSlides() {
@@ -534,8 +540,12 @@ function switchTab(tabName) {
 
 // Load Dashboard Data
 async function loadDashboard() {
+  return loadDashboardForDate(new Date().toISOString().split('T')[0]);
+}
+
+async function loadDashboardForDate(dateStr) {
   try {
-    const res = await fetch(`/api/dashboard?initData=${encodeURIComponent(initData)}`);
+    const res = await fetch(`/api/dashboard?initData=${encodeURIComponent(initData)}&date=${dateStr}`);
     if (!res.ok) throw new Error('Dashboard xatosi');
     const data = await res.json();
     renderDashboard(data);
@@ -591,6 +601,10 @@ async function loadDashboard() {
 function renderDashboard(data) {
   const { user, today_stats, weekly_stats, today_meals } = data;
   currentUserData = user;
+
+  // Store for analysis page use
+  if (weekly_stats) lastWeeklyStats = weekly_stats;
+  if (today_stats) window._lastTodayStats = today_stats;
 
   let displayName = user ? (user.name || 'Foydalanuvchi') : 'Foydalanuvchi';
   let photoUrl = user ? (user.photo_url || '') : '';
@@ -849,11 +863,34 @@ async function confirmLogoutReset() {
 }
 
 function openNotificationSheet() {
+  loadNotifSettings();
   document.getElementById('notification-sheet').style.display = 'block';
 }
 
 function closeNotificationSheet() {
   document.getElementById('notification-sheet').style.display = 'none';
+}
+
+function saveNotifSettings() {
+  const settings = {
+    meals: document.getElementById('notif-meals')?.checked ?? true,
+    weekly: document.getElementById('notif-weekly')?.checked ?? true,
+    goals: document.getElementById('notif-goals')?.checked ?? false,
+    premium: document.getElementById('notif-premium')?.checked ?? true
+  };
+  localStorage.setItem('tezfit_notif_settings', JSON.stringify(settings));
+}
+
+function loadNotifSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('tezfit_notif_settings') || '{}');
+    const ids = ['meals', 'weekly', 'goals', 'premium'];
+    const defaults = { meals: true, weekly: true, goals: false, premium: true };
+    ids.forEach(key => {
+      const el = document.getElementById(`notif-${key}`);
+      if (el) el.checked = (key in saved) ? saved[key] : defaults[key];
+    });
+  } catch(e) {}
 }
 
 let userFavorites = [];
@@ -919,24 +956,39 @@ function setTimeframe(mode) {
   renderAnalysisPage();
 }
 
+// Store last weekly stats globally for re-use in renderAnalysisPage
+let lastWeeklyStats = null;
+
 function renderAnalysisPage() {
   const canvas = document.getElementById('calorieTrendsCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (trendsChart) trendsChart.destroy();
 
-  let labels = ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'];
-  let consumedData = [120, 180, 140, 420, 310, 160, 190];
-  let goalData = [250, 210, 300, 190, 260, 180, 240];
+  let labels, consumedData, goalData;
+  const weeklyGoal = currentUserData ? Math.round(currentUserData.daily_goal_kcal || 2000) : 2000;
 
-  if (currentTimeframe === 'weekly') {
+  if (currentTimeframe === 'daily' && lastWeeklyStats && lastWeeklyStats.length > 0) {
+    labels = lastWeeklyStats.map(d => d.day);
+    consumedData = lastWeeklyStats.map(d => d.calories || 0);
+    goalData = lastWeeklyStats.map(() => weeklyGoal);
+  } else if (currentTimeframe === 'weekly') {
     labels = ['1-Hafta', '2-Hafta', '3-Hafta', '4-Hafta'];
-    consumedData = [1420, 1890, 1650, 2100];
-    goalData = [2000, 2000, 2000, 2000];
+    consumedData = lastWeeklyStats ?
+      [lastWeeklyStats.slice(0,2).reduce((s,d)=>s+(d.calories||0),0)/2,
+       lastWeeklyStats.slice(2,4).reduce((s,d)=>s+(d.calories||0),0)/2,
+       lastWeeklyStats.slice(4,6).reduce((s,d)=>s+(d.calories||0),0)/2,
+       lastWeeklyStats[6] ? (lastWeeklyStats[6].calories||0) : 0]
+      : [0, 0, 0, 0];
+    goalData = [weeklyGoal, weeklyGoal, weeklyGoal, weeklyGoal];
   } else if (currentTimeframe === 'monthly') {
-    labels = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun'];
-    consumedData = [1850, 1920, 1780, 2050, 1900, 1870];
-    goalData = [2000, 2000, 2000, 2000, 2000, 2000];
+    labels = ['1-Hafta', '2-Hafta', '3-Hafta', '4-Hafta'];
+    consumedData = [0, 0, 0, 0];
+    goalData = [weeklyGoal, weeklyGoal, weeklyGoal, weeklyGoal];
+  } else {
+    labels = ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'];
+    consumedData = [0, 0, 0, 0, 0, 0, 0];
+    goalData = Array(7).fill(weeklyGoal);
   }
 
   trendsChart = new Chart(ctx, {
@@ -945,7 +997,7 @@ function renderAnalysisPage() {
       labels: labels,
       datasets: [
         {
-          label: 'Iste\'mol qilingan',
+          label: "Iste'mol qilingan",
           data: consumedData,
           borderColor: '#ff6b4a',
           borderWidth: 3,
@@ -985,9 +1037,22 @@ function renderAnalysisPage() {
     }
   });
 
-  document.getElementById('fat-pct-val').innerText = '53%';
-  document.getElementById('carbs-pct-val').innerText = '28%';
-  document.getElementById('protein-pct-val').innerText = '19%';
+  // Update macros from real today data
+  if (currentUserData) {
+    const ts = window._lastTodayStats || null;
+    if (ts) {
+      const total = (ts.total_fat || 0) + (ts.total_carbs || 0) + (ts.total_protein || 0);
+      if (total > 0) {
+        document.getElementById('fat-pct-val').innerText = Math.round((ts.total_fat / total) * 100) + '%';
+        document.getElementById('carbs-pct-val').innerText = Math.round((ts.total_carbs / total) * 100) + '%';
+        document.getElementById('protein-pct-val').innerText = Math.round((ts.total_protein / total) * 100) + '%';
+      } else {
+        document.getElementById('fat-pct-val').innerText = '—';
+        document.getElementById('carbs-pct-val').innerText = '—';
+        document.getElementById('protein-pct-val').innerText = '—';
+      }
+    }
+  }
 }
 
 // ================= FIGMA DIETS SCREEN LOGIC =================

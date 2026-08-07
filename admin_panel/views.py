@@ -75,7 +75,18 @@ def api_dashboard(request):
     user = get_or_create_django_user(telegram_id, user_data)
     
     today = date.today()
-    today_meals = Meal.objects.filter(user=user, created_at__date=today).order_by('-created_at')
+
+    # Support optional ?date=YYYY-MM-DD for historical day loading
+    selected_date_str = request.GET.get("date", None)
+    try:
+        selected_date = date.fromisoformat(selected_date_str) if selected_date_str else today
+        # Clamp to today max (no future dates)
+        if selected_date > today:
+            selected_date = today
+    except (ValueError, TypeError):
+        selected_date = today
+
+    today_meals = Meal.objects.filter(user=user, created_at__date=selected_date).order_by('-created_at')
     
     total_calories = sum(m.calories for m in today_meals)
     total_protein = sum(m.protein_g for m in today_meals)
@@ -112,6 +123,7 @@ def api_dashboard(request):
             "carbs_g": m.carbs_g,
             "time": m.created_at.strftime("%H:%M") if m.created_at else "Bugun"
         })
+
         
     badges = list(Achievement.objects.filter(user=user).values_list('badge_code', flat=True))
     
@@ -404,6 +416,7 @@ def api_submit_receipt(request):
     user = get_or_create_django_user(telegram_id, user_data)
     
     import base64
+    import threading
     from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton
     from config import settings
     from bot import bot
@@ -429,35 +442,42 @@ def api_submit_receipt(request):
         ]
     )
     
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        if receipt_b64 and "," in receipt_b64:
-            header, img_str = receipt_b64.split(",", 1)
-            img_data = base64.b64decode(img_str)
-            photo_file = BufferedInputFile(img_data, filename=f"receipt_{user.telegram_id}.jpg")
-            loop.run_until_complete(
-                bot.send_photo(
+    async def _send_notification():
+        try:
+            if receipt_b64 and "," in receipt_b64:
+                header, img_str = receipt_b64.split(",", 1)
+                img_data = base64.b64decode(img_str)
+                photo_file = BufferedInputFile(img_data, filename=f"receipt_{user.telegram_id}.jpg")
+                await bot.send_photo(
                     chat_id=7225597812,
                     photo=photo_file,
                     caption=admin_msg,
                     parse_mode="Markdown",
                     reply_markup=approve_kb
                 )
-            )
-        else:
-            loop.run_until_complete(
-                bot.send_message(
+            else:
+                await bot.send_message(
                     chat_id=7225597812,
                     text=admin_msg,
                     parse_mode="Markdown",
                     reply_markup=approve_kb
                 )
-            )
-    except Exception as e:
-        print("Admin notification error:", e)
-    finally:
-        loop.close()
+        except Exception as e:
+            print("Admin notification error:", e)
+
+    def _run_in_thread():
+        import asyncio
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(_send_notification())
+            loop.close()
+        except Exception as e:
+            print("Thread notification error:", e)
+
+    t = threading.Thread(target=_run_in_thread, daemon=True)
+    t.start()
+    t.join(timeout=8)  # Wait up to 8 seconds for Telegram
 
     return JsonResponse({
         "status": "success",

@@ -489,8 +489,8 @@
             <canvas id="calorieTrendsCanvas"></canvas>
           </div>
           <div class="trends-legend-row">
-            <div class="legend-item"><span class="legend-dot orange-dot"></span><span id="legend-text-1">5 kun norma doirasida</span></div>
-            <div class="legend-item"><span class="legend-dot black-dot"></span><span id="legend-text-2">2 kun normadan >200 kcal oshdi</span></div>
+            <div class="legend-item"><span class="legend-dot orange-dot"></span><span id="legend-text-1">Iste'mol qilingan kaloriya</span></div>
+            <div class="legend-item"><span class="legend-dot black-dot"></span><span id="legend-text-2">Maqsadli norma</span></div>
           </div>
         </div>
 
@@ -749,33 +749,45 @@
 
       <div class="settings-menu-card" style="padding: 10px 16px;">
         <div class="notif-toggle-row">
-          <span>Ovqatlanish Eslatmalari</span>
+          <div>
+            <span style="font-size:14px;font-weight:700;color:#fff;display:block;">Ovqatlanish Eslatmalari</span>
+            <small style="color:#94a3b8;font-size:12px;">Kun davomida ovqatlanish vaqti eslatmasi</small>
+          </div>
           <label class="toggle-switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" id="notif-meals" checked onchange="saveNotifSettings()">
             <span class="slider"></span>
           </label>
         </div>
 
         <div class="notif-toggle-row">
-          <span>Haftalik Natijalar Xulosasi</span>
+          <div>
+            <span style="font-size:14px;font-weight:700;color:#fff;display:block;">Haftalik Natijalar</span>
+            <small style="color:#94a3b8;font-size:12px;">Har dushanba kun yakuniy xulosa</small>
+          </div>
           <label class="toggle-switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" id="notif-weekly" checked onchange="saveNotifSettings()">
             <span class="slider"></span>
           </label>
         </div>
 
         <div class="notif-toggle-row">
-          <span>Maqsadga Erishish Bildirishnomalari</span>
+          <div>
+            <span style="font-size:14px;font-weight:700;color:#fff;display:block;">Maqsad Bildirishnomalari</span>
+            <small style="color:#94a3b8;font-size:12px;">Kaloriya maqsadiga yetilganda</small>
+          </div>
           <label class="toggle-switch">
-            <input type="checkbox">
+            <input type="checkbox" id="notif-goals" onchange="saveNotifSettings()">
             <span class="slider"></span>
           </label>
         </div>
 
         <div class="notif-toggle-row">
-          <span>Yangi Rejim Tavsiyalari</span>
+          <div>
+            <span style="font-size:14px;font-weight:700;color:#fff;display:block;">Premium Holati</span>
+            <small style="color:#94a3b8;font-size:12px;">Premium tasdiqlandi/tasdiqlanmadi xabarlari</small>
+          </div>
           <label class="toggle-switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" id="notif-premium" checked onchange="saveNotifSettings()">
             <span class="slider"></span>
           </label>
         </div>
@@ -1037,11 +1049,11 @@
         <!-- Offer Hero Graphic Box -->
         <div class="offer-graphic-box" style="padding:0; overflow:hidden; border-radius:24px; min-height:180px;">
           <img src="assets/premium_banner.jpg" alt="Premium" style="width:100%; height:200px; object-fit:cover; display:block;">
-          <span class="discount-badge-tag">50% CHEGIRMA</span>
         </div>
 
-        <div style="text-align:center; margin: 24px 0 20px 0;">
-          <h3 style="font-size:22px; font-weight:900; color:#ffffff;">Birinchi Yilingiz uchun 50% Chegirma</h3>
+        <div style="text-align:center; margin: 20px 0;">
+          <h3 style="font-size:20px; font-weight:900; color:#ffffff;">Premium bilan cheksiz imkoniyatlar 👑</h3>
+          <p style="font-size:13px; color:#94a3b8; margin-top:6px;">AI kamera, chuqur tahlil, barcha tarix</p>
         </div>
 
         <button class="btn-orange-full" onclick="showPremiumScreen('plans')" style="background:#ff5500; border:none; font-size:16px; font-weight:800; border-radius:16px; padding:16px;">
@@ -1080,10 +1092,12 @@
           <div style="height:1px; background:rgba(0,0,0,0.1); margin:8px 0;"></div>
 
           <!-- Annual Option -->
-          <div class="plan-option-row" onclick="selectPlanAndGoDetail('annual')">
+          <div class="plan-option-row" onclick="selectPlanAndGoDetail('annual')" style="position:relative;">
+            <span style="position:absolute;top:-10px;right:8px;background:linear-gradient(135deg,#8b5cf6,#d946ef);color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:10px;">TEJAMKOR</span>
             <div>
               <strong style="font-size:15px; color:#000000; display:block;">Yillik Rejim</strong>
               <span style="font-size:20px; font-weight:900; color:#000000;">299,000 <small style="font-size:12px; font-weight:600;">so'm / Yil</small></span>
+              <span style="display:block;font-size:11px;color:#7c3aed;font-weight:700;margin-top:2px;">Oyiga 24,917 so'm · Yiliga 49,000 so'm tejaysiz</span>
             </div>
             <span style="font-size:20px; color:#000; font-weight:900;">›</span>
           </div>
