@@ -84,6 +84,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="TezFIT API, Web App & Django Jazzmin Admin", lifespan=lifespan)
 
+@app.middleware("http")
+async def add_no_cache_headers(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/web_app"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 # Mount FastAPI REST API endpoints
 app.include_router(api_router)
 
