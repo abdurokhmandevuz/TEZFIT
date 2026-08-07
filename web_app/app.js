@@ -662,15 +662,8 @@ function renderDashboard(data) {
 
   // 3. AI Camera Scanner Banner text & counter button
   const scanBtn = document.getElementById('banner-scan-btn');
-  const scanSub = document.getElementById('banner-scan-sub');
-  if (isPremium) {
-    if (scanBtn) scanBtn.innerText = "AI Kamera (♾️)";
-    if (scanSub) scanSub.innerText = "Kameradan oling yoki galereyadan tanlang (♾️ Cheksiz)";
-  } else {
-    const remScans = (user && user.remaining_scans !== undefined && user.remaining_scans >= 0) ? user.remaining_scans : 15;
-    if (scanBtn) scanBtn.innerText = `AI Kamera (${remScans}/15 tekin)`;
-    if (scanSub) scanSub.innerText = `Kameradan oling yoki galereyadan tanlang (${remScans} ta tekin skan qoldi)`;
-  }
+  const remScans = (user && user.remaining_scans !== undefined && user.remaining_scans >= 0) ? user.remaining_scans : 15;
+  updateUserLimitBadge(remScans, isPremium);
 
   // 4. Settings menu item status update
   const settingPremText = document.getElementById('setting-premium-text');
@@ -1306,10 +1299,7 @@ async function submitImageScanToAI(fileOrBlob, imageSrc) {
     }
 
     if (data && data.remaining !== undefined && data.remaining >= 0) {
-      const scanBtn = document.getElementById('banner-scan-btn');
-      const scanSub = document.getElementById('banner-scan-sub');
-      if (scanBtn) scanBtn.innerText = `AI Kamera (${data.remaining}/15 tekin)`;
-      if (scanSub) scanSub.innerText = `Kameradan oling yoki galereyadan tanlang (${data.remaining} ta tekin skan qoldi)`;
+      updateUserLimitBadge(data.remaining);
     }
 
     if (data && data.status === 'success' && data.data && data.data.items && data.data.items.length > 0) {
@@ -2113,6 +2103,10 @@ async function handleDrinkFileSelected(event) {
       return;
     }
 
+    if (result && result.remaining !== undefined && result.remaining >= 0) {
+      updateUserLimitBadge(result.remaining);
+    }
+
     if (result.status === 'success' && result.data) {
       showDrinkAnalysisResult(result.data);
     } else {
@@ -2121,6 +2115,36 @@ async function handleDrinkFileSelected(event) {
   } catch (err) {
     if (overlay) overlay.style.display = 'none';
     alert("Serverga ulanishda xatolik yuz berdi.");
+  }
+}
+
+let currentRemainingScans = 15;
+
+function updateUserLimitBadge(remScans, isPremium) {
+  if (remScans !== undefined && remScans !== null) {
+    currentRemainingScans = Math.max(0, remScans);
+  }
+  const isPrem = isPremium || (currentUserData && (currentUserData.is_vip || currentUserData.is_premium));
+  
+  const crownBtn = document.getElementById('header-crown-btn');
+  if (crownBtn) {
+    if (isPrem) {
+      crownBtn.innerHTML = `<span>👑</span>`;
+      crownBtn.title = "TezFIT Premium (Cheksiz)";
+    } else {
+      crownBtn.innerHTML = `<span class="free-limit-pill">⚡ ${currentRemainingScans}/15</span>`;
+      crownBtn.title = "Bugungi tekin skan limiti";
+    }
+  }
+
+  const scanBtn = document.getElementById('banner-scan-btn');
+  const scanSub = document.getElementById('banner-scan-sub');
+  if (isPrem) {
+    if (scanBtn) scanBtn.innerText = "AI Kamera (♾️)";
+    if (scanSub) scanSub.innerText = "Kameradan oling yoki galereyadan tanlang (♾️ Cheksiz)";
+  } else {
+    if (scanBtn) scanBtn.innerText = `AI Kamera (${currentRemainingScans}/15)`;
+    if (scanSub) scanSub.innerText = `Kameradan oling yoki galereyadan tanlang (${currentRemainingScans} ta tekin skan qoldi)`;
   }
 }
 
