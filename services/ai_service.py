@@ -265,7 +265,7 @@ class AIService:
     @classmethod
     async def analyze_food_text(cls, food_text: str, is_vip: bool = False) -> Dict[str, Any]:
         """Send food text description to OpenRouter Text API with max_tokens=500."""
-        prompt = TEXT_PROMPT.format(text=food_text)
+        prompt = TEXT_PROMPT.replace("{text}", food_text)
 
         headers = {
             "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",

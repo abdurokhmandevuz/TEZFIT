@@ -1967,9 +1967,17 @@ input:checked + .slider:before {
 .lb-streak { font-size: 13px; font-weight: 800; color: #ff6b4a; }
 
 /* Full AI advisor view */
-.ai-advisor-hero { display:flex; align-items:center; gap:14px; padding:16px; margin-bottom:12px; border-radius:20px; background:linear-gradient(135deg, rgba(124,58,237,.28), rgba(37,99,235,.2)); border:1px solid rgba(196,181,253,.28); }
-.ai-advisor-hero .section-heading { font-size:25px; margin:0 0 4px; }
-.ai-advisor-hero p { margin:0; color:#cbd5e1; font-size:13px; line-height:1.4; }
-.ai-advisor-icon { width:52px; height:52px; flex:0 0 52px; display:grid; place-items:center; border-radius:17px; font-size:28px; background:linear-gradient(135deg,#8b5cf6,#3b82f6); box-shadow:0 8px 20px rgba(59,130,246,.3); }
-.ai-sparkle-hero-img { width: 34px; height: 34px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(255,255,255,0.4)); }
+.ai-header-line {
+  height: 2px;
+  width: 48px;
+  background: linear-gradient(90deg, #ff6b4a, #c084fc);
+  border-radius: 2px;
+  margin-bottom: 18px;
+}
+
+/* Hide floating dock when mobile keyboard opens during chat focus */
+body.chat-keyboard-active .bottom-floating-dock {
+  display: none !important;
+}
+
 

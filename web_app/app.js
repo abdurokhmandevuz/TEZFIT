@@ -529,6 +529,11 @@ function switchTab(tabName) {
   if (targetPage) targetPage.classList.add('active');
   if (targetNav) targetNav.classList.add('active');
 
+  const appHeader = document.querySelector('.app-header');
+  if (appHeader) {
+    appHeader.style.display = (tabName === 'home') ? 'flex' : 'none';
+  }
+
   if (tabName === 'stats') {
     renderAnalysisPage();
   } else if (tabName === 'meals') {
@@ -2058,4 +2063,17 @@ window.fetch = async function(...args) {
   }
   return res;
 };
+
+// Automatically hide bottom floating dock when chat input is focused on mobile
+document.addEventListener('focusin', (e) => {
+  if (e.target && e.target.id === 'ai-chat-input') {
+    document.body.classList.add('chat-keyboard-active');
+  }
+});
+document.addEventListener('focusout', (e) => {
+  if (e.target && e.target.id === 'ai-chat-input') {
+    document.body.classList.remove('chat-keyboard-active');
+  }
+});
+
 
