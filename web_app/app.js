@@ -1218,19 +1218,41 @@ function captureLiveVideoFrame() {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+let currentScanMode = 'food';
+
+function captureLiveVideoFrame() {
+  const video = document.getElementById('live-video-feed');
+  const canvas = document.getElementById('camera-snapshot-canvas');
+  if (!video || !canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
   const imageSrc = canvas.toDataURL('image/jpeg', 0.9);
   closeLiveCamera();
 
   canvas.toBlob((blob) => {
     if (blob) {
-      submitImageScanToAI(blob, imageSrc);
+      if (currentScanMode === 'drink') {
+        submitDrinkScanToAI(blob);
+      } else {
+        submitImageScanToAI(blob, imageSrc);
+      }
     }
   }, 'image/jpeg', 0.9);
 }
 
 // ================= CAMERA & GALLERY CHOICE MODAL =================
-function openCameraChoiceModal() {
-  document.getElementById('camera-choice-modal').style.display = 'flex';
+function openCameraChoiceModal(mode = 'food') {
+  currentScanMode = mode;
+  const modal = document.getElementById('camera-choice-modal');
+  const title = modal ? modal.querySelector('.choice-modal-header h3') : null;
+  if (title) {
+    title.textContent = mode === 'drink' ? "🥤 Suv / Ichimlik Rasmini Kiriting" : "📸 Taom Rasmini Kiriting";
+  }
+  if (modal) modal.style.display = 'flex';
 }
 
 function closeCameraChoiceModal() {
@@ -1256,11 +1278,15 @@ function handleFileSelected(event) {
 
   currentSelectedFile = file;
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    submitImageScanToAI(file, e.target.result);
-  };
-  reader.readAsDataURL(file);
+  if (currentScanMode === 'drink') {
+    submitDrinkScanToAI(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      submitImageScanToAI(file, e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 async function submitImageScanToAI(fileOrBlob, imageSrc) {
@@ -2068,38 +2094,45 @@ document.addEventListener('focusout', (e) => {
 
 // ==================== 🥤 DRINK SCANNER HANDLERS ====================
 function triggerDrinkScan() {
-  const input = document.getElementById('input-drink-camera');
-  if (input) input.click();
+  openCameraChoiceModal('drink');
 }
 
 function closeDrinkResultSheet() {
   document.getElementById('drink-result-sheet').style.display = 'none';
 }
 
-async function handleDrinkFileSelected(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+async function submitDrinkScanToAI(fileOrBlob) {
+  closeCameraChoiceModal();
+  closeLiveCamera();
 
-  const overlay = document.getElementById('camera-loading-overlay');
-  const overlaySub = document.getElementById('loading-sub-text');
-  if (overlaySub) overlaySub.textContent = "AI Suv va Ichimlikni tahlil qilmoqda...";
-  if (overlay) overlay.style.display = 'flex';
+  let loadingEl = document.getElementById('cam-loading-drink');
+  if (!loadingEl) {
+    loadingEl = document.createElement('div');
+    loadingEl.id = 'cam-loading-drink';
+    loadingEl.className = 'camera-loading-overlay';
+    loadingEl.innerHTML = `
+      <div class="ai-loader-box">
+        <div class="ai-spinner"></div>
+        <h3 style="color:#ffffff; font-family:'Outfit', sans-serif; font-size:18px; font-weight:900; margin-top:20px; margin-bottom:6px;">🥤 AI Suv va Ichimlikni tahlil qilmoqda...</h3>
+        <p style="color:#94a3b8; font-size:13px; margin:0; line-height:1.4;">Bir oz kuting, brend, shakar, halollik va zarar/foydasi tekshirilmoqda ✨</p>
+      </div>
+    `;
+    document.body.appendChild(loadingEl);
+  }
+  loadingEl.style.display = 'flex';
 
   const formData = new FormData();
   formData.append('initData', initData || '');
-  formData.append('file', file);
+  formData.append('file', fileOrBlob, 'drink_scan.jpg');
 
   try {
-    const res = await fetch('/api/scan-drink', {
-      method: 'POST',
-      body: formData
-    });
+    const res = await fetch('/api/scan-drink', { method: 'POST', body: formData });
     const result = await res.json();
-    if (overlay) overlay.style.display = 'none';
+    loadingEl.style.display = 'none';
 
-    if (result.status === 'limit_reached') {
+    if (result && result.status === 'limit_reached') {
       openPremiumModal();
-      alert(result.message);
+      alert("🔒 " + (result.message || "Bugungi tekin skan limiti tugadi! Premium-ga o'ting 👑"));
       return;
     }
 
@@ -2107,14 +2140,14 @@ async function handleDrinkFileSelected(event) {
       updateUserLimitBadge(result.remaining);
     }
 
-    if (result.status === 'success' && result.data) {
+    if (result && result.status === 'success' && result.data) {
       showDrinkAnalysisResult(result.data);
     } else {
-      alert("Kechirasiz, ichimlikni tahlil qilishda xatolik yuz berdi.");
+      alert("⚠️ Kechirasiz, ichimlikni tahlil qilishda xatolik yuz berdi.");
     }
   } catch (err) {
-    if (overlay) overlay.style.display = 'none';
-    alert("Serverga ulanishda xatolik yuz berdi.");
+    loadingEl.style.display = 'none';
+    alert("⚠️ Internet yoki server bilan ulanishda xatolik yuz berdi.");
   }
 }
 

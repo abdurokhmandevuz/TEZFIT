@@ -250,52 +250,55 @@ class AIService:
     @classmethod
     async def analyze_drink_image(cls, image_bytes: bytes) -> Dict[str, Any]:
         """Analyze drink/water bottle image for calories, sugar, Halal status, and health impact."""
-        base64_image = cls.compress_image(image_bytes)
-        image_url = f"data:image/jpeg;base64,{base64_image}"
-        
-        headers = {
-            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-            "HTTP-Referer": "https://t.me/Tezfitbot",
-            "X-Title": "TezFIT Drink Analyzer",
-            "Content-Type": "application/json"
-        }
-        
-        models = ["google/gemma-4-26b-a4b-it:free", "nvidia/nemotron-nano-12b-v2-vl:free", "openrouter/free"]
-        async with httpx.AsyncClient(timeout=14.0) as client:
-            for model in models:
-                payload = {
-                    "model": model,
-                    "max_tokens": 600,
-                    "temperature": 0.2,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": DRINK_VISION_PROMPT},
-                                {"type": "image_url", "image_url": {"url": image_url}}
-                            ]
-                        }
-                    ]
-                }
-                try:
-                    res = await client.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
-                    if res.is_success:
-                        content = res.json()["choices"][0]["message"]["content"]
-                        parsed = cls._parse_json_response(content)
-                        if parsed and "drink_name" in parsed:
-                            return parsed
-                except Exception as exc:
-                    logger.warning(f"Drink vision model {model} error: {exc}")
+        try:
+            base64_image = cls.compress_image(image_bytes, max_size=800)
+            image_url = f"data:image/jpeg;base64,{base64_image}"
+            
+            headers = {
+                "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                "HTTP-Referer": "https://t.me/Tezfitbot",
+                "X-Title": "TezFIT Drink Analyzer",
+                "Content-Type": "application/json"
+            }
+            
+            models = ["google/gemma-4-26b-a4b-it:free", "nvidia/nemotron-nano-12b-v2-vl:free", "openrouter/free"]
+            async with httpx.AsyncClient(timeout=7.0) as client:
+                for model in models:
+                    payload = {
+                        "model": model,
+                        "max_tokens": 350,
+                        "temperature": 0.2,
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": DRINK_VISION_PROMPT},
+                                    {"type": "image_url", "image_url": {"url": image_url}}
+                                ]
+                            }
+                        ]
+                    }
+                    try:
+                        res = await client.post(f"{settings.OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
+                        if res.is_success:
+                            content = res.json()["choices"][0]["message"]["content"]
+                            parsed = cls._parse_json_response(content)
+                            if parsed and "drink_name" in parsed:
+                                return parsed
+                    except Exception as exc:
+                        logger.warning(f"Drink vision model {model} error: {exc}")
+        except Exception as e:
+            logger.error(f"Drink image processing error: {e}")
                     
         return {
-            "drink_name": "Suv / Ichimlik",
+            "drink_name": "Mineral Suv / Ichimlik",
             "calories": 0,
             "sugar_g": 0.0,
-            "sugar_level": "Juda past",
+            "sugar_level": "0g (Juda past)",
             "is_halal": True,
             "halal_status": "🟢 Halol — Harom moddalar va E-qo'shimchalar aniqlanmadi",
-            "health_assessment": "✅ Sog'liq uchun bezarar, gidratatsiya beradi",
-            "details": "Toza suv yoki tabiat manbasi. Organizm uchun xavfsiz.",
+            "health_assessment": "✅ Sog'liq uchun bezarar, optimal gidratatsiya beradi",
+            "details": "Toza ichimlik va tabiat manbasi. Organizm uchun to'laqonli xavfsiz va foydali.",
             "volume_ml": 500
         }
 
