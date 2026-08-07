@@ -49,6 +49,8 @@ async def init_db():
         ("target_weight_kg", "FLOAT DEFAULT 65.0"),
         ("activity_level", "VARCHAR(100) DEFAULT 'Lightly active'"),
         ("diet_preference", "VARCHAR(100) DEFAULT 'No preference'"),
+        ("water_goal", "INTEGER DEFAULT 8"),
+        ("goal_type", "VARCHAR(50) DEFAULT 'maintain'"),
     ]
     for col_name, col_type in columns_to_add:
         try:

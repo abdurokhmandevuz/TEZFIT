@@ -133,6 +133,7 @@ async def get_dashboard_data(initData: str = "", date: Optional[str] = None):
                 "protein_g": m.protein_g,
                 "fat_g": m.fat_g,
                 "carbs_g": m.carbs_g,
+                "meal_time": m.meal_time,
                 "time": m.created_at.strftime("%H:%M") if m.created_at else "Bugun"
             })
 
@@ -338,6 +339,7 @@ async def save_meal_from_app(body: SaveMealRequest):
     }
 
 @router.post("/goals")
+@router.post("/user-goal")
 async def update_goals(body: GoalUpdateRequest):
     user_data = verify_telegram_web_app_data(body.initData)
     telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
