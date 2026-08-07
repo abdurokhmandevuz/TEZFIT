@@ -578,34 +578,27 @@ async def delete_favorite(fav_id: int, initData: str = ""):
     return {"status": "success"}
 
 
-# ==================== AI CHAT (PREMIUM) ====================
+# ==================== AI CHAT ====================
 
 @router.post("/ai-chat")
 async def ai_chat(body: AIChatRequest):
+    message = body.message.strip()
+    if not message:
+        raise HTTPException(status_code=422, detail="Savol bo'sh bo'lmasligi kerak")
+
     user_data = verify_telegram_web_app_data(body.initData)
     telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
     async with AsyncSessionLocal() as session:
         user = await UserService.get_or_create_user(session, telegram_id)
-        if not user.is_vip:
-            return {"status": "error", "message": "AI Maslahatchi faqat Premium foydalanuvchilar uchun! 👑"}
         today_stats = await MealService.get_today_stats(session, user.id)
-    # Build AI prompt with user context
-    ai_prompt = (
-        f"Sen TezFIT — O'zbek tilida ovqatlanish bo'yicha AI maslahatchi. "
-        f"Foydalanuvchi haqida: vazni {user.weight_kg}kg, bo'yi {user.height_cm}cm, "
-        f"yoshi {user.age}, jinsi {user.gender}, maqsad: {getattr(user, 'goal_type', 'maintain')}. "
-        f"Bugungi iste'mol: {round(today_stats['total_calories'])} kcal / {round(user.daily_goal_kcal)} kcal maqsad. "
-        f"Foydalanuvchi savoli: {body.message}\n\n"
-        f"Qisqa, foydali va O'zbek tilida javob ber. Emoji ishlat."
-    )
-    result = await AIService.analyze_food_text(ai_prompt, is_vip=True)
-    # Extract text response
-    if isinstance(result, dict) and result.get("items"):
-        reply = f"Sizga tavsiyam: {result['items'][0].get('name', '')} — {result['items'][0].get('calories', 0)} kcal"
-    elif isinstance(result, dict) and result.get("error"):
-        reply = "Kechirasiz, hozir javob bera olmadim. Qayta urinib ko'ring."
-    else:
-        reply = str(result) if result else "Kechirasiz, javob topilmadi."
+        advisor_prompt = (
+            f"Foydalanuvchi: vazni {user.weight_kg} kg, bo'yi {user.height_cm} sm, "
+            f"yoshi {user.age}, jinsi {user.gender}, maqsadi {getattr(user, 'goal_type', 'maintain')}. "
+            f"Bugun {round(today_stats['total_calories'])} / {round(user.daily_goal_kcal)} kcal iste'mol qilgan. "
+            f"Savol: {message}"
+        )
+
+    reply = await AIService.chat_advisor(advisor_prompt)
     return {"status": "success", "reply": reply}
 
 

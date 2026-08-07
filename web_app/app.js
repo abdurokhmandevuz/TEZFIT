@@ -1791,6 +1791,13 @@ function renderWeightChart(history) {
 
 
 // ==================== 🤖 AI CHAT ====================
+function createChatBubble(text, className) {
+  const bubble = document.createElement('div');
+  bubble.className = `ai-chat-bubble ${className}`;
+  bubble.textContent = text;
+  return bubble;
+}
+
 async function sendAIChat() {
   const input = document.getElementById('ai-chat-input');
   const msg = input.value.trim();
@@ -1798,7 +1805,7 @@ async function sendAIChat() {
   input.value = '';
 
   const container = document.getElementById('ai-chat-messages');
-  container.innerHTML += `<div class="ai-chat-bubble user-bubble">${msg}</div>`;
+  container.appendChild(createChatBubble(msg, 'user-bubble'));
   container.innerHTML += `<div class="ai-chat-bubble ai-bubble" id="ai-typing">⏳ Javob yozilmoqda...</div>`;
   container.scrollTop = container.scrollHeight;
 
@@ -1813,9 +1820,8 @@ async function sendAIChat() {
 
     if (data.status === 'error') {
       container.innerHTML += `<div class="ai-chat-bubble ai-bubble">🔒 ${data.message}</div>`;
-      document.getElementById('ai-premium-note').style.display = 'block';
     } else {
-      container.innerHTML += `<div class="ai-chat-bubble ai-bubble">${data.reply || 'Javob topilmadi'}</div>`;
+      container.appendChild(createChatBubble(data.reply || 'Javob topilmadi', 'ai-bubble'));
     }
     container.scrollTop = container.scrollHeight;
   } catch(e) {

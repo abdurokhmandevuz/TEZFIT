@@ -11,3 +11,8 @@ class EditMealState(StatesGroup):
 
 class CustomGoalState(StatesGroup):
     waiting_for_goal = State()
+
+
+class BroadcastState(StatesGroup):
+    waiting_for_text = State()
+    waiting_for_photo = State()

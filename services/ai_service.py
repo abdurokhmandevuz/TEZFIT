@@ -223,6 +223,41 @@ class AIService:
         }
 
     @classmethod
+    async def chat_advisor(cls, prompt: str) -> str:
+        """Get a concise Uzbek nutrition answer from the configured OpenRouter free model."""
+        headers = {
+            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+            "HTTP-Referer": "https://t.me/Tezfitbot",
+            "X-Title": "TezFIT AI Maslahatchi",
+            "Content-Type": "application/json",
+        }
+        models_to_try = [settings.FREE_MODEL, settings.FALLBACK_MODEL]
+        async with httpx.AsyncClient(timeout=18.0) as client:
+            for model in dict.fromkeys(m for m in models_to_try if m):
+                try:
+                    response = await client.post(
+                        f"{settings.OPENROUTER_BASE_URL}/chat/completions",
+                        headers=headers,
+                        json={
+                            "model": model,
+                            "max_tokens": 350,
+                            "temperature": 0.5,
+                            "messages": [
+                                {"role": "system", "content": "Sen TezFITning ehtiyotkor ovqatlanish maslahatchisisan. Faqat o'zbek tilida, qisqa va amaliy javob ber. Tibbiy tashxis qo'ymagin; jiddiy holatlarda shifokorga murojaat qilishni ayt."},
+                                {"role": "user", "content": prompt},
+                            ],
+                        },
+                    )
+                    if response.is_success:
+                        content = response.json()["choices"][0]["message"]["content"].strip()
+                        if content:
+                            return content
+                    logger.warning("Advisor model %s returned %s", model, response.status_code)
+                except Exception as exc:
+                    logger.warning("Advisor model %s failed: %s", model, exc)
+        return "Hozir AI maslahatchiga ulanib bo'lmadi. Bir ozdan keyin qayta urinib ko'ring."
+
+    @classmethod
     async def analyze_food_text(cls, food_text: str, is_vip: bool = False) -> Dict[str, Any]:
         """Send food text description to OpenRouter Text API with max_tokens=500."""
         prompt = TEXT_PROMPT.format(text=food_text)

@@ -1,11 +1,14 @@
 import logging
+import asyncio
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.fsm.context import FSMContext
 from sqlalchemy import select, func
 from config import settings
 from database.session import AsyncSessionLocal
 from database.models import User, Meal
+from states.user_states import BroadcastState
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -133,20 +136,44 @@ async def admin_broadcast_help_callback(call: CallbackQuery):
     if not is_admin(call.from_user.id):
         await call.answer("Ruxsat yo'q!", show_alert=True)
         return
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Matnli xabar", callback_data="admin_broadcast_text")],
+        [InlineKeyboardButton(text="Rasmli e'lon", callback_data="admin_broadcast_photo")],
+        [InlineKeyboardButton(text="Yordam", callback_data="admin_broadcast_guide")],
+        [InlineKeyboardButton(text="Orqaga", callback_data="admin_main_menu")],
+    ])
+    await call.message.edit_text("""<b>Professional xabar tarqatish</b>
 
-    broadcast_info = (
-        "📢 **Barcha Foydalanuvchilarga Xabar Yuborish**\n\n"
-        "Barcha ro'yxatdan o'tgan foydalanuvchilarga bildirishnoma yuborish uchun buyruq:\n\n"
-        "👉 `/sendall Salom! TezFIT ilovamizda yangi imkoniyatlar qo'shildi! 🚀`"
-    )
+Xabar turini tanlang. Har bir e'lon foydalanuvchiga TezFIT'ni ochish tugmasi bilan yuboriladi.""", parse_mode="HTML", reply_markup=keyboard)
+    await call.answer()
 
-    back_kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin_main_menu")]
-        ]
-    )
+@router.callback_query(F.data == "admin_broadcast_text")
+async def admin_broadcast_text_callback(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return await call.answer("Ruxsat yo'q!", show_alert=True)
+    await state.set_state(BroadcastState.waiting_for_text)
+    await call.message.edit_text("""<b>Matnli e'lon</b>
 
-    await call.message.edit_text(broadcast_info, parse_mode="Markdown", reply_markup=back_kb)
+Endi yuboriladigan matnni jo'nating. <code>&lt;b&gt;Qalin&lt;/b&gt;</code> format ishlaydi.""", parse_mode="HTML")
+    await call.answer()
+
+@router.callback_query(F.data == "admin_broadcast_photo")
+async def admin_broadcast_photo_callback(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return await call.answer("Ruxsat yo'q!", show_alert=True)
+    await state.set_state(BroadcastState.waiting_for_photo)
+    await call.message.edit_text("""<b>Rasmli e'lon</b>
+
+Rasmni izohi bilan yuboring. Izoh e'lon matni bo'ladi.""", parse_mode="HTML")
+    await call.answer()
+
+@router.callback_query(F.data == "admin_broadcast_guide")
+async def admin_broadcast_guide_callback(call: CallbackQuery):
+    await call.message.edit_text("""<b>Tarqatish qoidasi</b>
+
+- Matn uchun tegishli tugmani bosing.
+- Rasm uchun rasmni izohi bilan yuboring.
+- Eski usul ham ishlaydi: <code>/sendall xabar</code>.""", parse_mode="HTML", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Tarqatish menyusi", callback_data="admin_broadcast_help")]]))
     await call.answer()
 
 @router.callback_query(F.data == "admin_main_menu")
@@ -235,6 +262,49 @@ def parse_broadcast_text_and_kb(raw_text: str):
     
     kb_rows.append([InlineKeyboardButton(text="📱 Web App-da Ochish", web_app=WebAppInfo(url=web_app_url))])
     return clean_text, InlineKeyboardMarkup(inline_keyboard=kb_rows)
+
+async def deliver_broadcast(message: Message, clean_text: str, photo_file_id: str | None = None):
+    _, broadcast_kb = parse_broadcast_text_and_kb(clean_text if clean_text else " ")
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User.telegram_id))
+        user_ids = result.scalars().all()
+    status_msg = await message.answer(f"Yuborilmoqda: {len(user_ids)} ta foydalanuvchi")
+    success_count = fail_count = 0
+    for tg_id in user_ids:
+        try:
+            if photo_file_id:
+                await message.bot.send_photo(tg_id, photo_file_id, caption=clean_text or None, parse_mode="HTML", reply_markup=broadcast_kb)
+            else:
+                await message.bot.send_message(tg_id, clean_text, parse_mode="HTML", reply_markup=broadcast_kb)
+            success_count += 1
+            await asyncio.sleep(0.05)
+        except Exception as exc:
+            logger.warning("Broadcast failed for %s: %s", tg_id, exc)
+            fail_count += 1
+    await status_msg.edit_text(f"""<b>Tarqatish yakunlandi</b>
+
+Yetib bordi: <b>{success_count}</b>
+Yetib bormadi: <b>{fail_count}</b>""", parse_mode="HTML")
+
+@router.message(BroadcastState.waiting_for_text)
+async def broadcast_text_from_menu(message: Message, state: FSMContext):
+    if not is_admin(message.from_user.id):
+        return
+    if not message.text:
+        return await message.answer("Iltimos, xabar matnini yuboring.")
+    await state.clear()
+    await deliver_broadcast(message, message.html_text or message.text)
+
+@router.message(BroadcastState.waiting_for_photo, F.photo)
+async def broadcast_photo_from_menu(message: Message, state: FSMContext):
+    if not is_admin(message.from_user.id):
+        return
+    await state.clear()
+    await deliver_broadcast(message, message.html_text or message.caption or "", message.photo[-1].file_id)
+
+@router.message(BroadcastState.waiting_for_photo)
+async def broadcast_photo_required(message: Message):
+    await message.answer("Iltimos, rasmni uning izohi bilan yuboring.")
 
 @router.message(Command("sendall"))
 async def broadcast_message_handler(message: Message):
