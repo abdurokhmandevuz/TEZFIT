@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from sqlalchemy import select, func
 from config import settings
-from database.session import async_session
+from database.session import AsyncSessionLocal
 from database.models import User, Meal
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ async def admin_stats_callback(call: CallbackQuery):
         await call.answer("Ruxsat yo'q!", show_alert=True)
         return
 
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         total_users = (await session.execute(select(func.count(User.id)))).scalar() or 0
         vip_users = (await session.execute(select(func.count(User.id)).where(User.is_vip == True))).scalar() or 0
         total_meals = (await session.execute(select(func.count(Meal.id)))).scalar() or 0
@@ -174,7 +174,7 @@ async def set_vip_handler(message: Message):
         return
 
     target_tg_id = int(args[1])
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.telegram_id == target_tg_id))
         user = result.scalar_one_or_none()
 
@@ -198,7 +198,7 @@ async def remove_vip_handler(message: Message):
         return
 
     target_tg_id = int(args[1])
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.telegram_id == target_tg_id))
         user = result.scalar_one_or_none()
 
@@ -221,7 +221,7 @@ async def broadcast_message_handler(message: Message):
         await message.answer("⚠️ Matn kiritilmadi! Misol: `/sendall Assalomu alaykum!`", parse_mode="Markdown")
         return
 
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         result = await session.execute(select(User.telegram_id))
         user_ids = result.scalars().all()
 

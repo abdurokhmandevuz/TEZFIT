@@ -69,7 +69,7 @@ class ReminderAdmin(admin.ModelAdmin):
 
 @admin.register(DietPlan)
 class DietPlanAdmin(admin.ModelAdmin):
-    list_display = ('id', 'image_preview', 'title', 'slug', 'calories_badge', 'protein_g', 'carbs_g', 'fat_g', 'is_my_diet', 'is_active')
+    list_display = ('id', 'image_preview', 'title', 'slug', 'calories', 'protein_g', 'carbs_g', 'fat_g', 'is_my_diet', 'is_active')
     list_filter = ('is_active', 'is_my_diet')
     search_fields = ('title', 'slug', 'description', 'goal')
     list_editable = ('is_active', 'is_my_diet', 'calories')
