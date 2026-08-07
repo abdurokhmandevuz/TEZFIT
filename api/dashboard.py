@@ -1,6 +1,6 @@
 import base64
 from datetime import datetime, date as date_cls, timedelta
-from sqlalchemy import select, and_, func, desc
+from sqlalchemy import select, and_, func, desc, delete
 from database.models import Meal, WaterLog, Exercise, WeightLog, FavoriteMeal
 from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from bot import bot
@@ -206,6 +206,61 @@ async def get_dashboard_data(initData: str = "", date: Optional[str] = None):
         "total_burned": total_burned,
         "weight_history": weight_history
     }
+
+@router.get("/diets")
+async def get_diets_list():
+    """Return list of available diet plans for Web App."""
+    return {
+        "status": "success",
+        "diets": [
+            {
+                "id": "mediterranean",
+                "title": "O'rta Yer Dengizi Parhezi",
+                "description": "Ushbu rejim tabiiy va to'liq mahsulotlarga yo'naltirilgan bo'lib, yangi sabzavotlar, zaytun yog'i, yog'siz baliq, yong'oqlar va foydali don mahsulotlarini o'z ichiga oladi.",
+                "calories": 2000,
+                "protein": 120,
+                "carbs": 200,
+                "fat": 70,
+                "goal": "Yurak Salomatligi, Vaznni Saqlash"
+            },
+            {
+                "id": "lowcarb",
+                "title": "Keto & Kam Uglevodli Rejim",
+                "description": "Uglevodlarni kamaytirib, oqsil va foydali yog'larga yo'naltirilgan parhez. Tana yog'larini tezroq eritish uchun samarali.",
+                "calories": 1800,
+                "protein": 140,
+                "carbs": 50,
+                "fat": 110,
+                "goal": "Tezkor Vazn Yo'qotish"
+            },
+            {
+                "id": "vegan",
+                "title": "Vegetarian & O'simlik Parhezi",
+                "description": "Barcha oziq moddalar faqat tabiiy o'simlik va meva-sabzavotlardan olinadi. Hazm qilish va umumiy yengillik uchun ajoyib.",
+                "calories": 1900,
+                "protein": 90,
+                "carbs": 240,
+                "fat": 50,
+                "goal": "Gidratatsiya va Immunitet"
+            }
+        ]
+    }
+
+@router.post("/reset-user")
+async def reset_user_data(initData: str = Form("")):
+    """Reset user data when requested from settings."""
+    user_data = verify_telegram_web_app_data(initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+        from database.models import MealLog
+        await session.execute(delete(MealLog).where(MealLog.user_id == user.id))
+        await session.execute(delete(WaterLog).where(WaterLog.user_id == user.id))
+        await session.execute(delete(Exercise).where(Exercise.user_id == user.id))
+        await session.commit()
+
+    return {"status": "success", "message": "Ma'lumotlar tozalandi"}
 
 @router.post("/profile")
 async def update_profile_data(body: ProfileUpdateRequest):

@@ -20,6 +20,18 @@ bot = Bot(token=settings.BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import ErrorEvent
+
+@dp.error()
+async def global_error_handler(event: ErrorEvent):
+    if isinstance(event.exception, TelegramBadRequest):
+        err_msg = str(event.exception).lower()
+        if "message is not modified" in err_msg or "query is too old" in err_msg:
+            return True
+    logger.error("Unhandled bot exception: %s", event.exception, exc_info=event.exception)
+    return True
+
 # Register routers in priority order
 dp.include_router(admin_router)
 dp.include_router(start_router)
