@@ -111,6 +111,11 @@ async def get_dashboard_data(initData: str = "", date: Optional[str] = None):
         display_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or user.name or user.username or "Foydalanuvchi"
         contact_info = user.phone_number if (getattr(user, "phone_number", None) and "8817446491" not in user.phone_number) else f"ID: {user.telegram_id}"
 
+        from config import settings
+        free_limit = settings.USER_FREE_DAILY_LIMIT
+        used_today = user.free_requests_today if user.last_request_date == date_cls.today() else 0
+        remaining_scans = -1 if user.is_vip else max(0, free_limit - used_today)
+
     return {
         "status": "success",
         "user": {
@@ -131,7 +136,9 @@ async def get_dashboard_data(initData: str = "", date: Optional[str] = None):
             "weight_kg": user.weight_kg,
             "height_cm": user.height_cm,
             "age": user.age,
-            "gender": user.gender or "Male"
+            "gender": user.gender or "Male",
+            "remaining_scans": remaining_scans,
+            "free_limit": free_limit
         },
         "today_stats": today_stats,
         "weekly_stats": weekly_stats,
@@ -188,6 +195,13 @@ async def scan_photo(initData: str = Form(""), file: UploadFile = File(...)):
         user = await UserService.get_or_create_user(session, telegram_id)
         allowed, remaining = await UserService.check_and_increment_limit(session, user)
 
+    if not allowed:
+        return {
+            "status": "limit_reached",
+            "message": "Bugungi 15 ta tekin skan limiti tugadi! Cheksiz skan qilish uchun TezFIT Premium-ga o'ting 👑",
+            "remaining": 0
+        }
+
     image_bytes = await file.read()
     parsed_data = await AIService.analyze_food_image(image_bytes, is_vip=user.is_vip)
     return {"status": "success", "data": parsed_data, "remaining": remaining}
@@ -200,6 +214,13 @@ async def scan_text(body: ScanTextRequest):
     async with AsyncSessionLocal() as session:
         user = await UserService.get_or_create_user(session, telegram_id)
         allowed, remaining = await UserService.check_and_increment_limit(session, user)
+
+    if not allowed:
+        return {
+            "status": "limit_reached",
+            "message": "Bugungi 15 ta tekin skan limiti tugadi! Cheksiz skan qilish uchun TezFIT Premium-ga o'ting 👑",
+            "remaining": 0
+        }
 
     parsed_data = await AIService.analyze_food_text(body.text, is_vip=user.is_vip)
     return {"status": "success", "data": parsed_data, "remaining": remaining}
@@ -227,6 +248,26 @@ async def save_meal_from_app(body: SaveMealRequest):
         badges = await GamificationService.check_all_achievements(
             session, user, today_stats["total_calories"]
         )
+
+    # Send meal notification to user in Telegram Bot
+    try:
+        if user.telegram_id and user.telegram_id > 1000:
+            total_cal = round(today_stats['total_calories'])
+            goal_cal = round(user.daily_goal_kcal)
+            bot_msg = (
+                f"🍽 **YANGI TAOM SAQLANDI!**\n\n"
+                f"📌 **Taom:** {meal.food_name}\n"
+                f"⚖️ **Vazni:** {meal.weight_g}g\n"
+                f"🔥 **Kaloriya:** {round(meal.calories)} kcal\n\n"
+                f"📊 **BJU Taqsimoti:**\n"
+                f"• 🥩 Oqsil: {meal.protein_g}g\n"
+                f"• 🥑 Yog': {meal.fat_g}g\n"
+                f"• 🌾 Uglevod: {meal.carbs_g}g\n\n"
+                f"🎯 **Bugungi Jami:** {total_cal} / {goal_cal} kcal"
+            )
+            await bot.send_message(chat_id=user.telegram_id, text=bot_msg, parse_mode="Markdown")
+    except Exception as e:
+        print("Bot meal notification error:", e)
 
     return {
         "status": "success",

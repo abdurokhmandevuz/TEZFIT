@@ -31,6 +31,25 @@ async def send_meal_reminders(bot: Bot, meal_type: str):
             except Exception as e:
                 logger.warning(f"Could not send reminder to {telegram_id}: {e}")
 
+async def check_vip_expirations(bot: Bot):
+    """Notify VIP users about their active status and expiration warnings."""
+    logger.info("Checking VIP expirations...")
+    async with AsyncSessionLocal() as session:
+        stmt = select(User).where(User.is_vip == True)
+        res = await session.execute(stmt)
+        vip_users = res.scalars().all()
+
+        for user in vip_users:
+            try:
+                msg = (
+                    "👑 **TezFIT Premium Obunasi Eslatmasi!**\n\n"
+                    "Sizning Premium obunangiz faol! ✨ Cheksiz AI taom skan qilish va barcha imkoniyatlardan foydalanmoqdasiz.\n\n"
+                    "Obuna muddatini uzaytirish va statusni tekshirish uchun Web App Sozlamalariga kiring. 🚀"
+                )
+                await bot.send_message(chat_id=user.telegram_id, text=msg, parse_mode="Markdown")
+            except Exception as e:
+                logger.warning(f"Could not send VIP reminder to {user.telegram_id}: {e}")
+
 def setup_reminders(bot: Bot):
     # Nonushta reminder at 08:00
     scheduler.add_job(
@@ -60,6 +79,16 @@ def setup_reminders(bot: Bot):
         minute=0,
         args=[bot, "dinner"],
         id="reminder_dinner",
+        replace_existing=True
+    )
+    # VIP expiration check at 10:00
+    scheduler.add_job(
+        check_vip_expirations,
+        'cron',
+        hour=10,
+        minute=0,
+        args=[bot],
+        id="vip_expiration_check",
         replace_existing=True
     )
     

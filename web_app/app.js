@@ -621,6 +621,14 @@ function renderDashboard(data) {
 
   const isPremium = user && user.is_vip;
 
+  // 1. Hide Premium promo banner & top crown button for Premium users
+  const bannerEl = document.getElementById('premium-banner');
+  if (bannerEl) bannerEl.style.display = isPremium ? 'none' : 'flex';
+
+  const crownBtn = document.getElementById('header-crown-btn');
+  if (crownBtn) crownBtn.style.display = isPremium ? 'none' : 'flex';
+
+  // 2. User Name & Avatar: NO crown for free users!
   const nameEl = document.getElementById('user-name');
   if (nameEl) {
     if (isPremium) {
@@ -644,6 +652,28 @@ function renderDashboard(data) {
       avatarTxt.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
     } else {
       avatarTxt.innerText = displayName[0].toUpperCase();
+    }
+  }
+
+  // 3. AI Camera Scanner Banner text & counter button
+  const scanBtn = document.getElementById('banner-scan-btn');
+  const scanSub = document.getElementById('banner-scan-sub');
+  if (isPremium) {
+    if (scanBtn) scanBtn.innerText = "AI Kamera (♾️)";
+    if (scanSub) scanSub.innerText = "Kameradan oling yoki galereyadan tanlang (♾️ Cheksiz)";
+  } else {
+    const remScans = (user && user.remaining_scans !== undefined && user.remaining_scans >= 0) ? user.remaining_scans : 15;
+    if (scanBtn) scanBtn.innerText = `AI Kamera (${remScans}/15 tekin)`;
+    if (scanSub) scanSub.innerText = `Kameradan oling yoki galereyadan tanlang (${remScans} ta tekin skan qoldi)`;
+  }
+
+  // 4. Settings menu item status update
+  const settingPremText = document.getElementById('setting-premium-text');
+  if (settingPremText) {
+    if (isPremium) {
+      settingPremText.innerHTML = `👑 Premium Status: <strong style="color:#a855f7;">Faol (Cheksiz Rejim)</strong>`;
+    } else {
+      settingPremText.innerText = "To'lov Usuli / Premium-ga O'tish";
     }
   }
 
@@ -1254,6 +1284,19 @@ async function submitImageScanToAI(fileOrBlob, imageSrc) {
     const res = await fetch('/api/scan-photo', { method: 'POST', body: formData });
     const data = await res.json();
     loadingEl.style.display = 'none';
+
+    if (data && data.status === 'limit_reached') {
+      openPremiumModal();
+      alert("🔒 " + (data.message || "Bugungi 15 ta tekin skan limiti tugadi! Cheksiz skan uchun Premium-ga o'ting 👑"));
+      return;
+    }
+
+    if (data && data.remaining !== undefined && data.remaining >= 0) {
+      const scanBtn = document.getElementById('banner-scan-btn');
+      const scanSub = document.getElementById('banner-scan-sub');
+      if (scanBtn) scanBtn.innerText = `AI Kamera (${data.remaining}/15 tekin)`;
+      if (scanSub) scanSub.innerText = `Kameradan oling yoki galereyadan tanlang (${data.remaining} ta tekin skan qoldi)`;
+    }
 
     if (data && data.status === 'success' && data.data && data.data.items && data.data.items.length > 0) {
       renderResultSheet(data.data, imageSrc);

@@ -361,7 +361,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="header-icon-btn" onclick="openPremiumModal()" title="TezFIT Premium">
+        <button class="header-icon-btn" id="header-crown-btn" onclick="openPremiumModal()" title="TezFIT Premium">
           <span>👑</span>
         </button>
         <button class="header-icon-btn" onclick="switchTab('stats')" title="Bildirishnomalar">
@@ -447,9 +447,9 @@
         <div class="banner-card" onclick="openCameraChoiceModal()">
           <div class="banner-text">
             <span class="banner-scan-title">📸 AI bilan skan qiling</span>
-            <small class="banner-scan-sub">Kameradan oling yoki galereyadan tanlang</small>
+            <small class="banner-scan-sub" id="banner-scan-sub">Kameradan oling yoki galereyadan tanlang</small>
           </div>
-          <div class="banner-btn">AI Kamera</div>
+          <div class="banner-btn" id="banner-scan-btn">AI Kamera</div>
         </div>
 
         <!-- Today Meals -->
@@ -580,7 +580,7 @@
           <!-- Payment Method -->
           <div class="settings-menu-item" onclick="openPremiumModal()">
             <div class="item-left">
-              <span class="menu-item-text">To'lov Usuli / Premium Status</span>
+              <span class="menu-item-text" id="setting-premium-text">To'lov Usuli / Premium Status</span>
             </div>
             <span class="chevron-icon">›</span>
           </div>
