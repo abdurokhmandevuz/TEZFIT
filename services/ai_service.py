@@ -138,6 +138,14 @@ class AIService:
                     data = json.loads(match_obj.group(0))
                 except Exception:
                     pass
+            if not data and clean_content.startswith("{") and not clean_content.endswith("}"):
+                try:
+                    last_comma = clean_content.rfind(",")
+                    if last_comma > 0:
+                        fixed_str = clean_content[:last_comma] + "\n}"
+                        data = json.loads(fixed_str)
+                except Exception:
+                    pass
 
         if not data:
             match_arr = re.search(r'\[.*\]', content, re.DOTALL)
@@ -150,6 +158,9 @@ class AIService:
 
         if not data:
             return None
+
+        if isinstance(data, dict) and ("drink_name" in data or "sugar_g" in data):
+            return data
 
         if isinstance(data, list):
             items = data
@@ -270,7 +281,7 @@ class AIService:
                 for model in models:
                     payload = {
                         "model": model,
-                        "max_tokens": 350,
+                        "max_tokens": 650,
                         "temperature": 0.2,
                         "messages": [
                             {
