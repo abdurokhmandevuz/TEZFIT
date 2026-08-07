@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
-    USER_FREE_DAILY_LIMIT: int = 10
+    USER_FREE_DAILY_LIMIT: int = 15
     ADMIN_IDS: list[int] = [7225597812]
 
     model_config = SettingsConfigDict(

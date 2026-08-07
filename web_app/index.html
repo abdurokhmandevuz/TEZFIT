@@ -361,7 +361,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="header-icon-btn" onclick="openGoalModal()" title="VIP Status">
+        <button class="header-icon-btn" onclick="openPremiumModal()" title="TezFIT Premium">
           <span>👑</span>
         </button>
         <button class="header-icon-btn" onclick="switchTab('stats')" title="Bildirishnomalar">
@@ -379,6 +379,19 @@
         <!-- Dynamic Calendar Date Strip -->
         <div class="calendar-strip" id="calendar-strip">
           <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Premium Promotion Banner -->
+        <div class="premium-promo-banner" onclick="openPremiumModal()">
+          <div class="promo-text-side">
+            <h3>Premium bilan erkin va o'zingizga mos tezlikda erishing! 🚀</h3>
+            <span class="promo-sub-badge">Barcha AI cheklovlarni olib tashlang</span>
+          </div>
+          <div class="promo-badge-graphic">
+            <div class="rocket-badge-circle">
+              <span class="infinity-symbol">♾️</span>
+            </div>
+          </div>
         </div>
 
         <h2 class="section-heading">Kunlik Kaloriyangizni Hisoblang</h2>
@@ -567,9 +580,9 @@
           </div>
 
           <!-- Payment Method -->
-          <div class="settings-menu-item" onclick="openGoalModal()">
+          <div class="settings-menu-item" onclick="openPremiumModal()">
             <div class="item-left">
-              <span class="menu-item-text">To'lov Usuli / VIP Status</span>
+              <span class="menu-item-text">To'lov Usuli / Premium Status</span>
             </div>
             <span class="chevron-icon">›</span>
           </div>
@@ -1005,6 +1018,208 @@
         <button class="btn-secondary" onclick="closeGoalModal()">Bekor qilish</button>
         <button class="btn-primary" onclick="submitGoalUpdate()">Saqlash</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ==================== TEZFIT PREMIUM MULTI-STEP FLOW MODAL ==================== -->
+  <div class="modal-overlay" id="premium-modal" style="display:none; z-index:350;">
+    <div class="result-sheet-content premium-flow-sheet" style="padding: 20px; max-height:90vh; overflow-y:auto;">
+      
+      <!-- SCREEN 1: ONE TIME OFFER / PROMO LANDING -->
+      <div class="p-flow-screen active" id="p-screen-offer">
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="btn-camera-close" onclick="closePremiumModal()">✕</button>
+        </div>
+        
+        <div style="text-align:center; padding: 10px 0 20px 0;">
+          <h2 class="font-heading" style="font-size:26px; font-weight:900; color:#fff; margin-bottom:8px;">Bir Martalik Maxsus Taklif 🎁</h2>
+          <p style="font-size:13px; color:#94a3b8; line-height:1.4;">AI-asosidagi vositalar bilan aqlliroq va tezroq natijaga erishing.</p>
+        </div>
+
+        <!-- Offer Hero Graphic Box -->
+        <div class="offer-graphic-box">
+          <div class="gift-icon-wrap">🎁</div>
+          <span class="discount-badge-tag">50% CHEGIRMA</span>
+        </div>
+
+        <div style="text-align:center; margin: 24px 0 20px 0;">
+          <h3 style="font-size:22px; font-weight:900; color:#ffffff;">Birinchi Yilingiz uchun 50% Chegirma</h3>
+        </div>
+
+        <button class="btn-orange-full" onclick="showPremiumScreen('plans')" style="background:#ff5500; border:none; font-size:16px; font-weight:800; border-radius:16px; padding:16px;">
+          Premium-ga O'tish
+        </button>
+        
+        <div style="text-align:center; margin-top:14px;">
+          <span onclick="closePremiumModal()" style="font-size:13px; color:#64748b; cursor:pointer; text-decoration:underline;">O'tkazib yuborish</span>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: PLAN SELECTOR (MONTHLY VS ANNUAL) -->
+      <div class="p-flow-screen" id="p-screen-plans" style="display:none;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+          <button class="btn-round-nav" onclick="showPremiumScreen('offer')">‹</button>
+          <h2 class="font-heading" style="font-size:22px; font-weight:900; color:#fff;">Premium</h2>
+        </div>
+
+        <!-- Top Purple Banner -->
+        <div class="plans-hero-purple-card">
+          <h3 style="font-size:16px; font-weight:800; color:#fff; margin-bottom:4px;">Ovqatlanishni Yangi Bosqichga Olib Chiqing</h3>
+          <p style="font-size:12px; color:#e9d5ff; margin:0;">Aqlliroq kuzatuv. Chuqurroq tahlillar. Aniq natijalar.</p>
+        </div>
+
+        <!-- Yellow Plans Box -->
+        <div class="plans-yellow-container">
+          <!-- Monthly Option -->
+          <div class="plan-option-row" onclick="selectPlanAndGoDetail('monthly')">
+            <div>
+              <strong style="font-size:15px; color:#000000; display:block;">Oylik Rejim</strong>
+              <span style="font-size:20px; font-weight:900; color:#000000;">29,000 <small style="font-size:12px; font-weight:600;">so'm / Oy</small></span>
+            </div>
+            <span style="font-size:20px; color:#000; font-weight:900;">›</span>
+          </div>
+
+          <div style="height:1px; background:rgba(0,0,0,0.1); margin:8px 0;"></div>
+
+          <!-- Annual Option -->
+          <div class="plan-option-row" onclick="selectPlanAndGoDetail('annual')">
+            <div>
+              <strong style="font-size:15px; color:#000000; display:block;">Yillik Rejim</strong>
+              <span style="font-size:20px; font-weight:900; color:#000000;">299,000 <small style="font-size:12px; font-weight:600;">so'm / Yil</small></span>
+            </div>
+            <span style="font-size:20px; color:#000; font-weight:900;">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: PLAN DETAILS LIST -->
+      <div class="p-flow-screen" id="p-screen-detail" style="display:none;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+          <button class="btn-round-nav" onclick="showPremiumScreen('plans')">‹</button>
+          <h2 id="plan-detail-header" class="font-heading" style="font-size:22px; font-weight:900; color:#fff;">Oylik Rejim</h2>
+        </div>
+
+        <!-- Top Graphic -->
+        <div style="text-align:center; padding:10px 0 16px 0;">
+          <span style="font-size:52px; display:block; margin-bottom:8px;">🚀</span>
+          <h3 style="font-size:22px; font-weight:900; color:#ffffff;">Premium-ga O'tish</h3>
+        </div>
+
+        <!-- Checklist -->
+        <div class="premium-checklist">
+          <div class="check-item-row">
+            <span class="chk-icon">✔</span>
+            <span>AI-asosidagi taom va ratsion tavsiyalari</span>
+          </div>
+          <div class="check-item-row">
+            <span class="chk-icon">✔</span>
+            <span>Chuqur vitamin, mineral va GI tahlili</span>
+          </div>
+          <div class="check-item-row">
+            <span class="chk-icon">✔</span>
+            <span>Barcha eksklyuziv parhez rejimlariga kirish</span>
+          </div>
+          <div class="check-item-row">
+            <span class="chk-icon">✔</span>
+            <span>Cheksiz saqlangan taomlar va arxiv tarixi</span>
+          </div>
+          <div class="check-item-row">
+            <span class="chk-icon">✔</span>
+            <span>Haftalik AI progress hisobotlari (PDF eksport)</span>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;">
+          <button id="btn-detail-continue" class="btn-orange-full" onclick="showPremiumScreen('payment')" style="background:#ff5500; border:none; font-size:16px; font-weight:800; border-radius:16px; padding:16px;">
+            29,000 so'm bilan davom etish
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: PAYMENT METHOD SELECTION -->
+      <div class="p-flow-screen" id="p-screen-payment" style="display:none;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+          <button class="btn-round-nav" onclick="showPremiumScreen('detail')">‹</button>
+          <h2 class="font-heading" style="font-size:22px; font-weight:900; color:#fff;">To'lov Usuli</h2>
+        </div>
+
+        <div class="payment-methods-list">
+          <!-- Card Transfer Option -->
+          <div class="pay-method-card active">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="font-size:24px;">💳</span>
+              <div>
+                <strong style="color:#fff; font-size:15px; display:block;">Karta orqali o'tkazma</strong>
+                <small style="color:#94a3b8; font-size:12px;">Uzcard / Humo / Visa</small>
+              </div>
+            </div>
+            <span style="color:#ff5500; font-size:18px;">●</span>
+          </div>
+        </div>
+
+        <div style="margin-top:30px;">
+          <button class="btn-orange-full" onclick="showPremiumScreen('review')" style="background:#ff5500; border:none; font-size:16px; font-weight:800; border-radius:16px; padding:16px;">
+            Davom etish
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 5: REVIEW SUMMARY & RECEIPT UPLOAD -->
+      <div class="p-flow-screen" id="p-screen-review" style="display:none;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+          <button class="btn-round-nav" onclick="showPremiumScreen('payment')">‹</button>
+          <h2 class="font-heading" style="font-size:20px; font-weight:900; color:#fff;">Buyurtmani Tekshirish</h2>
+        </div>
+
+        <div class="review-plan-box">
+          <span style="font-size:12px; color:#a855f7; font-weight:700; display:block; margin-bottom:4px;">Tanlangan Rejim:</span>
+          <h3 id="review-plan-name" style="font-size:18px; font-weight:800; color:#fff; margin-bottom:2px;">Oylik Rejim</h3>
+          <h4 id="review-plan-price" style="font-size:22px; font-weight:900; color:#ff5500; margin:0;">29,000 so'm / oy</h4>
+        </div>
+
+        <!-- Bank Card Copy Box -->
+        <div class="card-details-box">
+          <span style="font-size:12px; color:#94a3b8; display:block; margin-bottom:6px;">Quyidagi kartaga to'lovni o'tkazing:</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.06); padding:12px 14px; border-radius:12px; margin-bottom:8px;">
+            <strong id="card-number-text" style="font-size:16px; letter-spacing:1px; color:#ffffff;">8600 1234 5678 9012</strong>
+            <button onclick="copyCardNumber()" style="background:#ff5500; border:none; color:#fff; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">Nusxalash</button>
+          </div>
+          <span style="font-size:12px; color:#64748b;">Karta egasi: <strong>TEZFIT PREMIUM</strong></span>
+        </div>
+
+        <!-- Receipt Image Upload Box -->
+        <div class="receipt-upload-box">
+          <label style="font-size:13px; font-weight:700; color:#fff; display:block; margin-bottom:8px;">📸 To'lov Cheki (Skrinshot) Yuklang:</label>
+          <input type="file" id="receipt-file-input" accept="image/*" style="display:none;" onchange="handleReceiptSelected(event)">
+          
+          <div class="receipt-dropzone" onclick="triggerReceiptUpload()">
+            <img id="receipt-preview-img" src="" alt="Receipt Preview" style="display:none; width:100%; max-height:160px; object-fit:cover; border-radius:10px;">
+            <div id="receipt-dropzone-placeholder">
+              <span style="font-size:28px; display:block; margin-bottom:4px;">📥</span>
+              <span style="font-size:13px; color:#94a3b8;">Chek rasmini biriktirish uchun bosing</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <button class="btn-orange-full" onclick="submitReceiptToAdmin()" style="background:#ff5500; border:none; font-size:16px; font-weight:800; border-radius:16px; padding:16px;">
+            Chekni Yuborish va Tasdiqlash
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 6: SUCCESS CONFIRMATION POPUP -->
+      <div class="p-flow-screen" id="p-screen-success" style="display:none; text-align:center; padding:20px 0;">
+        <span style="font-size:56px; display:block; margin-bottom:12px;">🎉</span>
+        <h2 class="font-heading" style="font-size:24px; font-weight:900; color:#fff; margin-bottom:10px;">Tabriklaymiz!</h2>
+        <p style="font-size:14px; color:#94a3b8; line-height:1.5; margin-bottom:24px;">
+          To'lov chekingiz adminimizga muvaffaqiyatli yuborildi.<br>Admin tekshirib <strong>5-15 daqiqa ichida</strong> Premium statusingizni faollashtiradi!
+        </p>
+        <button class="btn-orange-full" onclick="closePremiumModal()" style="background:#ff5500; border:none; font-size:16px; font-weight:800; border-radius:16px; padding:16px;">
+          Tushunarli
+        </button>
+      </div>
+
     </div>
   </div>
 

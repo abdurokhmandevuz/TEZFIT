@@ -304,6 +304,22 @@ function renderDynamicCalendar(selectedDateStr = null) {
 }
 
 function selectCalendarDate(dateIso) {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  const isPremiumUser = currentUserData && (currentUserData.is_vip || currentUserData.is_premium);
+
+  // Free User History Limitation (Only Today and 1 day ago allowed)
+  if (!isPremiumUser && dateIso !== todayStr && dateIso !== yesterdayStr) {
+    openPremiumModal();
+    alert("🔒 O'tgan kunlar tarixini to'liq ko'rish faqat TezFIT Premium foydalanuvchilar uchun!\n\nTekin rejimda 1 kun oldingi natijani ko'ra olasiz. Barcha arxivni ochish uchun Premium-ga o'ting 👑");
+    return;
+  }
+
   renderDynamicCalendar(dateIso);
 }
 
@@ -589,14 +605,32 @@ function renderDashboard(data) {
     else if (tgUser.id) contactInfo = `ID: ${tgUser.id}`;
   }
 
-  document.getElementById('user-name').innerText = displayName;
+  const isPremium = user && user.is_vip;
+
+  const nameEl = document.getElementById('user-name');
+  if (nameEl) {
+    if (isPremium) {
+      nameEl.innerHTML = `${displayName} <span class="vip-badge-span">👑 VIP</span>`;
+    } else {
+      nameEl.innerText = displayName;
+    }
+  }
+
   document.getElementById('greeting-title').innerText = getTimeGreeting();
 
   const avatarTxt = document.getElementById('user-avatar');
-  if (photoUrl) {
-    avatarTxt.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-  } else {
-    avatarTxt.innerText = displayName[0].toUpperCase();
+  if (avatarTxt) {
+    if (isPremium) {
+      avatarTxt.classList.add('gold-vip-avatar');
+    } else {
+      avatarTxt.classList.remove('gold-vip-avatar');
+    }
+
+    if (photoUrl) {
+      avatarTxt.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    } else {
+      avatarTxt.innerText = displayName[0].toUpperCase();
+    }
   }
 
   if (today_stats) {
@@ -1363,4 +1397,119 @@ async function submitGoalUpdate() {
   } catch (err) {
     alert('Maqsadni yangilashda xatolik');
   }
+}
+
+// Premium Multi-Step Flow Handlers
+let selectedPremiumPlan = 'monthly';
+let currentReceiptBase64 = '';
+
+function showPremiumScreen(screenId) {
+  document.querySelectorAll('.p-flow-screen').forEach(s => s.style.display = 'none');
+  const target = document.getElementById(`p-screen-${screenId}`);
+  if (target) target.style.display = 'block';
+}
+
+function openPremiumModal() {
+  const modal = document.getElementById('premium-modal');
+  if (modal) {
+    showPremiumScreen('offer');
+    modal.style.display = 'flex';
+  }
+}
+
+function closePremiumModal() {
+  const modal = document.getElementById('premium-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function selectPlanAndGoDetail(planType) {
+  selectedPremiumPlan = planType;
+  const isMonthly = (planType === 'monthly');
+  
+  document.getElementById('plan-detail-header').innerText = isMonthly ? 'Oylik Rejim' : 'Yillik Rejim';
+  document.getElementById('btn-detail-continue').innerText = isMonthly ? "29,000 so'm bilan davom etish" : "299,000 so'm bilan davom etish";
+  
+  document.getElementById('review-plan-name').innerText = isMonthly ? 'Oylik Rejim' : 'Yillik Rejim';
+  document.getElementById('review-plan-price').innerText = isMonthly ? "29,000 so'm / oy" : "299,000 so'm / yil";
+
+  showPremiumScreen('detail');
+}
+
+function copyCardNumber() {
+  const cardNumText = document.getElementById('card-number-text');
+  const cardNum = cardNumText ? cardNumText.innerText.replace(/\s+/g, '') : "8600123456789012";
+  navigator.clipboard.writeText(cardNum).then(() => {
+    alert("📋 Karta raqami nusxalandi: " + cardNum);
+  }).catch(() => {
+    alert("Karta raqami: 8600 1234 5678 9012");
+  });
+}
+
+function triggerReceiptUpload() {
+  const fileInput = document.getElementById('receipt-file-input');
+  if (fileInput) {
+    fileInput.value = '';
+    fileInput.click();
+  }
+}
+
+function handleReceiptSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentReceiptBase64 = e.target.result;
+    const previewImg = document.getElementById('receipt-preview-img');
+    const placeholder = document.getElementById('receipt-dropzone-placeholder');
+    if (previewImg) {
+      previewImg.src = currentReceiptBase64;
+      previewImg.style.display = 'block';
+    }
+    if (placeholder) placeholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitReceiptToAdmin() {
+  if (!currentReceiptBase64) {
+    alert("⚠️ Iltimos, oldin to'lov cheki (skrinshot) rasmini yuklang!");
+    return;
+  }
+
+  const amountSom = (selectedPremiumPlan === 'monthly') ? 29000 : 299000;
+
+  try {
+    const res = await fetch('/api/submit-receipt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        initData: initData,
+        plan_type: selectedPremiumPlan,
+        amount_som: amountSom,
+        receipt_b64: currentReceiptBase64
+      })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      showPremiumScreen('success');
+    } else {
+      alert("Xatolik: " + (data.message || "Chek yuborilmadi"));
+    }
+  } catch (err) {
+    alert("Chekni yuborishda ulanish xatosi");
+  }
+}
+
+// PDF Export Feature Handler
+function downloadWeeklyPDFReport() {
+  const isPremiumUser = currentUserData && (currentUserData.is_vip || currentUserData.is_premium);
+
+  if (!isPremiumUser) {
+    openPremiumModal();
+    alert("🔒 Haftalik PDF Hisobot yuklab olish faqat TezFIT Premium foydalanuvchilar uchun!\n\nHisobotni yuklash uchun Premium-ga o'ting 👑");
+    return;
+  }
+
+  window.print();
 }

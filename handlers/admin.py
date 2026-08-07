@@ -211,19 +211,59 @@ async def remove_vip_handler(message: Message):
 
     await message.answer(f"❌ Foydalanuvchi `{target_tg_id}` dan VIP status olib tashlandi.", parse_mode="Markdown")
 
+def parse_broadcast_text_and_kb(raw_text: str):
+    web_app_url = f"{settings.WEB_APP_URL}?v=2.8.2"
+    kb_rows = []
+    
+    if "|" in raw_text:
+        parts = raw_text.split("|")
+        clean_text = parts[0].strip()
+        button_part = parts[1].strip()
+        
+        if "->" in button_part:
+            btn_title, btn_url = button_part.split("->", 1)
+            btn_title = btn_title.strip()
+            btn_url = btn_url.strip()
+            if btn_url.startswith("http"):
+                kb_rows.append([InlineKeyboardButton(text=btn_title, url=btn_url)])
+            else:
+                kb_rows.append([InlineKeyboardButton(text=btn_title, callback_data="none")])
+        else:
+            kb_rows.append([InlineKeyboardButton(text=button_part, web_app=WebAppInfo(url=web_app_url))])
+    else:
+        clean_text = raw_text.strip()
+    
+    kb_rows.append([InlineKeyboardButton(text="📱 Web App-da Ochish", web_app=WebAppInfo(url=web_app_url))])
+    return clean_text, InlineKeyboardMarkup(inline_keyboard=kb_rows)
+
 @router.message(Command("sendall"))
 async def broadcast_message_handler(message: Message):
     if not is_admin(message.from_user.id):
         return
 
-    text_to_send = message.text.replace("/sendall", "").strip()
-    if not text_to_send:
+    raw_text = (message.caption or message.text or "").replace("/sendall", "").strip()
+    
+    photo_file_id = None
+    if message.photo:
+        photo_file_id = message.photo[-1].file_id
+    elif message.reply_to_message and message.reply_to_message.photo:
+        photo_file_id = message.reply_to_message.photo[-1].file_id
+        if not raw_text and message.reply_to_message.caption:
+            raw_text = message.reply_to_message.caption
+
+    if not raw_text and not photo_file_id:
         await message.answer(
-            "⚠️ **Matn kiritilmadi!**\n"
-            "Misol: `/sendall Salom! TezFIT botimizda va Web App-da yangi imkoniyatlar qo'shildi! 🚀`",
+            "⚠️ **Matn yoki Rasm topilmadi!**\n\n"
+            "📌 **Qanday ishlatiladi:**\n"
+            "1. **Oddiy Matn:** `/sendall Assalomu alaykum!`\n"
+            "2. **HTML Shriftlar:** `/sendall <b>Qalin</b>, <i>Qiya</i>, <code>Kod</code> matn`\n"
+            "3. **Tugma Bilan:** `/sendall Xabar matni... | Kanalimiz -> https://t.me/tezfit`\n"
+            "4. **Rasm Bilan:** Rasmni yuklab izohiga `/sendall Matn` yozing yoki rasmga `/sendall` deb javob bering!",
             parse_mode="Markdown"
         )
         return
+
+    clean_text, broadcast_kb = parse_broadcast_text_and_kb(raw_text if raw_text else " ")
 
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User.telegram_id))
@@ -232,30 +272,122 @@ async def broadcast_message_handler(message: Message):
     success_count = 0
     fail_count = 0
 
-    web_app_url = f"{settings.WEB_APP_URL}?v=2.8.1"
-    broadcast_kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="📱 Web App-da Ochish", web_app=WebAppInfo(url=web_app_url))]
-        ]
-    )
-
-    status_msg = await message.answer(f"⏳ `{len(user_ids)}` ta foydalanuvchiga xabar yuborilmoqda...", parse_mode="Markdown")
+    status_msg = await message.answer(f"⏳ `{len(user_ids)}` ta foydalanuvchiga xabar tarqatilmoqda...", parse_mode="Markdown")
 
     for tg_id in user_ids:
         try:
-            await message.bot.send_message(
-                chat_id=tg_id,
-                text=text_to_send,
-                reply_markup=broadcast_kb
-            )
+            if photo_file_id:
+                await message.bot.send_photo(
+                    chat_id=tg_id,
+                    photo=photo_file_id,
+                    caption=clean_text if clean_text != " " else None,
+                    parse_mode="HTML",
+                    reply_markup=broadcast_kb
+                )
+            else:
+                await message.bot.send_message(
+                    chat_id=tg_id,
+                    text=clean_text,
+                    parse_mode="HTML",
+                    reply_markup=broadcast_kb
+                )
             success_count += 1
         except Exception:
-            fail_count += 1
+            try:
+                if photo_file_id:
+                    await message.bot.send_photo(chat_id=tg_id, photo=photo_file_id, caption=clean_text, reply_markup=broadcast_kb)
+                else:
+                    await message.bot.send_message(chat_id=tg_id, text=clean_text, reply_markup=broadcast_kb)
+                success_count += 1
+            except Exception:
+                fail_count += 1
 
     await status_msg.edit_text(
         f"📢 **XABAR TARQATISH YAKUNLANDI!**\n\n"
-        f"✅ Bot va Web App foydalanuvchilariga yuborildi: {success_count} ta\n"
+        f"🖼 **Format:** {'Rasm + Matn' if photo_file_id else 'Matn'}\n"
+        f"✅ Muvaffaqiyatli yuborildi: {success_count} ta\n"
         f"❌ Yetib bormadi (bloklangan): {fail_count} ta\n\n"
-        f"📱 *Xabar tagiga Web App-ni 1-bosish bilan ochish tugmasi biriktirildi!*",
+        f"📱 *Bot va Web App foydalanuvchilariga yetkazildi!*",
         parse_mode="Markdown"
     )
+
+@router.callback_query(F.data.startswith("approve_vip_"))
+async def approve_vip_callback(call: CallbackQuery):
+    if not is_admin(call.from_user.id):
+        await call.answer("Ruxsat yo'q!", show_alert=True)
+        return
+
+    parts = call.data.split("_")
+    target_tg_id = int(parts[2])
+    plan_type = parts[3] if len(parts) > 3 else "monthly"
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.telegram_id == target_tg_id))
+        user = result.scalar_one_or_none()
+
+        if user:
+            user.is_vip = True
+            await session.commit()
+
+    try:
+        await call.bot.send_message(
+            chat_id=target_tg_id,
+            text=(
+                f"🎉 **TABRIKLAYMIZ! TEZFIT PREMIUM STATUSINGIZ FAOLLASHTIRILDI!** 👑\n\n"
+                f"Sizning **{plan_type.upper()}** Premium to'lov chekingiz admin tomonidan muvaffaqiyatli tasdiqlandi!\n\n"
+                f"✨ **Yangi imkoniyatlaringiz:**\n"
+                f"• ♾️ Cheksiz AI taom skanerlash\n"
+                f"• 🧬 Chuqur Vitamin & Mineral tahlili\n"
+                f"• 📅 Barcha o'tgan kunlar tarixi\n"
+                f"• 📄 Haftalik PDF hisobot yuklab olish\n"
+                f"• 👑 Oltin nishon va profil ramkasi!\n\n"
+                f"Ilovaga kirib cheksiz imkoniyatlardan foydalanishingiz mumkin! 🚀"
+            ),
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[[InlineKeyboardButton(text="📱 Web App-da Ochish", web_app=WebAppInfo(url=f"{settings.WEB_APP_URL}?v=2.9.0"))]]
+            )
+        )
+    except Exception:
+        pass
+
+    if call.message.caption:
+        await call.message.edit_caption(
+            caption=f"{call.message.caption}\n\n✅ **ADMIN TOMONIDAN TASDIQLANDI! (PREMIUM BERILDI)**",
+            reply_markup=None
+        )
+    else:
+        await call.message.edit_text(
+            text=f"{call.message.text}\n\n✅ **ADMIN TOMONIDAN TASDIQLANDI! (PREMIUM BERILDI)**",
+            reply_markup=None
+        )
+    await call.answer("Premium muvaffaqiyatli berildi!")
+
+@router.callback_query(F.data.startswith("reject_vip_"))
+async def reject_vip_callback(call: CallbackQuery):
+    if not is_admin(call.from_user.id):
+        await call.answer("Ruxsat yo'q!", show_alert=True)
+        return
+
+    parts = call.data.split("_")
+    target_tg_id = int(parts[2])
+
+    try:
+        await call.bot.send_message(
+            chat_id=target_tg_id,
+            text="⚠️ Sizning TezFIT Premium to'lov chekingiz tekshirildi, lekin tasdiqlanmadi. Savollar bo'lsa @abdurokhman_dev ga murojaat qiling.",
+        )
+    except Exception:
+        pass
+
+    if call.message.caption:
+        await call.message.edit_caption(
+            caption=f"{call.message.caption}\n\n❌ **TO'LOV RAD ETILDI**",
+            reply_markup=None
+        )
+    else:
+        await call.message.edit_text(
+            text=f"{call.message.text}\n\n❌ **TO'LOV RAD ETILDI**",
+            reply_markup=None
+        )
+    await call.answer("To'lov rad etildi.")

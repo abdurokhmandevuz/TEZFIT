@@ -384,3 +384,82 @@ def api_diets(request):
         return JsonResponse({"status": "success", "diets": diet_list})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_submit_receipt(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = {}
+        
+    init_data = data.get("initData", "")
+    plan_type = data.get("plan_type", "monthly")
+    amount_som = data.get("amount_som", 29000)
+    receipt_b64 = data.get("receipt_b64", "")
+    
+    user_data = verify_telegram_web_app_data(init_data)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+    
+    user = get_or_create_django_user(telegram_id, user_data)
+    
+    import base64
+    from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton
+    from config import settings
+    from bot import bot
+    
+    plan_label = "Oylik Premium (29,000 so'm)" if plan_type == "monthly" else "Yillik Premium (299,000 so'm)"
+    
+    admin_msg = (
+        f"💳 **YANGI PREMIUM TO'LOV CHEKI KELDI!**\n\n"
+        f"👤 **Foydalanuvchi:** {user.name or user.first_name} (`{user.telegram_id}`)\n"
+        f"📞 **Aloqa:** {user.phone_number or 'Mavjud emas'}\n"
+        f"📦 **Rejim:** {plan_label}\n"
+        f"💰 **Summa:** {amount_som:,} so'm\n"
+        f"⏰ **Vaqt:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+        f"Quyidagi tugmalar orqali tasdiqlang yoki rad eting:"
+    )
+    
+    approve_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ VIP Berish", callback_data=f"approve_vip_{user.telegram_id}_{plan_type}"),
+                InlineKeyboardButton(text="❌ Rad Etish", callback_data=f"reject_vip_{user.telegram_id}")
+            ]
+        ]
+    )
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        if receipt_b64 and "," in receipt_b64:
+            header, img_str = receipt_b64.split(",", 1)
+            img_data = base64.b64decode(img_str)
+            photo_file = BufferedInputFile(img_data, filename=f"receipt_{user.telegram_id}.jpg")
+            loop.run_until_complete(
+                bot.send_photo(
+                    chat_id=7225597812,
+                    photo=photo_file,
+                    caption=admin_msg,
+                    parse_mode="Markdown",
+                    reply_markup=approve_kb
+                )
+            )
+        else:
+            loop.run_until_complete(
+                bot.send_message(
+                    chat_id=7225597812,
+                    text=admin_msg,
+                    parse_mode="Markdown",
+                    reply_markup=approve_kb
+                )
+            )
+    except Exception as e:
+        print("Admin notification error:", e)
+    finally:
+        loop.close()
+
+    return JsonResponse({
+        "status": "success",
+        "message": "To'lov cheki adminga muvaffaqiyatli yuborildi!"
+    })
