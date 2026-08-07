@@ -375,17 +375,59 @@ function calculatePlanSummary() {
   // MUHIM XAVFSIZLIK QOIDASI:
   // Erkaklar: minimal 1500 kcal
   // Ayollar: minimal 1200 kcal
-  const minAllowedKcal = (selectedGender === 'Female') ? 1200 : 1500;
-  calculatedDailyKcal = Math.max(minAllowedKcal, Math.round(dailyKcal));
+  // 4-QADAM: Diet turiga qarab makronutrientlarni hisoblash
+  // Foiz taqsimotlari:
+  // Farqi yo'q (Balanced): Protein 30%, Yog' 30%, Uglevod 40%
+  // Keto: Protein 25%, Yog' 70%, Uglevod 5%
+  // Vegetarian: Protein 25%, Yog' 30%, Uglevod 45%
+  // Vegan: Protein 25%, Yog' 25%, Uglevod 50%
+  // Paleo: Protein 30%, Yog' 40%, Uglevod 30%
+  let pPct = 0.30, fPct = 0.30, cPct = 0.40;
 
-  const carbsKcal = Math.round(calculatedDailyKcal * 0.45);
-  const proteinKcal = Math.round(calculatedDailyKcal * 0.30);
-  const fatKcal = Math.round(calculatedDailyKcal * 0.25);
+  if (selectedDietPref.includes('Keto')) {
+    pPct = 0.25; fPct = 0.70; cPct = 0.05;
+  } else if (selectedDietPref.includes('Vegetarian')) {
+    pPct = 0.25; fPct = 0.30; cPct = 0.45;
+  } else if (selectedDietPref.includes('Vegan')) {
+    pPct = 0.25; fPct = 0.25; cPct = 0.50;
+  } else if (selectedDietPref.includes('Paleo')) {
+    pPct = 0.30; fPct = 0.40; cPct = 0.30;
+  } else {
+    pPct = 0.30; fPct = 0.30; cPct = 0.40;
+  }
+
+  const proteinKcal = Math.round(calculatedDailyKcal * pPct);
+  const fatKcal = Math.round(calculatedDailyKcal * fPct);
+  const carbsKcal = Math.round(calculatedDailyKcal * cPct);
+
+  // Grammga o'tkazish formulasi: 1g protein = 4 kcal, 1g fat = 9 kcal, 1g carbs = 4 kcal
+  const proteinGrams = Math.round(proteinKcal / 4);
+  const fatGrams = Math.round(fatKcal / 9);
+  const carbsGrams = Math.round(carbsKcal / 4);
 
   document.getElementById('plan-kcal-val').innerHTML = `${calculatedDailyKcal.toLocaleString()} <small>kcal</small>`;
-  document.getElementById('plan-carbs-kcal').innerText = `${carbsKcal} kcal`;
-  document.getElementById('plan-protein-kcal').innerText = `${proteinKcal} kcal`;
-  document.getElementById('plan-fat-kcal').innerText = `${fatKcal} kcal`;
+  
+  // Update Tri-color Bar
+  const triCarbs = document.querySelector('.tri-fill.tri-carbs');
+  const triProtein = document.querySelector('.tri-fill.tri-protein');
+  const triFat = document.querySelector('.tri-fill.tri-fat');
+
+  if (triCarbs) {
+    triCarbs.style.width = `${Math.round(cPct * 100)}%`;
+    triCarbs.innerText = `${Math.round(cPct * 100)}%`;
+  }
+  if (triProtein) {
+    triProtein.style.width = `${Math.round(pPct * 100)}%`;
+    triProtein.innerText = `${Math.round(pPct * 100)}%`;
+  }
+  if (triFat) {
+    triFat.style.width = `${Math.round(fPct * 100)}%`;
+    triFat.innerText = `${Math.round(fPct * 100)}%`;
+  }
+
+  document.getElementById('plan-carbs-kcal').innerText = `${carbsGrams}g (${carbsKcal} kcal)`;
+  document.getElementById('plan-protein-kcal').innerText = `${proteinGrams}g (${proteinKcal} kcal)`;
+  document.getElementById('plan-fat-kcal').innerText = `${fatGrams}g (${fatKcal} kcal)`;
 }
 
 async function finishOnboardingWithPlan() {
@@ -921,6 +963,69 @@ function addSelectedDietToUser() {
   }
 }
 
+// ================= LIVE CAMERA STREAM & MODAL HANDLERS =================
+let mediaStream = null;
+
+async function openLiveCameraStream() {
+  closeCameraChoiceModal();
+  const modal = document.getElementById('live-camera-modal');
+  const video = document.getElementById('live-video-feed');
+  
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false
+      });
+      if (video) {
+        video.srcObject = mediaStream;
+        video.play();
+      }
+      if (modal) modal.style.display = 'flex';
+      return;
+    } catch (err) {
+      console.warn('getUserMedia camera stream failed, falling back to native file input:', err);
+    }
+  }
+
+  // Fallback to native file input if getUserMedia is restricted
+  const camInput = document.getElementById('input-camera');
+  if (camInput) {
+    camInput.value = '';
+    camInput.click();
+  }
+}
+
+function closeLiveCamera() {
+  const modal = document.getElementById('live-camera-modal');
+  if (modal) modal.style.display = 'none';
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+}
+
+function captureLiveVideoFrame() {
+  const video = document.getElementById('live-video-feed');
+  const canvas = document.getElementById('camera-snapshot-canvas');
+  if (!video || !canvas) return;
+
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const imageSrc = canvas.toDataURL('image/jpeg', 0.9);
+  closeLiveCamera();
+
+  canvas.toBlob((blob) => {
+    if (blob) {
+      submitImageScanToAI(blob, imageSrc);
+    }
+  }, 'image/jpeg', 0.9);
+}
+
 // ================= CAMERA & GALLERY CHOICE MODAL =================
 function openCameraChoiceModal() {
   document.getElementById('camera-choice-modal').style.display = 'flex';
@@ -931,12 +1036,7 @@ function closeCameraChoiceModal() {
 }
 
 function triggerNativeCamera() {
-  closeCameraChoiceModal();
-  const camInput = document.getElementById('input-camera');
-  if (camInput) {
-    camInput.value = '';
-    camInput.click();
-  }
+  openLiveCameraStream();
 }
 
 function triggerNativeGallery() {

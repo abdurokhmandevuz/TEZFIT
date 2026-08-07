@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web_app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="styles.css?v=2.5.5">
+  <link rel="stylesheet" href="styles.css?v=2.6.0">
 </head>
 <body>
 
@@ -787,6 +787,25 @@
     </div>
   </div>
 
+  <!-- ==================== LIVE VIDEO STREAM CAMERA MODAL ==================== -->
+  <div class="modal-overlay" id="live-camera-modal" style="display:none; z-index:300;">
+    <div class="live-camera-card">
+      <div class="live-camera-header">
+        <span>📸 AI Taom Kamerasi</span>
+        <button class="btn-camera-close" onclick="closeLiveCamera()">✕</button>
+      </div>
+      <div class="video-viewfinder">
+        <video id="live-video-feed" autoplay playsinline muted></video>
+        <canvas id="camera-snapshot-canvas" style="display:none;"></canvas>
+      </div>
+      <div class="camera-shutter-container">
+        <button class="btn-shutter-outer" onclick="captureLiveVideoFrame()">
+          <div class="shutter-inner"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== CAMERA CHOICE SELECTION MODAL ==================== -->
   <div class="modal-overlay" id="camera-choice-modal" style="display:none;">
     <div class="modal-content glass-card choice-modal-card">
@@ -1003,6 +1022,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=2.5.5"></script>
+  <script src="app.js?v=2.6.0"></script>
 </body>
 </html>

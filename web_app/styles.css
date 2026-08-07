@@ -1265,3 +1265,81 @@ input[type=number] {
   font-weight: 900;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
+
+/* ==================== LIVE VIDEO STREAM CAMERA MODAL ==================== */
+.live-camera-card {
+  width: 100%;
+  max-width: 480px;
+  height: 90vh;
+  margin: 0 auto;
+  background-color: #000000;
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.live-camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 16px;
+  z-index: 10;
+}
+
+.video-viewfinder {
+  flex: 1;
+  position: relative;
+  background-color: #050505;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#live-video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-shutter-container {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+}
+
+.btn-shutter-outer {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.btn-shutter-outer:active {
+  transform: scale(0.92);
+}
+
+.shutter-inner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #ff6b4a;
+}
