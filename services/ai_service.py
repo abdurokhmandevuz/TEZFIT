@@ -78,6 +78,10 @@ Respond ONLY with clean valid JSON matching this exact schema:
 
 # Top-tier working vision & text models on OpenRouter
 VISION_MODELS = [
+    "google/gemini-2.5-flash-lite",
+    "google/gemma-3-12b-it",
+    "google/gemma-3-4b-it",
+    "amazon/nova-lite-v1",
     "google/gemma-4-26b-a4b-it:free",
     "nvidia/nemotron-nano-12b-v2-vl:free",
     "openrouter/free"
@@ -261,7 +265,7 @@ class AIService:
                 "Content-Type": "application/json"
             }
             
-            models = ["google/gemma-4-26b-a4b-it:free", "nvidia/nemotron-nano-12b-v2-vl:free", "openrouter/free"]
+            models = VISION_MODELS
             async with httpx.AsyncClient(timeout=7.0) as client:
                 for model in models:
                     payload = {

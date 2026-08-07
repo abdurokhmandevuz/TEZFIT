@@ -2173,7 +2173,14 @@ function updateUserLimitBadge(remScans, isPremium) {
 function showDrinkAnalysisResult(data) {
   document.getElementById('drink-res-title').textContent = data.drink_name || 'Ichimlik / Suv';
   document.getElementById('drink-res-cal').textContent = `${data.calories || 0} kcal`;
-  document.getElementById('drink-res-sugar').textContent = `${data.sugar_g || 0}g (${data.sugar_level || 'Normal'})`;
+  
+  let sugarStr = '0g';
+  if (data.sugar_level) {
+    sugarStr = data.sugar_level;
+  } else if (data.sugar_g !== undefined) {
+    sugarStr = `${data.sugar_g}g`;
+  }
+  document.getElementById('drink-res-sugar').textContent = sugarStr;
   
   const halalBadge = document.getElementById('drink-halal-badge');
   if (halalBadge) {
