@@ -8,6 +8,21 @@ if (tg) {
 let initData = tg ? tg.initData : '';
 let tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
 
+// Fallback: If tg.initData is empty, encode tgUser or cached user profile so backend receives real user ID
+if (!initData && tgUser) {
+  initData = `user=${encodeURIComponent(JSON.stringify(tgUser))}`;
+} else if (!initData) {
+  const cachedProfile = localStorage.getItem('tezfit_user_profile_v2');
+  if (cachedProfile) {
+    try {
+      const p = JSON.parse(cachedProfile);
+      if (p && p.id) {
+        initData = `user=${encodeURIComponent(JSON.stringify(p))}`;
+      }
+    } catch(e) {}
+  }
+}
+
 let currentSlide = 0;
 let currentSelectedFile = null;
 let currentParsedItems = [];

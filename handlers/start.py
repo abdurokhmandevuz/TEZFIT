@@ -27,7 +27,7 @@ async def cmd_start(message: Message, state: FSMContext):
     if "loca.lt" in web_app_url or "localhost" in web_app_url or not web_app_url.startswith("https://"):
         web_app_url = "https://tezfit-production.up.railway.app/web_app"
 
-    target_url = f"{web_app_url}?v=2.6.0"
+    target_url = f"{web_app_url}?v=2.6.1"
 
     inline_kb = InlineKeyboardMarkup(
         inline_keyboard=[

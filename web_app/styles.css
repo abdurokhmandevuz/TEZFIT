@@ -1343,3 +1343,45 @@ input[type=number] {
   border-radius: 50%;
   background: #ff6b4a;
 }
+
+/* ==================== GLOBAL SCROLLBAR & OVERFLOW CONTAINMENT ==================== */
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
+}
+
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+  display: none !important;
+}
+
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.result-sheet-overlay, .modal-overlay, .result-sheet-content, .modal-content, .profile-form-grid {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.form-row-2 {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-row-2 .form-group-figma {
+  flex: 1;
+  min-width: 0 !important;
+}
+
+.input-figma {
+  width: 100%;
+  box-sizing: border-box;
+}
