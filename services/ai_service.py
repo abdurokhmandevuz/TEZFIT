@@ -51,18 +51,18 @@ Respond ONLY with clean valid JSON matching this exact schema:
   "total_calories": 0
 }"""
 
-# Top-tier high-accuracy vision models on OpenRouter
+# Top-tier working vision & text models on OpenRouter
 VISION_MODELS = [
-    "google/gemini-2.5-flash",
-    "qwen/qwen-2.5-vl-72b-instruct:free",
-    "google/gemini-flash-1.5",
-    "meta-llama/llama-3.2-11b-vision-instruct:free",
-    "openrouter/free"
+    "nvidia/nemotron-nano-12b-v2-vl:free",
+    "openrouter/free",
+    "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-3-nano-30b-a3b:free"
 ]
 
 TEXT_MODELS = [
-    "google/gemini-2.5-flash",
-    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "nvidia/nemotron-nano-12b-v2-vl:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-3-nano-30b-a3b:free",
     "openrouter/free"
 ]
 
@@ -177,7 +177,7 @@ class AIService:
             "Content-Type": "application/json"
         }
 
-        models_to_try = [settings.VIP_MODEL] if is_vip else VISION_MODELS
+        models_to_try = [settings.VIP_MODEL, "nvidia/nemotron-nano-12b-v2-vl:free", "openrouter/free"] if is_vip else VISION_MODELS
         
         last_error = None
         async with httpx.AsyncClient(timeout=12.0) as client:
@@ -235,7 +235,7 @@ class AIService:
             "Content-Type": "application/json"
         }
 
-        models_to_try = [settings.VIP_MODEL] if is_vip else TEXT_MODELS
+        models_to_try = [settings.VIP_MODEL, "nvidia/nemotron-nano-12b-v2-vl:free", "openrouter/free"] if is_vip else TEXT_MODELS
         
         last_error = None
         async with httpx.AsyncClient(timeout=8.0) as client:

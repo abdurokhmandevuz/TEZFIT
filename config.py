@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     BOT_TOKEN: str = "YOUR_BOT_TOKEN"
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
-    FREE_MODEL: str = "google/gemini-2.5-flash"
+    FREE_MODEL: str = "nvidia/nemotron-nano-12b-v2-vl:free"
     FALLBACK_MODEL: str = "openrouter/free"
-    VIP_MODEL: str = "google/gemini-2.5-flash"
+    VIP_MODEL: str = "nvidia/nemotron-nano-12b-v2-vl:free"
     
     DATABASE_URL: str = "sqlite+aiosqlite:///./kalorix.db"
     
