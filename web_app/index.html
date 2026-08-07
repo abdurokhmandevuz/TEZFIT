@@ -376,15 +376,9 @@
       <!-- TAB 1: HOME (Dashboard) -->
       <section class="tab-page active" id="page-home">
         
-        <!-- Calendar Date Strip -->
-        <div class="calendar-strip">
-          <div class="day-col"><span class="d-name">Dush</span><span class="d-num">08</span></div>
-          <div class="day-col"><span class="d-name">Sesh</span><span class="d-num">09</span></div>
-          <div class="day-col"><span class="d-name">Chor</span><span class="d-num">10</span></div>
-          <div class="day-col active-day"><span class="d-name">Pay</span><span class="d-num active-pill">11</span></div>
-          <div class="day-col"><span class="d-name">Jum</span><span class="d-num">12</span></div>
-          <div class="day-col"><span class="d-name">Shan</span><span class="d-num">13</span></div>
-          <div class="day-col"><span class="d-name">Yak</span><span class="d-num">14</span></div>
+        <!-- Dynamic Calendar Date Strip -->
+        <div class="calendar-strip" id="calendar-strip">
+          <!-- Populated dynamically via JS -->
         </div>
 
         <h2 class="section-heading">Kunlik Kaloriyangizni Hisoblang</h2>
@@ -601,9 +595,9 @@
 
         <!-- Menu Group 3: Log Out -->
         <div class="settings-menu-card">
-          <div class="settings-menu-item" onclick="closeWebApp()">
+          <div class="settings-menu-item" onclick="openLogoutModal()">
             <div class="item-left">
-              <span class="menu-item-text">Chiqish</span>
+              <span class="menu-item-text" style="color:#ef4444;">Chiqish</span>
             </div>
             <span class="chevron-icon">›</span>
           </div>
@@ -627,7 +621,7 @@
           </div>
         </button>
         <!-- 3. AI Camera / Scan (ELEVATED FLOATING CENTER BUTTON) -->
-        <button class="dock-item dock-item-center" id="nav-scan" onclick="openCameraChoiceModal()">
+        <button class="dock-item dock-item-center" id="nav-scan" onclick="triggerNativeCamera()">
           <div class="dock-icon-circle center-raised-circle">
             <img src="assets/dock_scan.png" alt="AI Kamera" class="dock-icon-img center-icon-img">
           </div>
@@ -648,8 +642,8 @@
     </nav>
   </div>
 
-  <!-- Hidden Native File Inputs -->
-  <input type="file" id="input-camera" accept="image/*;capture=camera" capture="environment" style="display:none;" onchange="handleFileSelected(event)">
+  <!-- Native File Inputs -->
+  <input type="file" id="input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelected(event)">
   <input type="file" id="input-gallery" accept="image/*" style="display:none;" onchange="handleFileSelected(event)">
 
   <!-- ==================== MY PROFILE EDIT SHEET ==================== -->
@@ -822,6 +816,18 @@
     </div>
   </div>
 
+  <!-- ==================== LOGOUT CONFIRMATION MODAL ==================== -->
+  <div class="modal-overlay" id="logout-modal" style="display:none;">
+    <div class="modal-content glass-card logout-modal-card" style="padding: 24px; text-align: center;">
+      <h3 style="font-size:20px; font-weight:800; margin-bottom:10px; color:#fff;">Rostdan ham chiqmoqchimisiz?</h3>
+      <p style="color:#94a3b8; font-size:14px; margin-bottom:24px; line-height:1.5;">Barcha ma'lumotlaringiz va natijalaringiz o'chirib yuboriladi.</p>
+      <div class="modal-buttons" style="display:flex; gap:12px;">
+        <button class="btn-ghost-full" onclick="closeLogoutModal()" style="flex:1; border-color:rgba(255,255,255,0.2);">Bekor qilish</button>
+        <button class="btn-orange-full" onclick="confirmLogoutReset()" style="flex:1; background:#ef4444; border-color:#ef4444;">Ha, chiqish</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== DIET PLAN DETAIL SHEET ==================== -->
   <div class="result-sheet-overlay" id="diet-detail-sheet" style="display:none;">
     <div class="result-sheet-content">
@@ -967,10 +973,7 @@
 
         <!-- Detailed Breakdown Items -->
         <div class="result-items-list" id="res-items-container">
-          <div class="item-breakdown-card">
-            <h4>Tovuq Go'shti Strips</h4>
-            <p>220 kcal &nbsp;|&nbsp; Oqsil: 30g &nbsp;|&nbsp; Uglevod: 0g &nbsp;|&nbsp; Yog': 5g</p>
-          </div>
+          <!-- Populated dynamically via JS -->
         </div>
 
         <!-- Bottom Action Button -->

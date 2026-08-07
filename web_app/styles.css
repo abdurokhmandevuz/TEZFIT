@@ -1081,3 +1081,152 @@ body {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* ==================== AI RESULT ITEM BREAKDOWN CARDS ==================== */
+.result-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.item-breakdown-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.item-breakdown-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 107, 74, 0.3);
+}
+
+.item-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.item-title-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-emoji {
+  font-size: 22px;
+}
+
+.item-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.item-cal-badge {
+  background: rgba(255, 107, 74, 0.15);
+  border: 1px solid rgba(255, 107, 74, 0.3);
+  color: #ff6b4a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+.item-macros-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.m-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.m-pill .m-lbl {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.m-pill strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.m-protein strong { color: #86efac; }
+.m-carbs strong { color: #fde047; }
+.m-fat strong { color: #fed7aa; }
+
+/* ==================== DYNAMIC CALENDAR STRIP ==================== */
+.calendar-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+}
+
+.day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.day-col .d-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.day-col .d-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.day-col.active-day {
+  background: rgba(224, 204, 250, 0.25);
+  border: 1px solid rgba(224, 204, 250, 0.4);
+}
+
+.day-col.active-day .d-name {
+  color: #e0ccfa;
+  font-weight: 800;
+}
+
+.day-col .d-num.active-pill {
+  background: #111111;
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}

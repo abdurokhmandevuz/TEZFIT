@@ -80,6 +80,19 @@ const DIET_PLANS = [
 
 // Startup check
 document.addEventListener('DOMContentLoaded', () => {
+  renderDynamicCalendar();
+  
+  // Cache Telegram SDK user if present
+  if (tgUser) {
+    localStorage.setItem('tezfit_user_profile_v2', JSON.stringify({
+      first_name: tgUser.first_name,
+      last_name: tgUser.last_name,
+      username: tgUser.username,
+      id: tgUser.id,
+      photo_url: tgUser.photo_url || ''
+    }));
+  }
+
   const onboarded = localStorage.getItem('tezfit_onboarded_v2');
   if (!onboarded) {
     showSplashThenSlides();
@@ -88,6 +101,47 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboard();
   }
 });
+
+function renderDynamicCalendar(selectedDateStr = null) {
+  const container = document.getElementById('calendar-strip');
+  if (!container) return;
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const activeTargetDate = selectedDateStr || todayStr;
+
+  // Determine Monday of current week
+  const dayOfWeek = now.getDay(); // 0 is Sunday
+  const distanceToMonday = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+  
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - distanceToMonday);
+
+  const dayNames = ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'];
+  let html = '';
+
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + i);
+
+    const dateIso = dayDate.toISOString().split('T')[0];
+    const dayNum = String(dayDate.getDate()).padStart(2, '0');
+    const isSelected = (dateIso === activeTargetDate);
+
+    html += `
+      <div class="day-col ${isSelected ? 'active-day' : ''}" onclick="selectCalendarDate('${dateIso}')">
+        <span class="d-name">${dayNames[i]}</span>
+        <span class="d-num ${isSelected ? 'active-pill' : ''}">${dayNum}</span>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+function selectCalendarDate(dateIso) {
+  renderDynamicCalendar(dateIso);
+}
 
 function showSplashThenSlides() {
   document.getElementById('onboarding-flow').style.display = 'flex';
@@ -171,9 +225,9 @@ function calculatePlanSummary() {
 
   let tdee = bmr * mult;
   if (selectedTargetWeight < selectedWeight) {
-    tdee -= 350; // Weight loss deficit
+    tdee -= 350;
   } else if (selectedTargetWeight > selectedWeight) {
-    tdee += 300; // Muscle gain surplus
+    tdee += 300;
   }
 
   calculatedDailyKcal = Math.max(1200, Math.round(tdee));
@@ -200,6 +254,9 @@ async function finishOnboardingWithPlan() {
         gender: selectedGender,
         height_cm: selectedHeight,
         weight_kg: selectedWeight,
+        target_weight_kg: selectedTargetWeight,
+        activity_level: selectedActivity,
+        diet_preference: selectedDietPref,
         daily_goal_kcal: calculatedDailyKcal
       })
     });
@@ -251,10 +308,20 @@ async function loadDashboard() {
     let fallbackContact = 'ID: 8817446491';
     let photoUrl = '';
 
+    const cachedProfile = localStorage.getItem('tezfit_user_profile_v2');
+    if (cachedProfile) {
+      try {
+        const p = JSON.parse(cachedProfile);
+        fallbackName = `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.username || 'Foydalanuvchi';
+        fallbackContact = `ID: ${p.id || 8817446491}`;
+        photoUrl = p.photo_url || '';
+      } catch (e) {}
+    }
+
     if (tgUser) {
       fallbackName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username || 'Foydalanuvchi';
       fallbackContact = tgUser.phone_number ? tgUser.phone_number : `ID: ${tgUser.id}`;
-      photoUrl = tgUser.photo_url || '';
+      photoUrl = tgUser.photo_url || photoUrl;
     }
 
     renderDashboard({
@@ -268,14 +335,14 @@ async function loadDashboard() {
         weight_kg: 70,
         height_cm: 170,
         gender: 'Male',
-        dob: '2003-05-21'
+        dob: '2000-01-01'
       },
-      today_stats: { total_calories: 328, total_protein: 60, total_fat: 18, total_carbs: 140, remaining_calories: 1672, progress_percent: 16 },
+      today_stats: { total_calories: 0, total_protein: 0, total_fat: 0, total_carbs: 0, remaining_calories: 2000, progress_percent: 0 },
       weekly_stats: [
         { day: 'Dush', calories: 1850 }, { day: 'Sesh', calories: 2100 },
         { day: 'Chor', calories: 1900 }, { day: 'Pay', calories: 1650 },
         { day: 'Jum', calories: 2200 }, { day: 'Shan', calories: 1950 },
-        { day: 'Yak', calories: 328 }
+        { day: 'Yak', calories: 0 }
       ],
       today_meals: [],
       badges: []
@@ -294,17 +361,10 @@ function renderDashboard(data) {
   // Override with Telegram WebApp SDK data if available
   if (tgUser) {
     const realTgName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username;
-    if (realTgName) {
-      displayName = realTgName;
-    }
-    if (tgUser.photo_url) {
-      photoUrl = tgUser.photo_url;
-    }
-    if (tgUser.phone_number) {
-      contactInfo = tgUser.phone_number;
-    } else if (tgUser.id) {
-      contactInfo = `ID: ${tgUser.id}`;
-    }
+    if (realTgName) displayName = realTgName;
+    if (tgUser.photo_url) photoUrl = tgUser.photo_url;
+    if (tgUser.phone_number) contactInfo = tgUser.phone_number;
+    else if (tgUser.id) contactInfo = `ID: ${tgUser.id}`;
   }
 
   document.getElementById('user-name').innerText = displayName;
@@ -404,17 +464,10 @@ function renderSettingsPage() {
 
   if (tgUser) {
     const realTgName = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || tgUser.username;
-    if (realTgName) {
-      displayName = realTgName;
-    }
-    if (tgUser.photo_url) {
-      photoUrl = tgUser.photo_url;
-    }
-    if (tgUser.phone_number) {
-      contactInfo = tgUser.phone_number;
-    } else if (tgUser.id) {
-      contactInfo = `ID: ${tgUser.id}`;
-    }
+    if (realTgName) displayName = realTgName;
+    if (tgUser.photo_url) photoUrl = tgUser.photo_url;
+    if (tgUser.phone_number) contactInfo = tgUser.phone_number;
+    else if (tgUser.id) contactInfo = `ID: ${tgUser.id}`;
   }
 
   if (!contactInfo || contactInfo.includes('8817446491')) {
@@ -438,7 +491,6 @@ function renderSettingsPage() {
   }
 }
 
-// Sub-sheets
 function openProfileEditSheet() {
   const user = currentUserData || {};
   let displayName = user.name || 'Foydalanuvchi';
@@ -455,7 +507,7 @@ function openProfileEditSheet() {
 
   document.getElementById('prof-input-name').value = displayName;
   document.getElementById('prof-input-contact').value = contactInfo || 'ID: 8817446491';
-  document.getElementById('prof-input-dob').value = user.dob || '2003-05-21';
+  document.getElementById('prof-input-dob').value = user.dob || '2000-01-01';
   document.getElementById('prof-input-gender').value = user.gender || 'Male';
   document.getElementById('prof-input-height').value = `${user.height_cm || 170} cm`;
   document.getElementById('prof-input-weight').value = `${user.weight_kg || 70} kg`;
@@ -513,6 +565,33 @@ async function saveProfileChanges() {
   }
 }
 
+// Logout Confirmation Modal Handlers
+function openLogoutModal() {
+  document.getElementById('logout-modal').style.display = 'flex';
+}
+
+function closeLogoutModal() {
+  document.getElementById('logout-modal').style.display = 'none';
+}
+
+async function confirmLogoutReset() {
+  closeLogoutModal();
+  localStorage.removeItem('tezfit_onboarded_v2');
+  localStorage.removeItem('tezfit_user_profile_v2');
+  
+  try {
+    await fetch('/api/reset-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: initData })
+    });
+  } catch (err) {
+    console.warn('User reset warning:', err);
+  }
+
+  location.reload();
+}
+
 function openNotificationSheet() {
   document.getElementById('notification-sheet').style.display = 'block';
 }
@@ -531,14 +610,6 @@ function closeFavoriteSheet() {
 
 function showMoreInfo() {
   alert('ℹ️ TezFIT AI v2.5 — Aqlli Kaloriya va Nutritsiya Hamrohingiz.\nVersiya: 2.5.0\nYaratuvchi: TezFIT Dev Team');
-}
-
-function closeWebApp() {
-  if (tg) {
-    tg.close();
-  } else {
-    alert('🔒 Web App yopilmoqda...');
-  }
 }
 
 // ================= FIGMA ANALYSIS SCREEN LOGIC =================
@@ -617,7 +688,6 @@ function renderAnalysisPage() {
     }
   });
 
-  // Dynamic Macro percentages
   document.getElementById('fat-pct-val').innerText = '53%';
   document.getElementById('carbs-pct-val').innerText = '28%';
   document.getElementById('protein-pct-val').innerText = '19%';
@@ -777,7 +847,7 @@ async function submitImageScanToAI(fileOrBlob, imageSrc) {
   }
 }
 
-// Render Result Sheet
+// Render Redesigned AI Result Breakdown Items
 function renderResultSheet(aiData, imageSrc) {
   currentTotalMealData = aiData;
   currentParsedItems = aiData.items || [];
@@ -809,17 +879,61 @@ function renderResultSheet(aiData, imageSrc) {
 
   const itemsContainer = document.getElementById('res-items-container');
   if (currentParsedItems && currentParsedItems.length > 0) {
-    itemsContainer.innerHTML = currentParsedItems.map(item => `
-      <div class="item-breakdown-card">
-        <h4>${item.name || 'Taom'}</h4>
-        <p>${Math.round(item.calories)} kcal &nbsp;|&nbsp; Oqsil: ${item.protein_g}g &nbsp;|&nbsp; Uglevod: ${item.carbs_g}g &nbsp;|&nbsp; Yog': ${item.fat_g}g</p>
-      </div>
-    `).join('');
+    itemsContainer.innerHTML = currentParsedItems.map((item, idx) => {
+      const foodEmojis = ['🍱', '🍖', '🥗', '🥙', '🍳', '🥩'];
+      const emoji = foodEmojis[idx % foodEmojis.length];
+      return `
+        <div class="item-breakdown-card">
+          <div class="item-card-header">
+            <div class="item-title-box">
+              <span class="item-emoji">${emoji}</span>
+              <h4 class="item-name">${item.name || 'Taom'}</h4>
+            </div>
+            <span class="item-cal-badge">🔥 ${Math.round(item.calories)} kcal</span>
+          </div>
+          
+          <div class="item-macros-row">
+            <div class="m-pill m-protein">
+              <span class="m-lbl">Oqsil</span>
+              <strong>${item.protein_g || 0}g</strong>
+            </div>
+            <div class="m-pill m-carbs">
+              <span class="m-lbl">Uglevod</span>
+              <strong>${item.carbs_g || 0}g</strong>
+            </div>
+            <div class="m-pill m-fat">
+              <span class="m-lbl">Yog'</span>
+              <strong>${item.fat_g || 0}g</strong>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
   } else {
     itemsContainer.innerHTML = `
       <div class="item-breakdown-card">
-        <h4>Taom</h4>
-        <p>${totalCal} kcal &nbsp;|&nbsp; Oqsil: ${totalProtein}g &nbsp;|&nbsp; Uglevod: ${totalCarbs}g &nbsp;|&nbsp; Yog': ${totalFat}g</p>
+        <div class="item-card-header">
+          <div class="item-title-box">
+            <span class="item-emoji">🍱</span>
+            <h4 class="item-name">Taom</h4>
+          </div>
+          <span class="item-cal-badge">🔥 ${totalCal} kcal</span>
+        </div>
+        
+        <div class="item-macros-row">
+          <div class="m-pill m-protein">
+            <span class="m-lbl">Oqsil</span>
+            <strong>${totalProtein}g</strong>
+          </div>
+          <div class="m-pill m-carbs">
+            <span class="m-lbl">Uglevod</span>
+            <strong>${totalCarbs}g</strong>
+          </div>
+          <div class="m-pill m-fat">
+            <span class="m-lbl">Yog'</span>
+            <strong>${totalFat}g</strong>
+          </div>
+        </div>
       </div>
     `;
   }
