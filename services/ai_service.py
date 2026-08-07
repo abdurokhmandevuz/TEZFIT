@@ -51,16 +51,16 @@ Respond ONLY with clean valid JSON matching this exact schema:
   "total_calories": 0
 }"""
 
-DRINK_VISION_PROMPT = """You are an expert AI Food Safety Specialist, Halal Nutritionist, and Computer Vision Beverage Analyst.
-Analyze the provided image of a drink, water bottle, juice, soda, energy drink, or beverage container carefully.
+DRINK_VISION_PROMPT = """You are an expert AI Food Safety Specialist, Halal Certification Analyst, and Nutritionist.
+Analyze the provided image of a drink or water bottle carefully.
 
 Determine:
-1. Exact brand and drink name in Uzbek (e.g., Chortoq mineral suvi, Coca-Cola Zero, Cappy Apelsin sharbati, Red Bull, Nestle Pure Life, etc.).
+1. Brand and drink name in Uzbek (e.g., Pepsi 0.33L, Chortoq 0.5L, Cappy Apelsin, etc.).
 2. Total calories (calories in kcal per container/portion).
 3. Sugar content in grams (sugar_g) and sugar risk level ("Juda past", "Me'yorda", "Yuqori", "Juda yuqori (Zararli)").
-4. Halal status ("Halol", "Shubhali", or "Harom/Tavsiya etilmaydi") and brief reason in Uzbek (e.g., "🟢 Halol — Harom moddalar va E-qo'shimchalar aniqlanmadi").
-5. Health assessment in Uzbek (Zararsizligi yoki zarari, masalan: "✅ Sog'liq uchun bezarar, gidratatsiya beradi" yoki "⚠️ Shakar miqdori yuqori, me'yordan oshirmang").
-6. Detailed nutritional explanation in Uzbek.
+4. Halal Certificate status ("Halol Sertifikati Mavjud", "Halol Tarkib", or "Halol Sertifikati Yo'q/Shubhali") and brief reason in Uzbek (e.g., "🟢 Halol Sertifikati Mavjud va Tarkibi Halol").
+5. Health assessment in Uzbek (VERY CONCISE, max 12 words, e.g., "⚠️ Shakar miqdori yuqori, me'yordan oshirmang").
+6. Short details in Uzbek (VERY SHORT: max 15 words summary!).
 7. Estimated volume in ml (volume_ml).
 
 Respond ONLY with clean valid JSON matching this exact schema:
@@ -70,9 +70,9 @@ Respond ONLY with clean valid JSON matching this exact schema:
   "sugar_g": 0.0,
   "sugar_level": "<Sugar level in Uzbek>",
   "is_halal": true,
-  "halal_status": "<Halal status string in Uzbek>",
-  "health_assessment": "<Health impact summary in Uzbek>",
-  "details": "<Full detailed explanation in Uzbek>",
+  "halal_status": "<Halal Certificate status string in Uzbek>",
+  "health_assessment": "<Very short 1-sentence health impact in Uzbek>",
+  "details": "<Very short 1-sentence summary in Uzbek>",
   "volume_ml": 500
 }"""
 

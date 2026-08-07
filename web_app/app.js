@@ -2184,8 +2184,9 @@ function showDrinkAnalysisResult(data) {
   
   const halalBadge = document.getElementById('drink-halal-badge');
   if (halalBadge) {
-    halalBadge.textContent = data.halal_status || (data.is_halal ? '🟢 Halol — Harom moddalar aniqlanmadi' : '⚠️ Shubhali');
-    if (data.is_halal) {
+    const isHalalCert = data.is_halal !== false;
+    halalBadge.textContent = data.halal_status || (isHalalCert ? '🟢 Halol Sertifikati Mavjud' : '🟡 Halol Sertifikati Shubhali');
+    if (isHalalCert) {
       halalBadge.style.background = 'rgba(34,197,94,0.15)';
       halalBadge.style.color = '#22c55e';
     } else {
@@ -2195,7 +2196,12 @@ function showDrinkAnalysisResult(data) {
   }
 
   document.getElementById('drink-res-health').textContent = data.health_assessment || '';
-  document.getElementById('drink-res-details').textContent = data.details || '';
+  
+  let det = data.details || '';
+  if (det.length > 120) {
+    det = det.substring(0, 115) + '...';
+  }
+  document.getElementById('drink-res-details').textContent = det;
 
   document.getElementById('drink-result-sheet').style.display = 'block';
 }
