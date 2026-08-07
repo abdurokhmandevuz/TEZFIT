@@ -577,32 +577,24 @@
         <button class="btn-share-report" onclick="shareWeeklyReport()">📤 Haftalik Hisobotni Ulashish</button>
       </section>
 
-      <!-- TAB 3: AI CHAT + FAVORITES -->
+      <!-- TAB 3: AI MASLAHATCHI -->
       <section class="tab-page" id="page-meals">
-        <h2 class="section-heading font-heading" style="font-size:26px; margin-bottom:16px;">AI & Sevimlilar</h2>
-
-        <!-- Tab Switcher -->
-        <div class="diet-tab-capsule">
-          <button class="diet-tab-btn active" id="tab-ai-chat" onclick="switchMealsSubTab('ai')">🤖 AI Maslahatchi</button>
-          <button class="diet-tab-btn" id="tab-favs" onclick="switchMealsSubTab('favs')">📋 Sevimlilar</button>
+        <div class="ai-advisor-hero">
+          <div class="ai-advisor-icon">🤖</div>
+          <div>
+            <h2 class="section-heading font-heading">AI Maslahatchi</h2>
+            <p>Oziqlanish, kaloriya va salomatlik bo'yicha shaxsiy yordamchingiz</p>
+          </div>
         </div>
 
         <!-- AI Chat Section -->
         <div id="ai-chat-section">
           <div class="ai-chat-container" id="ai-chat-messages">
-            <div class="ai-chat-bubble ai-bubble">Salom! Men TezFIT AI maslahatchi. Ovqatlanish haqida savolingiz bormi? 🍏</div>
+            <div class="ai-chat-bubble ai-bubble">Salom! Men TezFIT AI maslahatchiman. Sizga qanday yordam bera olaman? 🍏</div>
           </div>
           <div class="ai-chat-input-row">
-            <input type="text" id="ai-chat-input" class="input-figma" placeholder="Bugun nima yesam bo'ladi?..." onkeydown="if(event.key==='Enter')sendAIChat()">
+            <input type="text" id="ai-chat-input" class="input-figma" placeholder="Savolingizni yozing..." onkeydown="if(event.key==='Enter')sendAIChat()">
             <button class="btn-send-chat" onclick="sendAIChat()">➤</button>
-          </div>
-          <p class="ai-premium-note" id="ai-premium-note" style="display:none;">🔒 AI Maslahatchi faqat Premium uchun</p>
-        </div>
-
-        <!-- Favorites Section (hidden by default) -->
-        <div id="favs-section" style="display:none;">
-          <div class="favorites-list" id="favorites-list">
-            <p class="empty-text">Hali sevimli taom yo'q</p>
           </div>
         </div>
       </section>
@@ -725,10 +717,10 @@
             <img src="assets/dock_scan.png" alt="AI Kamera" class="dock-icon-img center-icon-img">
           </div>
         </button>
-        <!-- 4. Diet Plan -->
+        <!-- 4. AI Maslahatchi -->
         <button class="dock-item" id="nav-meals" onclick="switchTab('meals')">
           <div class="dock-icon-circle">
-            <img src="assets/dock_meals.png" alt="Rejimlar" class="dock-icon-img">
+            <img src="assets/dock_ai.png" alt="AI Maslahatchi" class="dock-icon-img" style="border-radius: 6px;">
           </div>
         </button>
         <!-- 5. Settings / Profile -->
@@ -1424,7 +1416,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=3.0.3"></script>
+  <script src="app.js?v=3.0.4"></script>
 </body>
 </html>
 
