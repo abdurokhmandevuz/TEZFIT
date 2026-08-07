@@ -1,3 +1,10 @@
+import base64
+from datetime import datetime, date as date_cls
+from sqlalchemy import select, and_
+from database.models import Meal
+from aiogram.types import BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton
+from bot import bot
+
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, Optional, List
@@ -40,8 +47,15 @@ class ProfileUpdateRequest(BaseModel):
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
 
+class SubmitReceiptRequest(BaseModel):
+    initData: str = ""
+    plan_type: str = "monthly"
+    amount_som: float = 29000
+    receipt_b64: str = ""
+
+
 @router.get("/dashboard")
-async def get_dashboard_data(initData: str = ""):
+async def get_dashboard_data(initData: str = "", date: Optional[str] = None):
     user_data = verify_telegram_web_app_data(initData)
     telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
 
@@ -63,7 +77,22 @@ async def get_dashboard_data(initData: str = ""):
 
         today_stats = await MealService.get_today_stats(session, user.id)
         weekly_stats = await MealService.get_weekly_stats(session, user.id)
-        today_meals = await MealService.get_today_meals(session, user.id)
+
+        if date:
+            try:
+                t_date = date_cls.fromisoformat(date)
+                day_start = datetime.combine(t_date, datetime.min.time())
+                day_end = datetime.combine(t_date, datetime.max.time())
+                stmt = select(Meal).where(
+                    and_(Meal.user_id == user.id, Meal.created_at >= day_start, Meal.created_at <= day_end)
+                ).order_by(Meal.created_at.desc())
+                res = await session.execute(stmt)
+                today_meals = list(res.scalars().all())
+            except Exception:
+                today_meals = await MealService.get_today_meals(session, user.id)
+        else:
+            today_meals = await MealService.get_today_meals(session, user.id)
+
         badges = await GamificationService.get_user_badges(session, user.id)
 
         meals_list = []
@@ -225,4 +254,60 @@ async def update_goals(body: GoalUpdateRequest):
         "status": "success",
         "daily_goal_kcal": user.daily_goal_kcal,
         "weight_kg": user.weight_kg
+    }
+
+@router.post("/submit-receipt")
+async def submit_receipt(body: SubmitReceiptRequest):
+    user_data = verify_telegram_web_app_data(body.initData)
+    telegram_id = user_data["id"] if user_data and "id" in user_data else 123456789
+
+    async with AsyncSessionLocal() as session:
+        user = await UserService.get_or_create_user(session, telegram_id)
+
+    plan_label = "Oylik Premium (29,000 so'm)" if body.plan_type == "monthly" else "Yillik Premium (299,000 so'm)"
+    
+    admin_msg = (
+        f"💳 **YANGI PREMIUM TO'LOV CHEKI KELDI!**\n\n"
+        f"👤 **Foydalanuvchi:** {user.name or user.first_name} (`{user.telegram_id}`)\n"
+        f"📞 **Aloqa:** {getattr(user, 'phone_number', None) or 'Mavjud emas'}\n"
+        f"📦 **Rejim:** {plan_label}\n"
+        f"💰 **Summa:** {int(body.amount_som):,} so'm\n"
+        f"⏰ **Vaqt:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+        f"Quyidagi tugmalar orqali tasdiqlang yoki rad eting:"
+    )
+    
+    approve_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ VIP Berish", callback_data=f"approve_vip_{user.telegram_id}_{body.plan_type}"),
+                InlineKeyboardButton(text="❌ Rad Etish", callback_data=f"reject_vip_{user.telegram_id}")
+            ]
+        ]
+    )
+
+    try:
+        if body.receipt_b64 and "," in body.receipt_b64:
+            header, img_str = body.receipt_b64.split(",", 1)
+            img_data = base64.b64decode(img_str)
+            photo_file = BufferedInputFile(img_data, filename=f"receipt_{user.telegram_id}.jpg")
+            await bot.send_photo(
+                chat_id=7225597812,
+                photo=photo_file,
+                caption=admin_msg,
+                parse_mode="Markdown",
+                reply_markup=approve_kb
+            )
+        else:
+            await bot.send_message(
+                chat_id=7225597812,
+                text=admin_msg,
+                parse_mode="Markdown",
+                reply_markup=approve_kb
+            )
+    except Exception as e:
+        print("Admin notification error:", e)
+
+    return {
+        "status": "success",
+        "message": "To'lov cheki adminga muvaffaqiyatli yuborildi!"
     }
