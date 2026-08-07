@@ -1207,17 +1207,6 @@ function closeLiveCamera() {
   }
 }
 
-function captureLiveVideoFrame() {
-  const video = document.getElementById('live-video-feed');
-  const canvas = document.getElementById('camera-snapshot-canvas');
-  if (!video || !canvas) return;
-
-  canvas.width = video.videoWidth || 640;
-  canvas.height = video.videoHeight || 480;
-
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
 let currentScanMode = 'food';
 
 function captureLiveVideoFrame() {
