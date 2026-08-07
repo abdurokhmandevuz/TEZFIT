@@ -591,12 +591,11 @@ async def ai_chat(body: AIChatRequest):
     async with AsyncSessionLocal() as session:
         user = await UserService.get_or_create_user(session, telegram_id)
         today_stats = await MealService.get_today_stats(session, user.id)
-        advisor_prompt = (
-            f"Foydalanuvchi: vazni {user.weight_kg} kg, bo'yi {user.height_cm} sm, "
-            f"yoshi {user.age}, jinsi {user.gender}, maqsadi {getattr(user, 'goal_type', 'maintain')}. "
-            f"Bugun {round(today_stats['total_calories'])} / {round(user.daily_goal_kcal)} kcal iste'mol qilgan. "
-            f"Savol: {message}"
+        user_context = (
+            f"[Foydalanuvchi ma'lumotlari: vazni {user.weight_kg} kg, bo'yi {user.height_cm} sm, "
+            f"yoshi {user.age}, bugungi kaloriya: {round(today_stats['total_calories'])}/{round(user.daily_goal_kcal)} kcal]"
         )
+        advisor_prompt = f"{message}\n\n{user_context}"
 
     reply = await AIService.chat_advisor(advisor_prompt)
     return {"status": "success", "reply": reply}
