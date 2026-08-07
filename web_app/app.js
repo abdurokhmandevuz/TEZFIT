@@ -164,6 +164,7 @@ function setupSwipeWheelPickers() {
 
     let startX = 0;
     let isDragging = false;
+    let lastStepTime = 0;
 
     // Touch events
     el.addEventListener('touchstart', (e) => {
@@ -175,14 +176,16 @@ function setupSwipeWheelPickers() {
       if (!isDragging) return;
       const currentX = e.touches[0].clientX;
       const diff = currentX - startX;
+      const now = Date.now();
 
-      if (Math.abs(diff) > 20) {
+      if (Math.abs(diff) > 45 && (now - lastStepTime > 120)) {
         if (diff > 0) {
           stepPicker(p.type, -1); // Dragged right -> decrease value (e.g. 70 -> 69)
         } else {
           stepPicker(p.type, 1);  // Dragged left -> increase value (e.g. 70 -> 71)
         }
         startX = currentX;
+        lastStepTime = now;
       }
     }, { passive: true });
 
@@ -198,14 +201,16 @@ function setupSwipeWheelPickers() {
       if (!isDragging) return;
       const currentX = e.clientX;
       const diff = currentX - startX;
+      const now = Date.now();
 
-      if (Math.abs(diff) > 20) {
+      if (Math.abs(diff) > 45 && (now - lastStepTime > 120)) {
         if (diff > 0) {
           stepPicker(p.type, -1);
         } else {
           stepPicker(p.type, 1);
         }
         startX = currentX;
+        lastStepTime = now;
       }
     });
 
@@ -214,10 +219,14 @@ function setupSwipeWheelPickers() {
     // Wheel mouse scroll event
     el.addEventListener('wheel', (e) => {
       e.preventDefault();
-      if (e.deltaY > 0) {
-        stepPicker(p.type, -1);
-      } else {
-        stepPicker(p.type, 1);
+      const now = Date.now();
+      if (now - lastStepTime > 100) {
+        if (e.deltaY > 0) {
+          stepPicker(p.type, -1);
+        } else {
+          stepPicker(p.type, 1);
+        }
+        lastStepTime = now;
       }
     }, { passive: false });
   });

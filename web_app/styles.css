@@ -284,6 +284,16 @@ body {
 .wheel-sub-val:active, .w-sub:active {
   transform: scale(0.95);
 }
+/* Hide HTML5 number input spinner arrows */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 .wheel-large-input, .w-large-input {
   width: 140px;
   padding: 16px;
@@ -296,6 +306,8 @@ body {
   color: #ffffff;
   outline: none;
   box-shadow: 0 0 25px rgba(255, 107, 74, 0.25);
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
 }
 
 .unit-capsule-toggle {

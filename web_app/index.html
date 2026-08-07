@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web_app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="styles.css?v=2.5.3">
+  <link rel="stylesheet" href="styles.css?v=2.5.4">
 </head>
 <body>
 
@@ -61,14 +61,14 @@
       <div class="wizard-body">
         <h2 class="wizard-title">Jinsingizni tanlang</h2>
         <div class="gender-cards-grid">
-          <button class="gender-btn-figma" id="gender-male" onclick="selectGender('Male')">Male (Erkak)</button>
-          <button class="gender-btn-figma" id="gender-female" onclick="selectGender('Female')">Female (Ayol)</button>
+          <button class="gender-btn-figma" id="gender-male" onclick="selectGender('Male')">Erkak ♂️</button>
+          <button class="gender-btn-figma" id="gender-female" onclick="selectGender('Female')">Ayol ♀️</button>
         </div>
       </div>
 
       <div class="wizard-bottom-actions">
-        <button class="btn-orange-full" id="btn-next-gender" onclick="nextSlide(3)">Next</button>
-        <button class="btn-ghost-full" onclick="selectGender('Male'); nextSlide(3);">Prefer not to say</button>
+        <button class="btn-orange-full" id="btn-next-gender" onclick="nextSlide(3)">Keyingisi</button>
+        <button class="btn-ghost-full" onclick="selectGender('Male'); nextSlide(3);">Ko'rsatishni xohlamayman</button>
       </div>
     </div>
 
@@ -100,7 +100,7 @@
       </div>
 
       <div class="wizard-bottom-actions">
-        <button class="btn-orange-full" onclick="nextSlide(4)">Next</button>
+        <button class="btn-orange-full" onclick="nextSlide(4)">Keyingisi</button>
       </div>
     </div>
 
@@ -132,7 +132,7 @@
       </div>
 
       <div class="wizard-bottom-actions">
-        <button class="btn-orange-full" onclick="nextSlide(5)">Next</button>
+        <button class="btn-orange-full" onclick="nextSlide(5)">Keyingisi</button>
       </div>
     </div>
 
@@ -164,8 +164,8 @@
       </div>
 
       <div class="wizard-bottom-actions">
-        <button class="btn-orange-full" onclick="nextSlide(6)">Next</button>
-        <button class="btn-ghost-full" onclick="nextSlide(6)">I don't have a target weight</button>
+        <button class="btn-orange-full" onclick="nextSlide(6)">Keyingisi</button>
+        <button class="btn-ghost-full" onclick="nextSlide(6)">Maqsadli vaznim yo'q</button>
       </div>
     </div>
 
@@ -186,8 +186,8 @@
           <div class="activity-card-item active" id="act-sedentary" onclick="selectActivity('Sedentary')">
             <span class="act-emoji">🧘</span>
             <div class="act-info">
-              <strong>Sedentary</strong>
-              <small>Little or no exercise</small>
+              <strong>Kamtashvish (kam harakat)</strong>
+              <small>Deyarli mashg'ulot yoki harakat yo'q</small>
             </div>
             <div class="radio-circle"></div>
           </div>
@@ -195,8 +195,8 @@
           <div class="activity-card-item" id="act-lightly" onclick="selectActivity('Lightly active')">
             <span class="act-emoji">🏃</span>
             <div class="act-info">
-              <strong>Lightly active</strong>
-              <small>1-3 days/week exercise</small>
+              <strong>Biroz faol</strong>
+              <small>Haftada 1-3 kun yengil mashqlar</small>
             </div>
             <div class="radio-circle"></div>
           </div>
@@ -204,8 +204,8 @@
           <div class="activity-card-item" id="act-moderately" onclick="selectActivity('Moderately active')">
             <span class="act-emoji">🏃‍♂️</span>
             <div class="act-info">
-              <strong>Moderately active</strong>
-              <small>3-5 days/week exercise</small>
+              <strong>O'rtacha faol</strong>
+              <small>Haftada 3-5 kun faol sport</small>
             </div>
             <div class="radio-circle"></div>
           </div>
@@ -213,8 +213,8 @@
           <div class="activity-card-item" id="act-very" onclick="selectActivity('Very active')">
             <span class="act-emoji">🚴</span>
             <div class="act-info">
-              <strong>Very active</strong>
-              <small>6-7 days/week exercise</small>
+              <strong>Juda faol</strong>
+              <small>Haftada 6-7 kun intensiv mashqlar</small>
             </div>
             <div class="radio-circle"></div>
           </div>
@@ -222,8 +222,8 @@
           <div class="activity-card-item" id="act-athlete" onclick="selectActivity('Athlete mode')">
             <span class="act-emoji">🏋️‍♂️</span>
             <div class="act-info">
-              <strong>Athlete mode</strong>
-              <small>Intense daily training</small>
+              <strong>Sportchi rejimi</strong>
+              <small>Har kuni og'ir mashg'ulotlar</small>
             </div>
             <div class="radio-circle"></div>
           </div>
@@ -231,7 +231,7 @@
       </div>
 
       <div class="wizard-bottom-actions">
-        <button class="btn-orange-full" onclick="nextSlide(7)">Next</button>
+        <button class="btn-orange-full" onclick="nextSlide(7)">Keyingisi</button>
       </div>
     </div>
 
@@ -246,43 +246,43 @@
       </div>
 
       <div class="wizard-body">
-        <h2 class="wizard-title">Do you have any diet preferences?</h2>
+        <h2 class="wizard-title">Parhez afzalliklaringiz bormi?</h2>
         
         <div class="diet-pref-circle-grid">
           <div class="diet-circle-item active" id="pref-none" onclick="selectDietPref('No preference')">
             <div class="circle-icon-wrapper">🍽️</div>
-            <strong>No preference</strong>
-            <small>Eat anything</small>
+            <strong>Farqi yo'q</strong>
+            <small>Har qanday taom</small>
           </div>
 
           <div class="diet-circle-item" id="pref-keto" onclick="selectDietPref('Keto')">
             <div class="circle-icon-wrapper">🥩</div>
             <strong>Keto</strong>
-            <small>Low-carb, high-fat diet</small>
+            <small>Past uglevodli, yuqori yog'li</small>
           </div>
 
           <div class="diet-circle-item" id="pref-vegetarian" onclick="selectDietPref('Vegetarian')">
             <div class="circle-icon-wrapper">🥗</div>
             <strong>Vegetarian</strong>
-            <small>No meat, only plants & dairy</small>
+            <small>Go'shtsiz, o'simlik va sut</small>
           </div>
 
           <div class="diet-circle-item" id="pref-vegan" onclick="selectDietPref('Vegan')">
             <div class="circle-icon-wrapper">🥦</div>
             <strong>Vegan</strong>
-            <small>100% plant-based diet</small>
+            <small>100% o'simlikka asoslangan</small>
           </div>
 
           <div class="diet-circle-item" id="pref-paleo" onclick="selectDietPref('Paleo')">
             <div class="circle-icon-wrapper">🍖</div>
             <strong>Paleo</strong>
-            <small>Whole foods, no processed food</small>
+            <small>Tabiiy mahsulotlar</small>
           </div>
         </div>
       </div>
 
       <div class="wizard-bottom-actions">
-        <button class="btn-orange-full" onclick="calculatePlanSummary(); nextSlide(8);">Next</button>
+        <button class="btn-orange-full" onclick="calculatePlanSummary(); nextSlide(8);">Keyingisi</button>
       </div>
     </div>
 
@@ -340,7 +340,7 @@
       </div>
 
       <div class="wizard-bottom-actions" style="margin-top:16px;">
-        <button class="btn-orange-full" onclick="finishOnboardingWithPlan()">Start your journey!</button>
+        <button class="btn-orange-full" onclick="finishOnboardingWithPlan()">Sayohatni boshlang! 🚀</button>
       </div>
     </div>
 
@@ -1003,6 +1003,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=2.5.3"></script>
+  <script src="app.js?v=2.5.4"></script>
 </body>
 </html>
