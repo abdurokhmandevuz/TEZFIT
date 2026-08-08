@@ -723,7 +723,7 @@
           </div>
         </button>
         <!-- 3. AI Camera / Scan (ELEVATED FLOATING CENTER BUTTON) -->
-        <button class="dock-item dock-item-center" id="nav-scan" onclick="triggerNativeCamera()">
+        <button class="dock-item dock-item-center" id="nav-scan" onclick="openCameraChoiceModal('food')">
           <div class="dock-icon-circle center-raised-circle">
             <img src="assets/dock_scan.png" alt="AI Kamera" class="dock-icon-img center-icon-img">
           </div>
@@ -1471,7 +1471,7 @@
 
   <input type="file" id="input-drink-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleDrinkFileSelected(event)">
 
-  <script src="app.js?v=3.1.5"></script>
+  <script src="app.js?v=3.1.8"></script>
 </body>
 </html>
 

@@ -1248,7 +1248,8 @@ function closeCameraChoiceModal() {
   document.getElementById('camera-choice-modal').style.display = 'none';
 }
 
-function triggerNativeCamera() {
+function triggerNativeCamera(mode = 'food') {
+  currentScanMode = mode || 'food';
   openLiveCameraStream();
 }
 
@@ -2137,6 +2138,8 @@ async function submitDrinkScanToAI(fileOrBlob) {
   } catch (err) {
     loadingEl.style.display = 'none';
     alert("⚠️ Internet yoki server bilan ulanishda xatolik yuz berdi.");
+  } finally {
+    currentScanMode = 'food';
   }
 }
 
